@@ -36,7 +36,6 @@ export default function LoginScreen() {
               아이디로 로그인
             </h1>
           </div>
-
           <div className="mb-5">
             <CustomInput
               label="아이디"
@@ -47,7 +46,6 @@ export default function LoginScreen() {
               error="아이디를 입력해주세요"
             />
           </div>
-
           <div className="mb-3">
             <CustomInput
               label="비밀번호"
@@ -73,7 +71,6 @@ export default function LoginScreen() {
               }
             />
           </div>
-
           <button
             type="button"
             onClick={() => setIsChecked((c) => !c)}
@@ -84,7 +81,6 @@ export default function LoginScreen() {
               로그인 상태 유지
             </span>
           </button>
-
           <div className="flex flex-col gap-3 mb-4">
             <CustomButton
               label="로그인"
@@ -99,7 +95,6 @@ export default function LoginScreen() {
               onClick={() => navigate("/auth/signup")}
             />
           </div>
-
           <div className="flex gap-4">
             <button className="text-sm text-[#5C5E5E] font-medium">아이디 찾기</button>
             <button className="text-sm text-[#5C5E5E] font-medium">비밀번호 찾기</button>
