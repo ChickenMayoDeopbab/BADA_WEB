@@ -2,7 +2,11 @@ import CustomButton from "@shared/ui/CustomButton";
 import { FaGoogle, FaApple } from "react-icons/fa6";
 import { SiNaver } from "react-icons/si";
 
-export default function Signup() {
+type SocialProps = {
+  setMode?: React.Dispatch<React.SetStateAction<string>>
+}
+
+export default function SocialLogin({setMode}: SocialProps) {
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen p-10">
       <div className="w-full">
@@ -17,7 +21,7 @@ export default function Signup() {
             <CustomButton label="구글로 계속할래요" icon={<FaGoogle size={20}/>} bgColor="#F2F4F6"/>
             <CustomButton label="네이버로 계속할래요" icon={<SiNaver />} bgColor="#03CF5D" color="white"/>
             <CustomButton label="Apple로 계속할래요" icon={<FaApple size={23}/>} bgColor="black" color="white"/>
-            <CustomButton label="아이디로 계속할래요" bgColor="#F8F8F8" />
+            <CustomButton label="아이디로 계속할래요" bgColor="#F8F8F8" onClick={() => setMode("id")}/>
           </div>
         </div>
       </div>

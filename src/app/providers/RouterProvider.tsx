@@ -1,4 +1,4 @@
-import Signup from '@pages/Signup'
+import Login from '@pages/Login'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 const router = createBrowserRouter([
@@ -7,8 +7,8 @@ const router = createBrowserRouter([
     element: <div>홈페이지</div>,
   },
   {
-    path: '/signup',
-    element: <Signup />
+    path: '/login',
+    element: <Login />
   }
 ])
 
