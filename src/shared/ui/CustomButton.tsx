@@ -10,7 +10,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export default function CustomButton({bgColor, icon, label, color, ...props}: ButtonProps) {
   return (
     <button 
-      className={`w-full h-[45px] rounded-lg flex items-center gap-3 justify-center`}
+      className={`w-full h-[45px] rounded-lg flex items-center gap-3 justify-center cursor-pointer`}
       style={{ backgroundColor: bgColor, color }} 
       {...props}
     >
