@@ -5,6 +5,7 @@ interface InputFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "p
   label?: string;
   variant?: "filled" | "standard" | "outlined";
   error?: string;
+  success?: string;
   rightIcon?: ReactNode;
 }
 
@@ -26,6 +27,7 @@ export default function CustomInput({
   label,
   variant = "standard",
   error = "",
+  success = "",
   rightIcon,
   onFocus,
   onBlur,
@@ -35,13 +37,14 @@ export default function CustomInput({
 }: InputFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
 
-  const isError = Boolean(error);
-
-  const borderColor = isError
+  const borderColor = error
     ? "border-[#FF0000]"
     : isFocused
       ? "border-[#0D0D0E]"
-      : "border-[#BDBEBE]";
+      : success
+        ? "border-[#09C357]"
+        : "border-[#BDBEBE]"
+
 
   const resolvedPlaceholder = isFocused
     ? ""
@@ -75,10 +78,11 @@ export default function CustomInput({
       </div>
 
       <p
-        className={`text-[#FF0000] transition-opacity duration-100 ${isError ? "opacity-100" : "opacity-0"}`}
+        className={`transition-opacity duration-100 ${error ? "opacity-100 text-[#FF0000]" : "opacity-0"} ${success ? "opacity-100 text-[#09C357]" : "opacity-0"}`}
         style={{ height: 16, marginTop: 4, fontSize: 12 }}
       >
         {error ?? " "}
+        {success ?? " "}
       </p>
     </div>
   );

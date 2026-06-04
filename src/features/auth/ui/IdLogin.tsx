@@ -77,7 +77,7 @@ export default function LoginScreen() {
             className="flex items-center gap-2 mb-5 text-sm"
           >
             {isChecked ? <FaCheckCircle size={23} color="#0AE365" /> : <FaRegCheckCircle size={23} color="#BDBEBE" />}
-            <span className={`${isChecked ? "text-[#0D0D0E]" : "text-[#BDBEBE]"} font-medium text-base`}>
+            <span className={`${isChecked ? "text-[#0D0D0E]" : "text-[#BDBEBE]"} font-medium text-base cursor-pointer`}>
               로그인 상태 유지
             </span>
           </button>
@@ -92,12 +92,12 @@ export default function LoginScreen() {
               label="회원가입"
               bgColor="#F8F8F8"
               color="#0D0D0E"
-              onClick={() => navigate("/auth/signup")}
+              onClick={() => navigate("/signup")}
             />
           </div>
           <div className="flex gap-4">
-            <button className="text-sm text-[#5C5E5E] font-medium">아이디 찾기</button>
-            <button className="text-sm text-[#5C5E5E] font-medium">비밀번호 찾기</button>
+            <button className="text-sm text-[#5C5E5E] font-medium cursor-pointer">아이디 찾기</button>
+            <button className="text-sm text-[#5C5E5E] font-medium cursor-pointer">비밀번호 찾기</button>
           </div>
         </div>
       </div>
