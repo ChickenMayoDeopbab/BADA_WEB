@@ -1,3 +1,4 @@
+export { useHomeDashboard } from './model/useHomeDashboard'
 export type {
   Attendance,
   DashboardMetrics,
