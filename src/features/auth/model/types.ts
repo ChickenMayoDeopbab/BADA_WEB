@@ -14,3 +14,5 @@ export type TokenResponse = {
   accessToken: string;
   refreshToken: string;
 };
+
+export type LoginMode = "social" | "id";

@@ -1,7 +1,9 @@
-import EmailStep from "@features/auth/ui/EmailStep";
-import PasswordStep from "@features/auth/ui/PasswordStep";
-import UsernameStep from "@features/auth/ui/UsernameStep";
-import { signup } from "@features/auth";
+import {
+  EmailStep,
+  PasswordStep,
+  UsernameStep,
+  signup,
+} from "@features/auth";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 

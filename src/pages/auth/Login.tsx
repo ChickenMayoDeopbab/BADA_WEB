@@ -1,6 +1,4 @@
-import IdLogin from "@features/auth/ui/IdLogin";
-import SocialLogin from "@features/auth/ui/SocialLogin";
-import type { LoginMode } from "@features/auth";
+import { IdLogin, SocialLogin, type LoginMode } from "@features/auth";
 import { useState } from "react"
 
 export default function Login() {
