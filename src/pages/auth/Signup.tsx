@@ -1,6 +1,7 @@
 import EmailStep from "@features/auth/ui/EmailStep";
 import PasswordStep from "@features/auth/ui/PasswordStep";
 import UsernameStep from "@features/auth/ui/UsernameStep";
+import { signup } from "@features/auth";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -9,10 +10,18 @@ export default function SignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSignup = async () => {
-    navigate("/welcome");
+    try {
+      setError("");
+      await signup({ username, password, email, name });
+      navigate("/login");
+    } catch (signupError) {
+      setError(signupError instanceof Error ? signupError.message : "회원가입에 실패했습니다.");
+    }
   };
 
   return (
@@ -30,6 +39,8 @@ export default function SignupScreen() {
 
           {step === 1 && (
             <UsernameStep
+              name={name}
+              setName={setName}
               username={username}
               setUsername={setUsername}
               onNext={() => setStep(2)}
@@ -53,6 +64,7 @@ export default function SignupScreen() {
               onNext={handleSignup}
             />
           )}
+          {error && <p className="mt-3 text-sm text-[#FF0000]">{error}</p>}
         </div>
       </div>
     </div>
