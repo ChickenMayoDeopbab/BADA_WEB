@@ -19,7 +19,10 @@ const requestAuth = async <T>(path: string, body: object): Promise<T> => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const result = (await response.json()) as ApiResponse<T>;
+  const responseText = await response.text();
+  const result = responseText
+    ? JSON.parse(responseText) as ApiResponse<T>
+    : { data: undefined as T };
 
   if (!response.ok || result.error) {
     throw new Error(result.error?.message || result.message || "요청에 실패했습니다.");

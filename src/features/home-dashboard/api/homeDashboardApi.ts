@@ -32,7 +32,10 @@ const requestHomeDashboard = async <T>(path: string, method = 'GET'): Promise<T>
     headers: { Authorization: `Bearer ${accessToken}` },
   })
   handleUnauthorizedResponse(response)
-  const result = (await response.json()) as ApiResponse<T>
+  const responseText = await response.text()
+  const result = responseText
+    ? JSON.parse(responseText) as ApiResponse<T>
+    : { data: undefined as T }
 
   if (!response.ok || result.error) {
     throw new Error(result.error?.message || result.message || '홈 정보를 불러오지 못했습니다.')

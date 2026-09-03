@@ -7,4 +7,5 @@ export const handleUnauthorizedResponse = (response: Response) => {
   sessionStorage.removeItem("badaAccessToken");
   sessionStorage.removeItem("badaRefreshToken");
   window.location.replace("/login");
+  throw new Error("로그인이 필요합니다.");
 };
