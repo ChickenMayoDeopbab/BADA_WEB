@@ -4,3 +4,13 @@ export type SignupRequest = {
   email: string;
   name: string;
 };
+
+export type LoginRequest = {
+  username: string;
+  password: string;
+};
+
+export type TokenResponse = {
+  accessToken: string;
+  refreshToken: string;
+};

@@ -4,6 +4,7 @@ import CustomInput from "@shared/ui/CustomInput";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import CustomButton from "@shared/ui/CustomButton";
 import { FaRegCheckCircle, FaCheckCircle } from "react-icons/fa";
+import { login } from "../api/authApi";
 
 interface LoginForm {
   username: string;
@@ -14,6 +15,8 @@ export default function LoginScreen() {
   const [form, setForm] = useState<LoginForm>({ username: "", password: "" });
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [hasAttemptedLogin, setHasAttemptedLogin] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (field: keyof LoginForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,7 +24,22 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    navigate("/");
+    setHasAttemptedLogin(true);
+
+    if (!form.username || !form.password) {
+      return;
+    }
+
+    try {
+      setError("");
+      const token = await login(form);
+      const storage = isChecked ? localStorage : sessionStorage;
+      storage.setItem("badaAccessToken", token.accessToken);
+      storage.setItem("badaRefreshToken", token.refreshToken);
+      navigate("/");
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "로그인에 실패했습니다.");
+    }
   };
 
   return (
@@ -43,7 +61,7 @@ export default function LoginScreen() {
               value={form.username}
               onChange={handleChange("username")}
               autoComplete="off"
-              error="아이디를 입력해주세요"
+              error={hasAttemptedLogin && !form.username ? "아이디를 입력해주세요" : ""}
             />
           </div>
           <div className="mb-3">
@@ -53,7 +71,7 @@ export default function LoginScreen() {
               value={form.password}
               onChange={handleChange("password")}
               autoComplete="off"
-              error="비밀번호를 입력해주세요"
+              error={hasAttemptedLogin && !form.password ? "비밀번호를 입력해주세요" : ""}
               type={isPasswordVisible ? "text" : "password"}
               rightIcon={
                 <button
@@ -95,6 +113,7 @@ export default function LoginScreen() {
               onClick={() => navigate("/signup")}
             />
           </div>
+          {error && <p className="mb-3 text-sm text-[#FF0000]">{error}</p>}
           <div className="flex gap-4">
             <button className="text-sm text-[#5C5E5E] font-medium cursor-pointer">아이디 찾기</button>
             <button className="text-sm text-[#5C5E5E] font-medium cursor-pointer">비밀번호 찾기</button>

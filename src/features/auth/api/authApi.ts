@@ -1,4 +1,4 @@
-import type { SignupRequest } from "../model/types";
+import type { LoginRequest, SignupRequest, TokenResponse } from "../model/types";
 
 const apiBaseUrl = "https://spring.chickenmayo.kr/api/v1/auth";
 
@@ -31,6 +31,10 @@ const requestAuth = async <T>(path: string, body: object): Promise<T> => {
 // 회원가입을 요청한다.
 export const signup = (signupRequest: SignupRequest) =>
   requestAuth<void>("/signup", signupRequest);
+
+// 아이디와 비밀번호로 로그인한다.
+export const login = (loginRequest: LoginRequest) =>
+  requestAuth<TokenResponse>("/login", loginRequest);
 
 // 아이디 중복 여부를 확인한다.
 export const checkUsername = (username: string) =>
