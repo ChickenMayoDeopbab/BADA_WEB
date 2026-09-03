@@ -1,9 +1,10 @@
 import CustomButton from "@shared/ui/CustomButton";
 import { FaGoogle, FaApple } from "react-icons/fa6";
 import { SiNaver } from "react-icons/si";
+import type { LoginMode } from "../model/types";
 
 type SocialProps = {
-  setMode?: React.Dispatch<React.SetStateAction<string>>
+  setMode: React.Dispatch<React.SetStateAction<LoginMode>>
 }
 
 export default function SocialLogin({setMode}: SocialProps) {
