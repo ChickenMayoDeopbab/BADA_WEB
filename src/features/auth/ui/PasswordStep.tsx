@@ -19,6 +19,14 @@ export default function PasswordStep({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+  const [hasAttemptedNext, setHasAttemptedNext] = useState(false);
+
+  // 비밀번호 입력값이 유효하고 서로 일치하면 다음 단계로 이동한다.
+  const handleNext = () => {
+    setHasAttemptedNext(true);
+
+    if (password && password === confirmPassword) onNext();
+  };
 
   return (
     <div>
@@ -28,7 +36,7 @@ export default function PasswordStep({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           type={isPasswordVisible ? "text" : "password"}
-          error="비밀번호를 입력해주세요"
+          error={hasAttemptedNext && !password ? "비밀번호를 입력해주세요" : ""}
           rightIcon={
             <button
               type="button"
@@ -47,7 +55,7 @@ export default function PasswordStep({
           onChange={(e) => setConfirmPassword(e.target.value)}
           type={isConfirmPasswordVisible ? "text" : "password"}
           placeholder="비밀번호를 다시 입력하세요."
-          error="비밀번호가 일치하지 않습니다"
+          error={hasAttemptedNext && password !== confirmPassword ? "비밀번호가 일치하지 않습니다" : ""}
           rightIcon={
             <button
               type="button"
@@ -65,7 +73,7 @@ export default function PasswordStep({
           label="다음으로"
           bgColor="#0AE365"
           color="#F6F6F6"
-          onClick={onNext}
+          onClick={handleNext}
         />
       </div>
 

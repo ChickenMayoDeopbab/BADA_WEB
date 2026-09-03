@@ -34,6 +34,10 @@ export default function LoginScreen() {
       setError("");
       const token = await login(form);
       const storage = isChecked ? localStorage : sessionStorage;
+      localStorage.removeItem("badaAccessToken");
+      localStorage.removeItem("badaRefreshToken");
+      sessionStorage.removeItem("badaAccessToken");
+      sessionStorage.removeItem("badaRefreshToken");
       storage.setItem("badaAccessToken", token.accessToken);
       storage.setItem("badaRefreshToken", token.refreshToken);
       navigate("/");

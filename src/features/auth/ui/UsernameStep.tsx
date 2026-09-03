@@ -22,6 +22,14 @@ export default function UsernameStep({
   const navigte = useNavigate();
   const [usernameMessage, setUsernameMessage] = useState("");
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
+  const [hasAttemptedNext, setHasAttemptedNext] = useState(false);
+
+  // 아이디 입력값을 변경하고 기존 중복 확인 결과를 초기화한다.
+  const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(event.target.value);
+    setIsUsernameAvailable(false);
+    setUsernameMessage("");
+  };
 
   // 아이디 중복 여부를 확인한다.
   const handleCheckUsername = async () => {
@@ -42,7 +50,19 @@ export default function UsernameStep({
 
   // 필수 입력값과 중복 확인 결과를 확인하고 다음 단계로 이동한다.
   const handleNext = () => {
-    if (name.trim() && username.trim() && isUsernameAvailable) onNext();
+    setHasAttemptedNext(true);
+
+    if (!username.trim()) {
+      setUsernameMessage("아이디를 입력해주세요.");
+      return;
+    }
+
+    if (!isUsernameAvailable) {
+      setUsernameMessage("아이디 중복 확인을 해주세요.");
+      return;
+    }
+
+    if (name.trim()) onNext();
   };
 
   return (
@@ -52,6 +72,7 @@ export default function UsernameStep({
           label="이름"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          error={hasAttemptedNext && !name.trim() ? "이름을 입력해주세요." : ""}
         />
       </div>
 
@@ -59,8 +80,7 @@ export default function UsernameStep({
           <CustomInput
             label="아이디"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            onInput={() => setIsUsernameAvailable(false)}
+            onChange={handleUsernameChange}
             error={!isUsernameAvailable ? usernameMessage : ""}
             success={isUsernameAvailable ? usernameMessage : ""}
           />
