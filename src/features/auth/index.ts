@@ -7,3 +7,4 @@ export {
 } from "./api/authApi";
 export type { LoginRequest, SignupRequest, TokenResponse } from "./model/types";
 export type { LoginMode } from "./ui/SocialLogin";
+export { default as ProtectedRoute } from "./ui/ProtectedRoute";
