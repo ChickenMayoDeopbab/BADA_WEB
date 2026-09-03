@@ -178,21 +178,16 @@ export default function HomeDashboard({
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <article className="flex min-h-[317px] flex-col gap-3.5 rounded-2xl bg-[#F8F8F8] px-4 py-[22px] md:px-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <button aria-label="이전 달 출석 기록 보기" className="flex h-7 w-7 items-center justify-center rounded-full text-[#5C5E5E] hover:bg-[#ECEDED]" onClick={onPreviousAttendanceMonth} type="button">
-                <IoChevronBack />
+          <div className="relative flex items-center justify-center">
+            <button aria-label="이전 달 출석 기록 보기" className="absolute left-0 flex h-7 w-7 items-center justify-center rounded-full text-[#006FCC] hover:bg-[#ECEDED]" onClick={onPreviousAttendanceMonth} type="button">
+              <IoChevronBack />
+            </button>
+            <h2 className="text-lg font-bold">{attendanceMonth}월</h2>
+            {!isCurrentAttendanceMonth && (
+              <button aria-label="다음 달 출석 기록 보기" className="absolute right-0 flex h-7 w-7 items-center justify-center rounded-full text-[#006FCC] hover:bg-[#ECEDED]" onClick={onNextAttendanceMonth} type="button">
+                <IoChevronForward />
               </button>
-              <h2 className="min-w-[92px] text-center text-lg font-bold">{attendanceYear}년 {attendanceMonth}월</h2>
-              {isCurrentAttendanceMonth ? (
-                <span className="h-7 w-7" />
-              ) : (
-                <button aria-label="다음 달 출석 기록 보기" className="flex h-7 w-7 items-center justify-center rounded-full text-[#5C5E5E] hover:bg-[#ECEDED]" onClick={onNextAttendanceMonth} type="button">
-                  <IoChevronForward />
-                </button>
-              )}
-            </div>
-            <span className="text-xs font-medium text-[#5C5E5E]">{attendance.length}일 출석했어요</span>
+            )}
           </div>
           <div className="grid grid-cols-7 justify-items-center text-xs font-medium">
             {['일', '월', '화', '수', '목', '금', '토'].map((day, index) => <span className={index === 0 ? 'text-[#E24B4A]' : index === 6 ? 'text-[#378ADD]' : 'text-[#5C5E5E]'} key={day}>{day}</span>)}
@@ -205,8 +200,8 @@ export default function HomeDashboard({
               const isAttended = attendedDates.has(dateKey)
 
               return date ? (
-              <span className={`flex h-7 w-7 items-center justify-center rounded-full ${isAttended ? 'bg-[#0AE365]' : 'bg-[#ECEDED]'}`} key={dateKey} title={`${date}일`}>
-                {isAttended && <IoCall className="text-sm text-white" />}
+              <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${isAttended ? 'bg-[#0AE365] text-white' : 'text-[#3D3F3F]'}`} key={dateKey} title={`${date}일`}>
+                {date}
               </span>
               ) : <span className="h-7 w-7" key={`empty-${index}`} />
             })}
