@@ -46,12 +46,22 @@ export const getTrainingPeriodDateRange = (
 }
 
 // 훈련 기록 조회 범위를 선택하는 캘린더 상태를 관리합니다.
-export const useTrainingRecordCalendar = () => {
-  const initialRange = getTrainingPeriodDateRange('daily')
+export const useTrainingRecordCalendar = (initialDate?: string) => {
+  const parsedDate = initialDate ? new Date(initialDate) : new Date()
+  const initialRange = getTrainingPeriodDateRange('daily', Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate)
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [visibleMonth, setVisibleMonth] = useState(getMonthStart(initialRange.start))
   const [appliedRange, setAppliedRange] = useState<TrainingRecordDateRange>(initialRange)
   const [draftRange, setDraftRange] = useState<TrainingRecordDateRange>(initialRange)
+  const [previousInitialDate, setPreviousInitialDate] = useState(initialDate)
+
+  if (previousInitialDate !== initialDate) {
+    setPreviousInitialDate(initialDate)
+    setAppliedRange(initialRange)
+    setDraftRange(initialRange)
+    setVisibleMonth(getMonthStart(initialRange.start))
+    setIsCalendarOpen(false)
+  }
 
   // 적용된 날짜 범위를 복사해 캘린더를 엽니다.
   const handleOpenCalendar = () => {

@@ -10,6 +10,7 @@ const SESSION_TYPE_LABELS: Record<TrainingSessionType, string> = {
 /** 최근 훈련 기록 한 줄에 표시할 문구를 만듭니다. */
 export const formatTrainingRecord = (record: TrainingRecordSummary) => ({
   id: record.recordId,
+  trainedAt: record.trainedAt,
   title: record.scenarioName,
   meta: `${SESSION_TYPE_LABELS[record.sessionType]} · ${formatDuration(record.durationSeconds)}`,
   date: formatMonthDay(new Date(record.trainedAt)),

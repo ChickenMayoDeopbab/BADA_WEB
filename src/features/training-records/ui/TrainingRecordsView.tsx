@@ -19,6 +19,7 @@ import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
 import { AudioPreview } from './AudioPreview'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
+import { useSearchParams } from 'react-router-dom'
 
 const formatSummaryDuration = (durationSeconds: number) => {
   const hours = Math.floor(durationSeconds / 3600)
@@ -366,6 +367,9 @@ const RecordDetailPanel = ({
 
 // 훈련 기록 목록과 상세 패널을 포함한 화면 본문을 표시합니다.
 export const TrainingRecordsView = () => {
+  const [searchParams] = useSearchParams()
+  const recordId = Number(searchParams.get('recordId'))
+  const initialRecordId = Number.isSafeInteger(recordId) && recordId > 0 ? recordId : undefined
   const {
     isCalendarOpen,
     visibleMonth,
@@ -378,7 +382,7 @@ export const TrainingRecordsView = () => {
     handleApplyPeriodRange,
     handlePreviousMonth,
     handleNextMonth,
-  } = useTrainingRecordCalendar()
+  } = useTrainingRecordCalendar(initialRecordId ? searchParams.get('trainedAt') ?? undefined : undefined)
   const {
     records,
     filteredRecords,
@@ -409,7 +413,7 @@ export const TrainingRecordsView = () => {
     handleToggleMenu,
     handleDeleteRecord,
     handleToggleAudio,
-  } = useTrainingRecords(appliedRange)
+  } = useTrainingRecords(appliedRange, initialRecordId)
 
   // 기간 탭과 오늘 기준 날짜 범위를 함께 변경합니다.
   const handleSelectPeriod = (nextPeriod: TrainingPeriod) => {
