@@ -1,4 +1,5 @@
 import Login from '@pages/auth/Login'
+import { TrainingRecordsPage } from '@pages/records'
 import Signup from '@pages/auth/Signup'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
   {
     path: '/signup',
     element: <Signup />
+  },
+  {
+    path: '/records',
+    element: <TrainingRecordsPage />,
   },
 ])
 
