@@ -1,5 +1,14 @@
 import type { TrainingPeriodOption, TrainingRecord } from './types'
 
+// 더미 기록을 현재 일별 조회에서 확인할 수 있도록 오늘 날짜를 표시합니다.
+const getTodayLabel = () => {
+  const today = new Date()
+
+  return `${today.getMonth() + 1}월 ${today.getDate()}일`
+}
+
+const todayLabel = getTodayLabel()
+
 export const trainingPeriodOptions: TrainingPeriodOption[] = [
   { id: 'daily', label: '일별', range: '8월 22일' },
   { id: 'weekly', label: '주별', range: '8월 16일~8월 22일' },
@@ -34,7 +43,7 @@ const pizzaFeedback = [
 export const dummyTrainingRecords: TrainingRecord[] = [
   {
     id: 'pizza-order-1',
-    date: '8월 16일',
+    date: todayLabel,
     title: '피자 주문하기',
     emoji: '🍕',
     duration: '3분 12초',
@@ -45,7 +54,7 @@ export const dummyTrainingRecords: TrainingRecord[] = [
   },
   {
     id: 'pizza-order-2',
-    date: '8월 16일',
+    date: todayLabel,
     title: '피자 주문하기',
     emoji: '🍕',
     duration: '3분 12초',
@@ -56,7 +65,7 @@ export const dummyTrainingRecords: TrainingRecord[] = [
   },
   {
     id: 'pizza-order-3',
-    date: '8월 16일',
+    date: todayLabel,
     title: '피자 주문하기',
     emoji: '🍕',
     duration: '3분 12초',
