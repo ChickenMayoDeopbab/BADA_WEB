@@ -7,40 +7,45 @@ import homeIcon from '@shared/assets/training-records/nav-home.svg'
 import logoutIcon from '@shared/assets/training-records/nav-logout.svg'
 import profileIcon from '@shared/assets/training-records/nav-profile.svg'
 import profileImage from '@shared/assets/training-records/profile.png'
+import { routePaths } from '@shared/config'
+import { NavLink } from 'react-router-dom'
 
 const primaryItems = [
-  { label: '대시보드', icon: homeIcon },
-  { label: '시나리오 훈련', icon: callIcon },
-  { label: '훈련 기록', icon: historyIcon, isActive: true },
-  { label: '커뮤니티', icon: communityIcon },
-  { label: '마이페이지', icon: profileIcon },
+  { label: '대시보드', icon: homeIcon, to: routePaths.dashboard, end: true },
+  { label: '시나리오 훈련', icon: callIcon, to: routePaths.training },
+  { label: '훈련 기록', icon: historyIcon, to: routePaths.records },
+  { label: '커뮤니티', icon: communityIcon, to: routePaths.community },
+  { label: '마이페이지', icon: profileIcon, to: routePaths.profile },
 ]
 
 const utilityItems = [
-  { label: '알림', icon: bellIcon },
-  { label: '로그아웃', icon: logoutIcon },
+  { label: '알림', icon: bellIcon, to: routePaths.notifications },
+  { label: '로그아웃', icon: logoutIcon, to: routePaths.landing, end: true },
 ]
 
 interface SidebarItemProps {
   label: string
   icon: string
-  isActive?: boolean
+  to: string
+  end?: boolean
 }
 
 // 사이드바 내비게이션 항목을 표시합니다.
-const SidebarItem = ({ label, icon, isActive = false }: SidebarItemProps) => (
-  <button
-    type="button"
-    className={`flex h-12 w-full items-center gap-2 rounded-lg px-2 text-left text-lg font-medium tracking-[-0.36px] transition-colors ${
-      isActive ? 'bg-[#e2fbe3] text-[#09c357]' : 'text-[#2f2f2f] hover:bg-[#f8f8f8]'
-    }`}
-    aria-current={isActive ? 'page' : undefined}
+const SidebarItem = ({ label, icon, to, end = false }: SidebarItemProps) => (
+  <NavLink
+    to={to}
+    end={end}
+    className={({ isActive }) =>
+      `flex h-12 w-full items-center gap-2 rounded-lg px-2 text-left text-lg font-medium tracking-[-0.36px] transition-colors ${
+        isActive ? 'bg-[#e2fbe3] text-[#09c357]' : 'text-[#2f2f2f] hover:bg-[#f8f8f8]'
+      }`
+    }
   >
     <span className="flex size-7 shrink-0 items-center justify-center">
       <img src={icon} alt="" />
     </span>
     <span>{label}</span>
-  </button>
+  </NavLink>
 )
 
 // 애플리케이션 공통 사이드바를 표시합니다.
