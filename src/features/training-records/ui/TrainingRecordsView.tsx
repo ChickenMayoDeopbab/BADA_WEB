@@ -270,8 +270,12 @@ export const TrainingRecordsView = () => {
     handleToggleAudio,
   } = useTrainingRecords()
 
+  // 선택된 기간에 맞는 요약 정보와 탭 인디케이터 위치를 계산합니다.
   const selectedPeriod =
     trainingPeriodOptions.find((periodOption) => periodOption.id === period) ?? trainingPeriodOptions[1]
+  const activePeriodIndex = trainingPeriodOptions.findIndex(
+    (periodOption) => periodOption.id === period,
+  )
 
   return (
     <main className="min-w-0 flex-1 overflow-hidden">
@@ -286,7 +290,11 @@ export const TrainingRecordsView = () => {
         </header>
 
         <div className="flex items-end justify-between">
-          <div className="flex items-center gap-[15px]" role="tablist" aria-label="훈련 기록 기간">
+          <div
+            className="relative flex items-center gap-[15px] pb-2"
+            role="tablist"
+            aria-label="훈련 기록 기간"
+          >
             {trainingPeriodOptions.map((periodOption) => {
               const isActive = periodOption.id === period
 
@@ -297,17 +305,20 @@ export const TrainingRecordsView = () => {
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => setPeriod(periodOption.id)}
-                  className={`flex flex-col items-center gap-1.5 text-2xl font-medium tracking-[-0.48px] ${
+                  className={`w-[42px] text-center text-2xl font-medium tracking-[-0.48px] transition-colors duration-[420ms] ease-out motion-reduce:transition-none ${
                     isActive ? 'text-[#09c357]' : 'text-[#b2b2b2]'
                   }`}
                 >
-                  <span>{periodOption.label}</span>
-                  <span className="h-0.5 w-full">
-                    {isActive && <img src={tabLineActive} alt="" />}
-                  </span>
+                  {periodOption.label}
                 </button>
               )
             })}
+            <img
+              className="pointer-events-none absolute bottom-0 left-0 max-w-none transition-transform duration-[420ms] ease-out motion-reduce:transition-none"
+              style={{ transform: `translateX(${activePeriodIndex * 57}px)` }}
+              src={tabLineActive}
+              alt=""
+            />
           </div>
 
           <label className="flex h-12 w-[300px] items-center justify-between overflow-hidden rounded-xl bg-[#e5e6e7] px-2.5">
