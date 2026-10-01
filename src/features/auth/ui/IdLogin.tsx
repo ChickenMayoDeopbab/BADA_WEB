@@ -4,6 +4,7 @@ import CustomInput from "@shared/ui/CustomInput";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import CustomButton from "@shared/ui/CustomButton";
 import { FaRegCheckCircle, FaCheckCircle } from "react-icons/fa";
+import { routePaths } from "@shared/config";
 
 interface LoginForm {
   username: string;
@@ -21,7 +22,7 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    navigate("/");
+    navigate(routePaths.dashboard);
   };
 
   return (
@@ -92,12 +93,24 @@ export default function LoginScreen() {
               label="회원가입"
               bgColor="#F8F8F8"
               color="#0D0D0E"
-              onClick={() => navigate("/signup")}
+              onClick={() => navigate(routePaths.signup)}
             />
           </div>
           <div className="flex gap-4">
-            <button className="text-sm text-[#5C5E5E] font-medium cursor-pointer">아이디 찾기</button>
-            <button className="text-sm text-[#5C5E5E] font-medium cursor-pointer">비밀번호 찾기</button>
+            <button
+              type="button"
+              onClick={() => navigate(routePaths.findId)}
+              className="text-sm text-[#5C5E5E] font-medium cursor-pointer"
+            >
+              아이디 찾기
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(routePaths.resetPassword)}
+              className="text-sm text-[#5C5E5E] font-medium cursor-pointer"
+            >
+              비밀번호 찾기
+            </button>
           </div>
         </div>
       </div>

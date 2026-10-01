@@ -1,6 +1,7 @@
 import EmailStep from "@features/auth/ui/EmailStep";
 import PasswordStep from "@features/auth/ui/PasswordStep";
 import UsernameStep from "@features/auth/ui/UsernameStep";
+import { routePaths } from "@shared/config";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +13,7 @@ export default function SignupScreen() {
   const navigate = useNavigate();
 
   const handleSignup = async () => {
-    navigate("/welcome");
+    navigate(routePaths.welcome);
   };
 
   return (
