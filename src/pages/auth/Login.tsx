@@ -1,15 +1,8 @@
-import IdLogin from "@features/auth/ui/IdLogin";
-import SocialLogin from "@features/auth/ui/SocialLogin";
-import { useState } from "react"
-
-type Mode = "social" | "id"
+import { IdLogin, SocialLogin, type LoginMode } from '@features/auth'
+import { useState } from 'react'
 
 export default function Login() {
-  const [mode, setMode] = useState<Mode>("social");
+  const [mode, setMode] = useState<LoginMode>('social')
 
-  return (
-    <div>
-      {mode === "social" ? <SocialLogin setMode={setMode}/> : <IdLogin />}
-    </div>
-  )
+  return <div>{mode === 'social' ? <SocialLogin setMode={setMode} /> : <IdLogin />}</div>
 }
