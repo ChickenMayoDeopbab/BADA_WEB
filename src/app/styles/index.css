@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@shared/design-system/theme.css";
 
 :root {
   font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
