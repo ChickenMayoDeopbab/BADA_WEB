@@ -1,8 +1,9 @@
-@import "tailwindcss";
-@import "@shared/design-system/theme.css";
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+@import 'tailwindcss';
+@import '@shared/design-system/theme.css';
 
 :root {
-  font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  font-family: 'Pretendard Variable', Pretendard, 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
   color: #0d0d0e;
   background: #f3f4f6;
   font-synthesis: none;

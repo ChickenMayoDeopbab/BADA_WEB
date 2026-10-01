@@ -1,5 +1,5 @@
 /** Bada에서 사용하는 기본 글꼴입니다. */
-export const FONT_FAMILY = 'Pretendard'
+export const FONT_FAMILY = 'Pretendard Variable'
 
 /** Bada 타이포그래피의 글꼴 굵기입니다. */
 export const FONT_WEIGHT = {

@@ -1,3 +1,4 @@
+import { clearAuthSession } from '@features/auth'
 import badaLogo from '@shared/assets/training-records/bada-logo.svg'
 import bellIcon from '@shared/assets/training-records/nav-bell.svg'
 import callIcon from '@shared/assets/training-records/nav-call.svg'
@@ -25,7 +26,13 @@ const utilityItems = [
     to: routePaths.notifications,
     hasNeutralActiveState: true,
   },
-  { label: '로그아웃', icon: logoutIcon, to: routePaths.landing, end: true },
+  {
+    label: '로그아웃',
+    icon: logoutIcon,
+    to: routePaths.landing,
+    end: true,
+    onClick: clearAuthSession,
+  },
 ]
 
 interface SidebarItemProps {
@@ -34,6 +41,7 @@ interface SidebarItemProps {
   to: string
   end?: boolean
   hasNeutralActiveState?: boolean
+  onClick?: () => void
 }
 
 interface SidebarIconProps {
@@ -64,10 +72,12 @@ const SidebarItem = ({
   to,
   end = false,
   hasNeutralActiveState = false,
+  onClick,
 }: SidebarItemProps) => (
   <NavLink
     to={to}
     end={end}
+    onClick={onClick}
     className={({ isActive }) =>
       `h-12 gap-2 px-2 flex w-full items-center rounded-control text-left text-headline2 font-medium transition-colors duration-200 ${
         isActive
