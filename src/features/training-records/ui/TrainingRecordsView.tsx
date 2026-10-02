@@ -345,7 +345,6 @@ const RecordDetailPanel = ({
 export const TrainingRecordsView = () => {
   const {
     isCalendarOpen,
-    isSelectingEnd,
     visibleMonth,
     appliedRange,
     draftRange,
@@ -511,14 +510,13 @@ export const TrainingRecordsView = () => {
 
       <TrainingRecordCalendar
         isOpen={isCalendarOpen}
-        isSelectingEnd={isSelectingEnd}
         visibleMonth={visibleMonth}
         range={draftRange}
         onCancel={handleCancelCalendar}
         onApply={handleApplyCalendar}
         onPreviousMonth={handlePreviousMonth}
         onNextMonth={handleNextMonth}
-        onSelectDate={handleSelectDate}
+        onSelectDate={(date) => handleSelectDate(date, period)}
       />
 
       {selectedRecord && (

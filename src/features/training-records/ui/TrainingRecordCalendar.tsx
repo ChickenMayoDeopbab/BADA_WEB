@@ -13,7 +13,6 @@ interface CalendarMonthProps {
 
 interface TrainingRecordCalendarProps {
   isOpen: boolean
-  isSelectingEnd: boolean
   visibleMonth: Date
   range: TrainingRecordDateRange
   onCancel: () => void
@@ -136,7 +135,6 @@ const CalendarMonth = ({
 // 한 달을 보며 훈련 기록 조회 범위를 선택하는 캘린더를 표시합니다.
 export const TrainingRecordCalendar = ({
   isOpen,
-  isSelectingEnd,
   visibleMonth,
   range,
   onCancel,
@@ -165,9 +163,7 @@ export const TrainingRecordCalendar = ({
       >
         <header className="px-7 py-5 border-b border-line-alternative">
           <div>
-            <p className="text-label font-medium text-label-alternative">
-              {isSelectingEnd ? '종료일을 선택해 주세요' : '조회 기간'}
-            </p>
+            <p className="text-label font-medium text-label-alternative">조회 기간</p>
             <h2 className="text-headline1 font-bold text-label-normal">
               {formatTrainingRecordDateRange(range)}
             </h2>
@@ -192,8 +188,7 @@ export const TrainingRecordCalendar = ({
           </button>
           <button
             type="button"
-            className="h-11 px-5 rounded-control bg-primary-normal text-body font-bold text-label-button-text transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-            disabled={isSelectingEnd}
+            className="h-11 px-5 rounded-control bg-primary-normal text-body font-bold text-label-button-text transition-opacity hover:opacity-90"
             onClick={onApply}
           >
             적용

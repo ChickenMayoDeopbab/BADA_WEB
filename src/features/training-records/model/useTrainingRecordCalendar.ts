@@ -27,7 +27,7 @@ const subtractOneMonth = (date: Date) => {
   )
 }
 
-// 기간 탭에 맞는 오늘 기준 날짜 범위를 계산합니다.
+// 기간 탭에 맞는 기준 날짜의 조회 범위를 계산합니다.
 export const getTrainingPeriodDateRange = (
   period: TrainingPeriod,
   baseDate = new Date(),
@@ -49,7 +49,6 @@ export const getTrainingPeriodDateRange = (
 export const useTrainingRecordCalendar = () => {
   const initialRange = getTrainingPeriodDateRange('daily')
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
-  const [isSelectingEnd, setIsSelectingEnd] = useState(false)
   const [visibleMonth, setVisibleMonth] = useState(getMonthStart(initialRange.start))
   const [appliedRange, setAppliedRange] = useState<TrainingRecordDateRange>(initialRange)
   const [draftRange, setDraftRange] = useState<TrainingRecordDateRange>(initialRange)
@@ -57,51 +56,34 @@ export const useTrainingRecordCalendar = () => {
   // 적용된 날짜 범위를 복사해 캘린더를 엽니다.
   const handleOpenCalendar = () => {
     setDraftRange(appliedRange)
-    setVisibleMonth(getMonthStart(appliedRange.start))
-    setIsSelectingEnd(false)
+    setVisibleMonth(getMonthStart(appliedRange.end))
     setIsCalendarOpen(true)
   }
 
   // 변경 중인 범위를 버리고 캘린더를 닫습니다.
   const handleCancelCalendar = () => {
     setDraftRange(appliedRange)
-    setIsSelectingEnd(false)
     setIsCalendarOpen(false)
   }
 
-  // 시작일과 종료일을 순서대로 선택합니다.
-  const handleSelectDate = (date: Date) => {
-    const selectedDate = normalizeDate(date)
-
-    if (!isSelectingEnd) {
-      setDraftRange({ start: selectedDate, end: selectedDate })
-      setIsSelectingEnd(true)
-      return
-    }
-
-    setDraftRange((currentRange) =>
-      selectedDate < currentRange.start
-        ? { start: selectedDate, end: currentRange.start }
-        : { start: currentRange.start, end: selectedDate },
-    )
-    setIsSelectingEnd(false)
+  // 선택한 날짜를 종료일로 삼아 현재 기간 탭에 맞는 조회 범위를 만듭니다.
+  const handleSelectDate = (date: Date, period: TrainingPeriod) => {
+    setDraftRange(getTrainingPeriodDateRange(period, date))
   }
 
   // 선택한 날짜 범위를 훈련 기록 조회 범위로 적용합니다.
   const handleApplyCalendar = () => {
     setAppliedRange(draftRange)
-    setIsSelectingEnd(false)
     setIsCalendarOpen(false)
   }
 
-  // 일별·주별·월별 탭에 맞는 오늘 기준 범위를 즉시 적용합니다.
+  // 일별·주별·월별 탭에 맞춰 현재 선택일 기준 범위를 즉시 적용합니다.
   const handleApplyPeriodRange = (period: TrainingPeriod) => {
-    const nextRange = getTrainingPeriodDateRange(period)
+    const nextRange = getTrainingPeriodDateRange(period, appliedRange.end)
 
     setAppliedRange(nextRange)
     setDraftRange(nextRange)
     setVisibleMonth(getMonthStart(nextRange.end))
-    setIsSelectingEnd(false)
     setIsCalendarOpen(false)
   }
 
@@ -128,7 +110,6 @@ export const useTrainingRecordCalendar = () => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setDraftRange(appliedRange)
-        setIsSelectingEnd(false)
         setIsCalendarOpen(false)
       }
     }
@@ -140,7 +121,6 @@ export const useTrainingRecordCalendar = () => {
 
   return {
     isCalendarOpen,
-    isSelectingEnd,
     visibleMonth,
     appliedRange,
     draftRange,
