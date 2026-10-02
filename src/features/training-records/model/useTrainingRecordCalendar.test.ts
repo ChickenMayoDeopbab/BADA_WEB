@@ -28,21 +28,36 @@ describe('useTrainingRecordCalendar', () => {
     })
   })
 
-  it('시작일과 종료일을 선택해 조회 범위로 적용한다', () => {
+  it('선택한 날짜 한 번으로 기간 탭에 맞는 조회 범위를 적용한다', () => {
     const { result } = renderHook(() => useTrainingRecordCalendar())
-    const year = new Date().getFullYear()
+    const selectedDate = new Date(2026, 8, 5)
 
     act(() => result.current.handleOpenCalendar())
-    act(() => result.current.handleSelectDate(new Date(year, 8, 5)))
-    act(() => result.current.handleSelectDate(new Date(year, 8, 2)))
+    act(() => result.current.handleSelectDate(selectedDate, 'daily'))
+    expect(result.current.draftRange).toEqual({ start: selectedDate, end: selectedDate })
 
-    expect(result.current.draftRange.start).toEqual(new Date(year, 8, 2))
-    expect(result.current.draftRange.end).toEqual(new Date(year, 8, 5))
+    act(() => result.current.handleSelectDate(selectedDate, 'weekly'))
+    expect(result.current.draftRange).toEqual({
+      start: new Date(2026, 7, 30),
+      end: selectedDate,
+    })
+
+    act(() => result.current.handleSelectDate(selectedDate, 'monthly'))
+    expect(result.current.draftRange).toEqual({
+      start: new Date(2026, 7, 5),
+      end: selectedDate,
+    })
 
     act(() => result.current.handleApplyCalendar())
 
     expect(result.current.appliedRange).toEqual(result.current.draftRange)
     expect(result.current.isCalendarOpen).toBe(false)
+
+    act(() => result.current.handleApplyPeriodRange('weekly'))
+    expect(result.current.appliedRange).toEqual({
+      start: new Date(2026, 7, 30),
+      end: selectedDate,
+    })
   })
 
   it('Escape 키를 누르면 변경한 범위를 취소한다', () => {
@@ -50,7 +65,7 @@ describe('useTrainingRecordCalendar', () => {
     const initialRange = result.current.appliedRange
 
     act(() => result.current.handleOpenCalendar())
-    act(() => result.current.handleSelectDate(new Date(new Date().getFullYear(), 9, 1)))
+    act(() => result.current.handleSelectDate(new Date(new Date().getFullYear(), 9, 1), 'daily'))
     act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
 
     expect(result.current.draftRange).toEqual(initialRange)
