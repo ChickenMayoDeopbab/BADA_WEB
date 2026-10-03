@@ -2,6 +2,14 @@ import { ServiceLayout } from '../layouts/ServiceLayout'
 import { RequireAuth } from '@features/auth'
 import Login from '@pages/auth/Login'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
+import {
+  ProfileEditPage,
+  ProfileLanguagePage,
+  ProfileNotificationsPage,
+  ProfileOverviewPage,
+  ProfilePhotoPage,
+  ProfileRingtonePage,
+} from '@pages/profile'
 import { TrainingRecordsPage } from '@pages/records'
 import Signup from '@pages/auth/Signup'
 import { routePaths } from '@shared/config'
@@ -68,27 +76,27 @@ const router = createBrowserRouter([
           },
           {
             path: routePaths.profile,
-            element: <ServicePlaceholderPage title="마이페이지 화면" />,
+            element: <ProfileOverviewPage />,
           },
           {
             path: routePaths.profileEdit,
-            element: <ServicePlaceholderPage title="프로필 수정 화면" />,
+            element: <ProfileEditPage />,
           },
           {
             path: routePaths.profilePhoto,
-            element: <ServicePlaceholderPage title="프로필 사진 변경 화면" />,
+            element: <ProfilePhotoPage />,
           },
           {
             path: routePaths.profileRingtone,
-            element: <ServicePlaceholderPage title="벨소리 설정 화면" />,
+            element: <ProfileRingtonePage />,
           },
           {
             path: routePaths.profileNotifications,
-            element: <ServicePlaceholderPage title="알림 설정 화면" />,
+            element: <ProfileNotificationsPage />,
           },
           {
             path: routePaths.profileLanguage,
-            element: <ServicePlaceholderPage title="언어 설정 화면" />,
+            element: <ProfileLanguagePage />,
           },
           {
             path: routePaths.profileDeleteAccount,

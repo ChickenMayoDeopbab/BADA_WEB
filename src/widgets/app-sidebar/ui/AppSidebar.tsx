@@ -95,7 +95,7 @@ const SidebarItem = ({
 
 // 애플리케이션 공통 사이드바를 표시합니다.
 export const AppSidebar = () => (
-  <aside className="top-4 pb-1 pt-7 sticky flex h-[calc(100vh-32px)] min-h-[720px] w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-[0_2px_16px_rgba(0,0,0,0.08)]">
+  <aside className="top-4 pb-1 pt-7 sticky flex h-[calc(100vh-32px)] min-h-[992px] w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-[0_2px_16px_rgba(0,0,0,0.08)]">
     <div className="gap-2.5 flex flex-col">
       <div className="py-5 flex items-center justify-center border-b border-line-alternative">
         <img src={badaLogo} alt="Bada" />
