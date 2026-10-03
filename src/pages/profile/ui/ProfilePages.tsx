@@ -184,21 +184,27 @@ export const ProfileOverviewPage = () => {
         <ul className="mt-6 space-y-3">
           {recentTrainings.map((training) => (
             <li
-              className="px-5 flex h-[92px] items-center justify-between rounded-component bg-fill-normal"
               key={training.recordId}
             >
-              <div>
-                <p className="text-body font-bold text-label-normal">{training.scenarioName}</p>
-                <p className="mt-2 text-[13px] text-label-alternative">
-                  {formatTrainingDate(training.trainedAt)} · {sessionTypeLabels[training.sessionType]}
-                </p>
-              </div>
-              <span className="gap-3 flex items-center">
-                <span className="h-8 w-28 flex items-center justify-center rounded-pill bg-primary-alternative text-[13px] font-bold text-primary-normal">
-                  완료
+              <Link
+                className="px-5 flex h-[92px] items-center justify-between rounded-component bg-fill-normal hover:bg-fill-pressed"
+                to={`${routePaths.records}?recordId=${training.recordId}`}
+                aria-label={`${training.scenarioName} 기록 보기`}
+              >
+                <div>
+                  <p className="text-body font-bold text-label-normal">{training.scenarioName}</p>
+                  <p className="mt-2 text-[13px] text-label-alternative">
+                    {formatTrainingDate(training.trainedAt)} ·{' '}
+                    {sessionTypeLabels[training.sessionType]}
+                  </p>
+                </div>
+                <span className="gap-3 flex items-center">
+                  <span className="h-8 w-28 flex items-center justify-center rounded-pill bg-primary-alternative text-[13px] font-bold text-primary-normal">
+                    완료
+                  </span>
+                  <FiChevronRight className="text-label-alternative" aria-hidden="true" />
                 </span>
-                <FiChevronRight className="text-label-alternative" aria-hidden="true" />
-              </span>
+              </Link>
             </li>
           ))}
           {!trainingQuery.isLoading && recentTrainings.length === 0 && (

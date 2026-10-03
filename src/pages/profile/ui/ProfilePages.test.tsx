@@ -17,7 +17,18 @@ vi.mock('../model/useProfile', () => ({
     isError: false,
   }),
   useProfileImage: () => ({ data: undefined }),
-  useRecentTrainings: () => ({ data: [], isError: false, isLoading: false }),
+  useRecentTrainings: () => ({
+    data: [
+      {
+        recordId: 37,
+        trainedAt: '2026-09-03T12:00:00',
+        scenarioName: '피자 배달',
+        sessionType: 'CUSTOM',
+      },
+    ],
+    isError: false,
+    isLoading: false,
+  }),
   useNotificationSettings: () => ({
     data: { trainingEnabled: true, communityEnabled: true, allEnabled: true },
     isError: false,
@@ -50,6 +61,23 @@ describe('Profile pages', () => {
     fireEvent.click(screen.getByRole('link', { name: '프로필 수정' }))
 
     expect(screen.getByRole('heading', { name: '프로필 수정', level: 1 })).toBeInTheDocument()
+  })
+
+  it('moves from a recent training to its record URL', () => {
+    render(
+      <MemoryRouter initialEntries={['/profile']}>
+        <Routes>
+          <Route path="/profile" element={<ProfileOverviewPage />} />
+          <Route path="/records" element={<h1>훈련 기록</h1>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    const recordLink = screen.getByRole('link', { name: '피자 배달 기록 보기' })
+    expect(recordLink).toHaveAttribute('href', '/records?recordId=37')
+
+    fireEvent.click(recordLink)
+    expect(screen.getByRole('heading', { name: '훈련 기록' })).toBeInTheDocument()
   })
 
   it('toggles each notification setting', () => {
