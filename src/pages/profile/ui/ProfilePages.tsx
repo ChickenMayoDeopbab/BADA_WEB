@@ -1,14 +1,33 @@
 import defaultProfileLarge from '@shared/assets/profile/default-profile-large.svg'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import { routePaths } from '@shared/config'
-import { type ButtonHTMLAttributes, type ChangeEvent, type ReactNode, useId, useState } from 'react'
+import {
+  useCheckUsername,
+  useMyPage,
+  useNotificationSettings,
+  useProfileImage,
+  useRecentTrainings,
+  useUpdateMyPage,
+  useUpdateNotificationSettings,
+  useUploadProfileImage,
+} from '../model/useProfile'
+import {
+  type ButtonHTMLAttributes,
+  type ChangeEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useState,
+} from 'react'
 import { FiChevronRight, FiPlay } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 
-const profile = {
+const fallbackProfile = {
   name: '변성우',
   username: 'b2ong222',
   email: 'bongchock45@gmail.com',
+  trainCount: 0,
+  levelName: '-',
 }
 
 interface PageFrameProps {
@@ -68,23 +87,71 @@ const quickSettings = [
   { title: '프로필 사진', value: '기본 이미지 사용 중', to: routePaths.profilePhoto },
 ]
 
-const recentTrainings = [
-  { title: '전화 응대 기본 훈련', meta: '2026.09.18 · 보통' },
-  { title: '컴플레인 대응 훈련', meta: '2026.09.12 · 어려움' },
-  { title: '예약 문의 응대', meta: '2026.09.05 · 쉬움' },
-]
+const formatTrainingDate = (date: string, includeYear = true) => {
+  const parsedDate = new Date(date)
+  if (Number.isNaN(parsedDate.getTime())) return '-'
 
-export const ProfileOverviewPage = () => (
-  <PageFrame title="프로필" description="계정 정보와 서비스 설정을 관리하세요.">
-    <div className="gap-4 grid max-w-[1024px] grid-cols-3">
+  const month = String(parsedDate.getMonth() + 1).padStart(2, '0')
+  const day = String(parsedDate.getDate()).padStart(2, '0')
+  return includeYear ? `${parsedDate.getFullYear()}.${month}.${day}` : `${month}.${day}`
+}
+
+const sessionTypeLabels = { SCENARIO: '시나리오', CUSTOM: '커스텀', WARMUP: '워밍업' } as const
+
+export const ProfileOverviewPage = () => {
+  const profileQuery = useMyPage()
+  const trainingQuery = useRecentTrainings()
+  const notificationQuery = useNotificationSettings()
+  const profileData = profileQuery.data ?? fallbackProfile
+  const recentTrainings = trainingQuery.data ?? []
+  const profileImageQuery = useProfileImage(profileQuery.data?.s3Key)
+
+  const summaryCards = [
+    ['총 훈련 횟수', `${profileData.trainCount}회`, '누적 완료한 훈련'],
+    [
+      '최근 훈련',
+      recentTrainings[0] ? formatTrainingDate(recentTrainings[0].trainedAt, false) : '-',
+      '마지막 훈련 날짜',
+    ],
+    ['현재 단계', profileData.levelName || '-', '진행 중인 단계'],
+  ]
+
+  const quickSettingsWithApiState = quickSettings.map((item) =>
+    item.title === '알림'
+      ? {
+          ...item,
+          value:
+            notificationQuery.data?.trainingEnabled || notificationQuery.data?.communityEnabled
+              ? '주요 알림 켜짐'
+              : '주요 알림 꺼짐',
+        }
+      : item.title === '프로필 사진'
+        ? { ...item, value: profileQuery.data?.s3Key ? '등록 이미지 사용 중' : '기본 이미지 사용 중' }
+        : item,
+  )
+
+  return (
+    <PageFrame title="프로필" description="계정 정보와 서비스 설정을 관리하세요.">
+      {(profileQuery.isError || trainingQuery.isError) && (
+        <p className="mb-4 text-label text-status-error" role="alert">
+          일부 프로필 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+        </p>
+      )}
+      <div className="gap-4 grid max-w-[1024px] grid-cols-3">
       <Card className="h-44 relative col-span-3">
         <div className="top-12 size-20 absolute left-[47px] flex items-center justify-center rounded-pill bg-fill-normal">
-          <img className="size-[54px]" src={defaultProfileSummary} alt="기본 프로필" />
+          <img
+            className="size-[54px] rounded-pill object-cover"
+            src={profileImageQuery.data ?? defaultProfileSummary}
+            alt={`${profileData.name} 프로필`}
+          />
         </div>
         <div className="absolute top-[34px] left-[167px] w-[350px]">
-          <h2 className="text-title2 font-bold text-label-normal">{profile.name}</h2>
-          <p className="mt-1 text-[15px] font-medium text-label-alternative">@{profile.username}</p>
-          <p className="mt-2 text-label text-label-alternative">{profile.email}</p>
+          <h2 className="text-title2 font-bold text-label-normal">{profileData.name}</h2>
+          <p className="mt-1 text-[15px] font-medium text-label-alternative">
+            @{profileData.username}
+          </p>
+          <p className="mt-2 text-label text-label-alternative">{profileData.email}</p>
         </div>
         <Link
           className="h-12 absolute top-[63px] left-[807px] flex w-[184px] items-center justify-center rounded-component bg-primary-normal text-body font-bold text-common-0"
@@ -94,11 +161,7 @@ export const ProfileOverviewPage = () => (
         </Link>
       </Card>
 
-      {[
-        ['총 훈련 횟수', '12회', '누적 완료한 훈련'],
-        ['최근 훈련', '09.18', '마지막 훈련 날짜'],
-        ['현재 단계', '기초 2', '진행 중인 단계'],
-      ].map(([label, value, note]) => (
+      {summaryCards.map(([label, value, note]) => (
         <Card className="h-32 p-6" key={label}>
           <p className="text-label font-medium text-label-alternative">{label}</p>
           <p className="mt-1 text-title2 font-bold text-label-normal">{value}</p>
@@ -122,11 +185,13 @@ export const ProfileOverviewPage = () => (
           {recentTrainings.map((training) => (
             <li
               className="px-5 flex h-[92px] items-center justify-between rounded-component bg-fill-normal"
-              key={training.title}
+              key={training.recordId}
             >
               <div>
-                <p className="text-body font-bold text-label-normal">{training.title}</p>
-                <p className="mt-2 text-[13px] text-label-alternative">{training.meta}</p>
+                <p className="text-body font-bold text-label-normal">{training.scenarioName}</p>
+                <p className="mt-2 text-[13px] text-label-alternative">
+                  {formatTrainingDate(training.trainedAt)} · {sessionTypeLabels[training.sessionType]}
+                </p>
               </div>
               <span className="gap-3 flex items-center">
                 <span className="h-8 w-28 flex items-center justify-center rounded-pill bg-primary-alternative text-[13px] font-bold text-primary-normal">
@@ -136,6 +201,11 @@ export const ProfileOverviewPage = () => (
               </span>
             </li>
           ))}
+          {!trainingQuery.isLoading && recentTrainings.length === 0 && (
+            <li className="h-[300px] flex items-center justify-center text-label text-label-alternative">
+              최근 훈련 기록이 없습니다.
+            </li>
+          )}
         </ul>
       </Card>
 
@@ -143,7 +213,7 @@ export const ProfileOverviewPage = () => (
         <h2 className="text-headline1 font-bold text-label-normal">빠른 설정</h2>
         <p className="mt-1 text-[13px] text-label-alternative">자주 사용하는 설정을 관리하세요.</p>
         <div className="mt-7 space-y-2">
-          {quickSettings.map((item) => (
+          {quickSettingsWithApiState.map((item) => (
             <Link
               className="px-4 flex h-[68px] items-center justify-between rounded-component bg-fill-normal hover:bg-fill-pressed"
               key={item.title}
@@ -158,9 +228,10 @@ export const ProfileOverviewPage = () => (
           ))}
         </div>
       </Card>
-    </div>
-  </PageFrame>
-)
+      </div>
+    </PageFrame>
+  )
+}
 
 interface FieldProps {
   label: string
@@ -181,19 +252,60 @@ const inputClass =
 
 export const ProfileEditPage = () => {
   const navigate = useNavigate()
-  const [name, setName] = useState(profile.name)
-  const [username, setUsername] = useState(profile.username)
+  const profileQuery = useMyPage()
+  const profileImageQuery = useProfileImage(profileQuery.data?.s3Key)
+  const updateProfile = useUpdateMyPage()
+  const checkUsername = useCheckUsername()
+  const [name, setName] = useState<string>()
+  const [username, setUsername] = useState<string>()
+  const [usernameMessage, setUsernameMessage] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const profileData = profileQuery.data ?? fallbackProfile
+  const displayedName = name ?? profileData.name
+  const displayedUsername = username ?? profileData.username
+
+  const handleUsernameCheck = async () => {
+    if (!displayedUsername.trim()) {
+      setUsernameMessage('아이디를 입력해 주세요.')
+      return
+    }
+
+    try {
+      const available = await checkUsername.mutateAsync(displayedUsername.trim())
+      setUsernameMessage(available ? '사용할 수 있는 아이디입니다.' : '이미 사용 중인 아이디입니다.')
+    } catch {
+      setUsernameMessage('중복 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+    }
+  }
+
+  const handleSubmit = async () => {
+    setSubmitError('')
+    try {
+      await updateProfile.mutateAsync({
+        name: displayedName.trim(),
+        username: displayedUsername.trim(),
+        s3Key: profileQuery.data?.s3Key,
+      })
+      navigate(routePaths.profile)
+    } catch {
+      setSubmitError('프로필을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+    }
+  }
 
   return (
     <PageFrame title="프로필 수정" description="계정에 표시되는 정보를 변경하세요.">
       <Card className="flex min-h-[720px] max-w-[1024px] overflow-hidden">
         <aside className="pt-10 flex w-[300px] shrink-0 flex-col items-center bg-fill-normal">
           <div className="flex size-[92px] items-center justify-center rounded-pill bg-label-disabled">
-            <img className="size-[54px]" src={defaultProfileLarge} alt="현재 프로필" />
+            <img
+              className="size-[54px] rounded-pill object-cover"
+              src={profileImageQuery.data ?? defaultProfileLarge}
+              alt="현재 프로필"
+            />
           </div>
-          <p className="mt-6 text-[22px] font-bold text-label-normal">{name || profile.name}</p>
+          <p className="mt-6 text-[22px] font-bold text-label-normal">{displayedName}</p>
           <p className="mt-1 text-label font-medium text-label-alternative">
-            @{username || profile.username}
+            @{displayedUsername}
           </p>
           <Link
             className="mt-8 h-12 flex w-[204px] items-center justify-center rounded-component bg-primary-alternative text-body font-bold text-primary-normal"
@@ -208,9 +320,9 @@ export const ProfileEditPage = () => {
         </aside>
         <form
           className="min-w-0 px-12 py-7 flex flex-1 flex-col"
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault()
-            navigate(routePaths.profile)
+            await handleSubmit()
           }}
         >
           <h2 className="text-[22px] font-bold text-label-normal">기본 정보</h2>
@@ -221,7 +333,7 @@ export const ProfileEditPage = () => {
             <Field label="이름" description="서비스에 표시되는 이름입니다.">
               <input
                 className={inputClass}
-                value={name}
+                value={displayedName}
                 onChange={(event) => setName(event.target.value)}
               />
             </Field>
@@ -229,17 +341,30 @@ export const ProfileEditPage = () => {
               <div className="gap-2 flex">
                 <input
                   className={inputClass}
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
+                  value={displayedUsername}
+                  onChange={(event) => {
+                    setUsername(event.target.value)
+                    setUsernameMessage('')
+                  }}
                 />
-                <PrimaryButton className="w-28 px-3 shrink-0 whitespace-nowrap" type="button">
-                  중복 확인
+                <PrimaryButton
+                  className="w-28 px-3 shrink-0 whitespace-nowrap"
+                  type="button"
+                  disabled={checkUsername.isPending}
+                  onClick={handleUsernameCheck}
+                >
+                  {checkUsername.isPending ? '확인 중' : '중복 확인'}
                 </PrimaryButton>
               </div>
+              {usernameMessage && (
+                <p className="mt-2 text-caption text-label-alternative" role="status">
+                  {usernameMessage}
+                </p>
+              )}
             </Field>
             <div className="col-span-2">
               <Field label="이메일" description="인증 및 알림에 사용되는 이메일입니다.">
-                <input className={inputClass} value={profile.email} readOnly />
+                <input className={inputClass} value={profileData.email} readOnly />
               </Field>
             </div>
             <div className="pt-6 col-span-2 border-t border-line-alternative">
@@ -252,11 +377,23 @@ export const ProfileEditPage = () => {
               </SecondaryButton>
             </div>
           </div>
+          {submitError && (
+            <p className="mt-4 text-label text-status-error" role="alert">
+              {submitError}
+            </p>
+          )}
           <div className="gap-3 mt-auto flex justify-end">
             <SecondaryButton type="button" onClick={() => navigate(routePaths.profile)}>
               취소
             </SecondaryButton>
-            <PrimaryButton type="submit">변경사항 저장</PrimaryButton>
+            <PrimaryButton
+              type="submit"
+              disabled={
+                updateProfile.isPending || !displayedName.trim() || !displayedUsername.trim()
+              }
+            >
+              {updateProfile.isPending ? '저장 중' : '변경사항 저장'}
+            </PrimaryButton>
           </div>
         </form>
       </Card>
@@ -389,13 +526,43 @@ const Toggle = ({
 )
 
 export const ProfileNotificationsPage = () => {
-  const [settings, setSettings] = useState([true, true, true, false])
+  const notificationQuery = useNotificationSettings()
+  const updateNotifications = useUpdateNotificationSettings()
+  const [settingOverrides, setSettingOverrides] = useState<boolean[] | null>(null)
+  const [updateError, setUpdateError] = useState('')
   const options = [
     ['훈련 알림', '예약된 훈련과 진행 상태를 알려드립니다.'],
     ['커뮤니티 활동', '댓글, 답글 등 커뮤니티 활동을 알려드립니다.'],
     ['서비스 공지', '서비스 업데이트와 중요 공지를 알려드립니다.'],
     ['마케팅 정보', '이벤트와 프로모션 정보를 받아봅니다.'],
   ]
+
+  const settings = settingOverrides ?? [
+    notificationQuery.data?.trainingEnabled ?? true,
+    notificationQuery.data?.communityEnabled ?? true,
+    notificationQuery.data?.allEnabled ?? true,
+    false,
+  ]
+
+  const toggleSetting = async (index: number) => {
+    const previous = settings
+    const next = settings.map((value, itemIndex) => (itemIndex === index ? !value : value))
+    setSettingOverrides(next)
+    setUpdateError('')
+
+    if (index === 3) return
+
+    try {
+      await updateNotifications.mutateAsync({
+        trainingEnabled: next[0],
+        communityEnabled: next[1],
+        allEnabled: next[2],
+      })
+    } catch {
+      setSettingOverrides(previous)
+      setUpdateError('알림 설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+    }
+  }
 
   return (
     <PageFrame title="알림 설정" description="받고 싶은 알림을 항목별로 관리하세요.">
@@ -404,6 +571,11 @@ export const ProfileNotificationsPage = () => {
         <p className="mt-1 text-label text-label-alternative">
           필요한 알림만 선택해서 받을 수 있습니다.
         </p>
+        {(notificationQuery.isError || updateError) && (
+          <p className="mt-4 text-label text-status-error" role="alert">
+            {updateError || '알림 설정을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'}
+          </p>
+        )}
         <div className="mt-7 space-y-3">
           {options.map(([title, description], index) => (
             <div
@@ -417,11 +589,7 @@ export const ProfileNotificationsPage = () => {
               <Toggle
                 checked={settings[index]}
                 label={`${title} ${settings[index] ? '끄기' : '켜기'}`}
-                onChange={() =>
-                  setSettings((values) =>
-                    values.map((value, itemIndex) => (itemIndex === index ? !value : value)),
-                  )
-                }
+                onChange={() => void toggleSetting(index)}
               />
             </div>
           ))}
@@ -473,12 +641,67 @@ export const ProfileLanguagePage = () => {
 export const ProfilePhotoPage = () => {
   const navigate = useNavigate()
   const inputId = useId()
+  const profileQuery = useMyPage()
+  const profileImageQuery = useProfileImage(profileQuery.data?.s3Key)
+  const uploadImage = useUploadProfileImage()
+  const updateProfile = useUpdateMyPage()
   const [preview, setPreview] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [useDefaultImage, setUseDefaultImage] = useState(false)
+  const [photoError, setPhotoError] = useState('')
+
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview)
+    },
+    [preview],
+  )
 
   const choosePhoto = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) setPreview(URL.createObjectURL(file))
+    if (!file) return
+
+    if (!['image/png', 'image/jpeg'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setPhotoError('JPG 또는 PNG 형식의 5MB 이하 파일을 선택해 주세요.')
+      return
+    }
+
+    setPhotoError('')
+    setSelectedFile(file)
+    setUseDefaultImage(false)
+    setPreview(URL.createObjectURL(file))
   }
+
+  const selectDefaultImage = () => {
+    setSelectedFile(null)
+    setPreview(null)
+    setUseDefaultImage(true)
+    setPhotoError('')
+  }
+
+  const savePhoto = async () => {
+    if (!profileQuery.data) {
+      setPhotoError('프로필 정보를 불러온 뒤 다시 시도해 주세요.')
+      return
+    }
+
+    setPhotoError('')
+    try {
+      const uploaded = selectedFile ? await uploadImage.mutateAsync(selectedFile) : undefined
+      await updateProfile.mutateAsync({
+        name: profileQuery.data.name,
+        username: profileQuery.data.username,
+        s3Key: useDefaultImage ? '' : (uploaded?.s3Key ?? profileQuery.data.s3Key),
+      })
+      navigate(routePaths.profile)
+    } catch {
+      setPhotoError('프로필 사진을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+    }
+  }
+
+  const displayedImage = useDefaultImage
+    ? defaultProfileLarge
+    : (preview ?? profileImageQuery.data ?? defaultProfileLarge)
 
   return (
     <PageFrame title="프로필 사진 변경" description="기본 프로필 또는 새 사진을 선택하세요.">
@@ -486,8 +709,8 @@ export const ProfilePhotoPage = () => {
         <div className="flex w-[420px] shrink-0 flex-col items-center rounded-[16px] bg-fill-normal pt-[58px]">
           <div className="flex size-[156px] items-center justify-center overflow-hidden rounded-pill bg-label-disabled">
             <img
-              className={preview ? 'size-full object-cover' : 'size-[104px]'}
-              src={preview ?? defaultProfileLarge}
+              className={preview || profileImageQuery.data ? 'size-full object-cover' : 'size-[104px]'}
+              src={displayedImage}
               alt="선택한 프로필 미리보기"
             />
           </div>
@@ -503,6 +726,11 @@ export const ProfilePhotoPage = () => {
           <p className="mt-1 text-label text-label-alternative">
             JPG 또는 PNG 파일을 선택하세요. 최대 5MB까지 지원합니다.
           </p>
+          {photoError && (
+            <p className="mt-4 text-label text-status-error" role="alert">
+              {photoError}
+            </p>
+          )}
           <label
             className="mt-8 flex h-[196px] cursor-pointer flex-col items-center justify-center rounded-[14px] border border-dashed border-line-alternative bg-fill-normal"
             htmlFor={inputId}
@@ -526,12 +754,17 @@ export const ProfilePhotoPage = () => {
           <p className="mt-2 text-[13px] text-label-alternative">
             업로드한 사진 대신 기본 프로필 아이콘을 사용합니다.
           </p>
-          <SecondaryButton className="mt-6 w-[220px]" onClick={() => setPreview(null)}>
+          <SecondaryButton className="mt-6 w-[220px]" onClick={selectDefaultImage}>
             기본 이미지로 변경
           </SecondaryButton>
           <div className="gap-3 mt-auto flex justify-end">
             <SecondaryButton onClick={() => navigate(routePaths.profile)}>취소</SecondaryButton>
-            <PrimaryButton onClick={() => navigate(routePaths.profile)}>저장</PrimaryButton>
+            <PrimaryButton
+              disabled={uploadImage.isPending || updateProfile.isPending}
+              onClick={() => void savePhoto()}
+            >
+              {uploadImage.isPending || updateProfile.isPending ? '저장 중' : '저장'}
+            </PrimaryButton>
           </div>
         </div>
       </Card>

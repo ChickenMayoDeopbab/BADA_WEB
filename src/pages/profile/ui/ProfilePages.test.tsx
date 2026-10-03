@@ -1,6 +1,32 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('../model/useProfile', () => ({
+  useMyPage: () => ({
+    data: {
+      name: '변성우',
+      username: 'b2ong222',
+      email: 'bongchock45@gmail.com',
+      s3Key: undefined,
+      level: 'LEVEL_2',
+      levelName: '초급',
+      trainCount: 7,
+      attendance: 3,
+    },
+    isError: false,
+  }),
+  useProfileImage: () => ({ data: undefined }),
+  useRecentTrainings: () => ({ data: [], isError: false, isLoading: false }),
+  useNotificationSettings: () => ({
+    data: { trainingEnabled: true, communityEnabled: true, allEnabled: true },
+    isError: false,
+  }),
+  useUpdateMyPage: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useCheckUsername: () => ({ mutateAsync: vi.fn().mockResolvedValue(true), isPending: false }),
+  useUploadProfileImage: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateNotificationSettings: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}))
 
 import {
   ProfileEditPage,
