@@ -32,6 +32,8 @@ export interface TrainingRecordSummary {
   trainedAt: string
   scenarioName: string
   sessionType: 'SCENARIO' | 'CUSTOM' | 'WARMUP'
+  categoryIconUrl?: string
+  scenarioImage?: string
 }
 
 interface TrainingRecordPage {

@@ -9,7 +9,8 @@ import {
   withdrawAccount,
 } from '../api/profileApi'
 import { checkUsername } from '@features/auth'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getTrainingRecord } from '@features/training-records'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 
 const profileKeys = {
   all: ['profile'] as const,
@@ -28,8 +29,24 @@ export const useProfileImage = (s3Key?: string) =>
     enabled: Boolean(s3Key),
   })
 
-export const useRecentTrainings = () =>
-  useQuery({ queryKey: profileKeys.recentTrainings, queryFn: getRecentTrainingRecords })
+export const useRecentTrainings = () => {
+  const query = useQuery({ queryKey: profileKeys.recentTrainings, queryFn: getRecentTrainingRecords })
+  const details = useQueries({
+    queries: (query.data ?? []).map((record) => ({
+      queryKey: ['training-records', record.recordId],
+      queryFn: () => getTrainingRecord(record.recordId),
+      staleTime: 60_000,
+    })),
+  })
+  return {
+    ...query,
+    data: query.data?.map((record, index) => ({
+      ...record,
+      thumbnailUrl: record.categoryIconUrl ?? record.scenarioImage ?? details[index]?.data?.thumbnailUrl,
+      detail: details[index]?.data,
+    })),
+  }
+}
 
 export const useUpdateMyPage = () => {
   const queryClient = useQueryClient()
