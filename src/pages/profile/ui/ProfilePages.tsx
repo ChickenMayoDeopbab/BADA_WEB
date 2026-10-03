@@ -232,7 +232,7 @@ export const ProfileEditPage = () => {
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                 />
-                <PrimaryButton className="w-24 px-3 shrink-0" type="button">
+                <PrimaryButton className="w-28 px-3 shrink-0 whitespace-nowrap" type="button">
                   중복 확인
                 </PrimaryButton>
               </div>
