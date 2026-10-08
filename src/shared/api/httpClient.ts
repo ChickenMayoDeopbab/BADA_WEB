@@ -1,4 +1,4 @@
-import { env } from '@shared/config'
+import { authStorageKeys, env } from '@shared/config'
 import axios from 'axios'
 
 const defaultHttpConfig = {
@@ -19,3 +19,20 @@ export const aiHttpClient = axios.create({
   ...defaultHttpConfig,
   baseURL: env.aiApiBaseUrl,
 })
+
+const attachAccessToken = (client: typeof httpClient) => {
+  client.interceptors.request.use((config) => {
+    const accessToken =
+      window.localStorage.getItem(authStorageKeys.accessToken) ??
+      window.sessionStorage.getItem(authStorageKeys.accessToken)
+
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
+    }
+
+    return config
+  })
+}
+
+attachAccessToken(httpClient)
+attachAccessToken(aiHttpClient)

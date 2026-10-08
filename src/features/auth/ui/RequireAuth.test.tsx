@@ -5,6 +5,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@shared/config', () => ({
+  authStorageKeys: {
+    accessToken: 'bada.accessToken',
+    refreshToken: 'bada.refreshToken',
+  },
   env: { isAuthGuardEnabled: true },
   routePaths: { login: '/login' },
 }))

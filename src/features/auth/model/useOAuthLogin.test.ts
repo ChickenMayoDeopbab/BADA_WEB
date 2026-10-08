@@ -15,6 +15,10 @@ vi.mock('@shared/api', () => ({
   getApiErrorMessage: (_error: unknown, fallback: string) => fallback,
 }))
 vi.mock('@shared/config', () => ({
+  authStorageKeys: {
+    accessToken: 'bada.accessToken',
+    refreshToken: 'bada.refreshToken',
+  },
   routePaths: { login: '/login', welcome: '/welcome', dashboard: '/dashboard' },
 }))
 vi.mock('../api/authApi', () => ({
