@@ -4,6 +4,11 @@ import type { ApiResponse } from '@shared/types'
 
 const LEGAL_CONSENT_PATH = '/api/v1/legal-consents'
 
+/** 민감정보 처리 동의를 철회합니다. */
+export const withdrawSensitiveInformationConsent = async () => {
+  await httpClient.delete(`${LEGAL_CONSENT_PATH}/sensitive-information`)
+}
+
 /** 로그인한 사용자의 약관·민감정보 동의 상태를 조회합니다. */
 export const getLegalConsentStatus = async () => {
   const { data } = await httpClient.get<ApiResponse<LegalConsentStatus>>(
