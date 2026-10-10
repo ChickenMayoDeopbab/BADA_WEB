@@ -14,6 +14,8 @@ export const routePaths = {
   trainingResult: '/training/:scenarioId/result',
   records: '/records',
   community: '/community',
+  communityPost: '/community/:postId',
+  communityNew: '/community/new',
   notifications: '/notifications',
   profile: '/profile',
   profileEdit: '/profile/edit',

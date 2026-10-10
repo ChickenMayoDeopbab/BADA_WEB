@@ -9,6 +9,7 @@ import {
 } from '@pages/auth'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
 import { TrainingRecordsPage } from '@pages/records'
+import { CommunityPage } from '@pages/community'
 import { routePaths } from '@shared/config'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
@@ -69,7 +70,15 @@ const router = createBrowserRouter([
           },
           {
             path: routePaths.community,
-            element: <ServicePlaceholderPage title="커뮤니티 화면" />,
+            element: <CommunityPage />,
+          },
+          {
+            path: routePaths.communityPost,
+            element: <CommunityPage />,
+          },
+          {
+            path: routePaths.communityNew,
+            element: <CommunityPage />,
           },
           {
             path: routePaths.notifications,
