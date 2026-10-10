@@ -15,13 +15,14 @@ import {
   ProfileLanguagePage,
   ProfileNotificationsPage,
   ProfileOverviewPage,
-  ProfilePhotoPage,
+  ProfilePrivacyPage,
+  ProfileBlockedUsersPage,
   ProfileRingtonePage,
 } from '@pages/profile'
 import { TrainingRecordsPage } from '@pages/records'
 import { SelfDiagnosisPage } from '@pages/self-diagnosis'
 import { routePaths } from '@shared/config'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 
 const router = createBrowserRouter([
   {
@@ -99,12 +100,20 @@ const router = createBrowserRouter([
             element: <ProfileOverviewPage />,
           },
           {
+            path: routePaths.profilePrivacy,
+            element: <ProfilePrivacyPage />,
+          },
+          {
+            path: routePaths.profileBlockedUsers,
+            element: <ProfileBlockedUsersPage />,
+          },
+          {
             path: routePaths.profileEdit,
             element: <ProfileEditPage />,
           },
           {
             path: routePaths.profilePhoto,
-            element: <ProfilePhotoPage />,
+            element: <Navigate to={routePaths.profileEdit} replace />,
           },
           {
             path: routePaths.profileRingtone,

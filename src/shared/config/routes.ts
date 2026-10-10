@@ -19,6 +19,8 @@ export const routePaths = {
   communityNew: '/community/new',
   notifications: '/notifications',
   profile: '/profile',
+  profilePrivacy: '/profile/privacy',
+  profileBlockedUsers: '/profile/blocked-users',
   profileEdit: '/profile/edit',
   profilePhoto: '/profile/photo',
   profileRingtone: '/profile/ringtone',

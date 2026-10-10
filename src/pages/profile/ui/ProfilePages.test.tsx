@@ -2,8 +2,10 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const { profileQueryMock, withdrawAccountMock } = vi.hoisted(() => ({
+const { profileImageQueryMock, profileQueryMock, withdrawAccountMock, updateProfileMock } = vi.hoisted(() => ({
+  updateProfileMock: vi.fn().mockResolvedValue(undefined),
   withdrawAccountMock: vi.fn(),
+  profileImageQueryMock: { data: undefined as string | undefined },
   profileQueryMock: {
     data: {
       name: '변성우',
@@ -32,7 +34,7 @@ const { profileQueryMock, withdrawAccountMock } = vi.hoisted(() => ({
 
 vi.mock('../model/useProfile', () => ({
   useMyPage: () => profileQueryMock,
-  useProfileImage: () => ({ data: undefined }),
+  useProfileImage: () => profileImageQueryMock,
   useRecentTrainings: () => ({
     data: [
       {
@@ -49,7 +51,7 @@ vi.mock('../model/useProfile', () => ({
     data: { trainingEnabled: true, communityEnabled: true, allEnabled: true },
     isError: false,
   }),
-  useUpdateMyPage: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateMyPage: () => ({ mutateAsync: updateProfileMock, isPending: false }),
   useCheckUsername: () => ({ mutateAsync: vi.fn().mockResolvedValue(true), isPending: false }),
   useUploadProfileImage: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateNotificationSettings: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -58,7 +60,11 @@ vi.mock('../model/useProfile', () => ({
 
 vi.mock('@features/auth', () => ({ clearAuthSession: vi.fn() }))
 
-afterEach(() => cleanup())
+afterEach(() => {
+  cleanup()
+  profileImageQueryMock.data = undefined
+  updateProfileMock.mockClear()
+})
 
 import {
   ProfileEditPage,
@@ -69,6 +75,39 @@ import {
 } from './ProfilePages'
 
 describe('Profile pages', () => {
+  it('프로필 수정에서 기본 사진을 선택하고 기본 정보와 함께 저장한다', async () => {
+    render(<ProfileEditPage />, { wrapper: MemoryRouter })
+    expect(screen.queryByRole('link', { name: '프로필 사진 변경' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '기본 이미지로 변경' }))
+    fireEvent.click(screen.getByRole('button', { name: '변경사항 저장' }))
+    await waitFor(() => expect(updateProfileMock).toHaveBeenCalledWith({
+      name: '변성우', username: 'b2ong222', s3Key: '',
+    }))
+  })
+
+  it('uses the same horizontal header layout as training records', () => {
+    render(<ProfileOverviewPage />, { wrapper: MemoryRouter })
+
+    const heading = screen.getByRole('heading', { name: '프로필', level: 1 })
+    const header = heading.closest('header')
+    const main = heading.closest('main')
+
+    expect(header).toHaveClass('flex', 'items-center', 'gap-3')
+    expect(header).toHaveTextContent('계정 정보와 서비스 설정을 관리하세요.')
+    expect(main).not.toHaveClass('bg-background-alternative')
+  })
+
+  it('fills the profile circle with an uploaded image', () => {
+    profileImageQueryMock.data = 'https://example.com/profile.png'
+
+    render(<ProfileOverviewPage />, { wrapper: MemoryRouter })
+
+    expect(screen.getByRole('img', { name: '변성우 프로필' })).toHaveClass(
+      'size-full',
+      'object-cover',
+    )
+  })
+
   it('moves from the overview to profile edit', () => {
     render(
       <MemoryRouter initialEntries={['/profile']}>
@@ -134,21 +173,22 @@ describe('Profile pages', () => {
     )
 
     const recordLink = screen.getByRole('link', { name: '피자 배달 기록 보기' })
-    expect(recordLink).toHaveAttribute('href', '/records?recordId=37')
+    expect(recordLink).toHaveAttribute('href', '/records?recordId=37&trainedAt=2026-09-03T12%3A00%3A00')
 
     fireEvent.click(recordLink)
     expect(screen.getByRole('heading', { name: '훈련 기록' })).toBeInTheDocument()
   })
 
-  it('shows a dash for a notification setting that is not provided by the API', () => {
+  it('알림 설정은 전체·커뮤니티·훈련 세 항목만 표시한다', () => {
     render(
       <MemoryRouter>
         <ProfileNotificationsPage />
       </MemoryRouter>,
     )
 
-    const marketingRow = screen.getByText('마케팅 정보').closest('div')?.parentElement
-    expect(marketingRow).toHaveTextContent('-')
+    expect(screen.getByRole('button', { name: '전체 알림 끄기' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '커뮤니티 알림 끄기' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '훈련 알림 끄기' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /마케팅 정보/ })).not.toBeInTheDocument()
   })
 
