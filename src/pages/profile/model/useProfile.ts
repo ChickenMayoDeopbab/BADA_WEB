@@ -1,5 +1,4 @@
 import {
-  checkUsernameAvailability,
   getMyPage,
   getNotificationSettings,
   getProfileImageUrl,
@@ -8,6 +7,7 @@ import {
   updateNotificationSettings,
   uploadProfileImage,
 } from '../api/profileApi'
+import { checkUsername } from '@features/auth'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 const profileKeys = {
@@ -38,7 +38,7 @@ export const useUpdateMyPage = () => {
   })
 }
 
-export const useCheckUsername = () => useMutation({ mutationFn: checkUsernameAvailability })
+export const useCheckUsername = () => useMutation({ mutationFn: checkUsername })
 
 export const useUploadProfileImage = () => useMutation({ mutationFn: uploadProfileImage })
 

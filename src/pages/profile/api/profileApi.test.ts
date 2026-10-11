@@ -13,7 +13,6 @@ vi.mock('@shared/api', () => ({
 }))
 
 import {
-  checkUsernameAvailability,
   getMyPage,
   getNotificationSettings,
   getRecentTrainingRecords,
@@ -43,19 +42,12 @@ describe('profileApi', () => {
     })
   })
 
-  it('updates profile information and checks username availability', async () => {
+  it('updates profile information', async () => {
     const payload = { name: '배준하', username: 'uhihi09', s3Key: 'profiles/a.png' }
     patchMock.mockResolvedValue({ data: {} })
-    postMock.mockResolvedValue({ data: { data: true } })
 
     await updateMyPage(payload)
-    await expect(checkUsernameAvailability('uhihi09')).resolves.toBe(true)
     expect(patchMock).toHaveBeenCalledWith('/api/v1/user/mypage', payload, authorization)
-    expect(postMock).toHaveBeenCalledWith(
-      '/api/v1/auth/check/username',
-      { username: 'uhihi09' },
-      authorization,
-    )
   })
 
   it('loads and updates notification settings', async () => {

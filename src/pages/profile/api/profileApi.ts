@@ -1,11 +1,6 @@
 import { getAccessToken } from '@features/auth'
 import { httpClient } from '@shared/api'
-
-interface ApiResponse<T> {
-  data: T
-  message?: string
-  status?: number
-}
+import type { ApiResponse } from '@shared/types'
 
 export interface MyPageProfile {
   username: string
@@ -63,15 +58,6 @@ export const getMyPage = async () => {
 
 export const updateMyPage = async (payload: UpdateMyPagePayload) => {
   await httpClient.patch('/api/v1/user/mypage', payload, { headers: authHeaders() })
-}
-
-export const checkUsernameAvailability = async (username: string) => {
-  const response = await httpClient.post<ApiResponse<boolean>>(
-    '/api/v1/auth/check/username',
-    { username },
-    { headers: authHeaders() },
-  )
-  return response.data.data
 }
 
 export const uploadProfileImage = async (file: File) => {

@@ -6,6 +6,7 @@ export {
   setAccessToken,
   setAuthTokens,
 } from './model/authSession'
+export { checkUsername } from './api/authApi'
 export type { LoginMode } from './model/types'
 export { FindIdFlow } from './ui/FindIdFlow'
 export { IdLogin } from './ui/IdLogin'
