@@ -34,5 +34,5 @@ test-results
 # 에이전트 개발 하네스
 AGENTS.md
 .agents/
-docs/harness/
 _workspace/
+docs/
