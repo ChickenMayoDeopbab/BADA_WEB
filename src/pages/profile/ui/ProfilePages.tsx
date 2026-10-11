@@ -132,11 +132,6 @@ export const ProfileOverviewPage = () => {
 
   return (
     <PageFrame title="프로필" description="계정 정보와 서비스 설정을 관리하세요.">
-      {(profileQuery.isError || trainingQuery.isError) && (
-        <p className="mb-4 text-label text-status-error" role="alert">
-          일부 프로필 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
-        </p>
-      )}
       <div className="gap-4 grid max-w-[1024px] grid-cols-3">
       <Card className="h-44 relative col-span-3">
         <div className="top-12 size-20 absolute left-[47px] flex items-center justify-center rounded-pill bg-fill-normal">
