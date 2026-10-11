@@ -1,9 +1,14 @@
 import { ServiceLayout } from '../layouts/ServiceLayout'
 import { RequireAuth } from '@features/auth'
-import Login from '@pages/auth/Login'
+import {
+  FindIdPage,
+  LoginPage,
+  OAuthCallbackPage,
+  ResetPasswordPage,
+  SignupPage,
+} from '@pages/auth'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
 import { TrainingRecordsPage } from '@pages/records'
-import Signup from '@pages/auth/Signup'
 import { routePaths } from '@shared/config'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
@@ -14,11 +19,11 @@ const router = createBrowserRouter([
   },
   {
     path: routePaths.login,
-    element: <Login />,
+    element: <LoginPage />,
   },
   {
     path: routePaths.signup,
-    element: <Signup />,
+    element: <SignupPage />,
   },
   {
     path: routePaths.welcome,
@@ -26,11 +31,15 @@ const router = createBrowserRouter([
   },
   {
     path: routePaths.findId,
-    element: <PlaceholderPage title="아이디 찾기 화면" />,
+    element: <FindIdPage />,
   },
   {
     path: routePaths.resetPassword,
-    element: <PlaceholderPage title="비밀번호 재설정 화면" />,
+    element: <ResetPasswordPage />,
+  },
+  {
+    path: routePaths.oauthCallback,
+    element: <OAuthCallbackPage />,
   },
   {
     element: <RequireAuth />,

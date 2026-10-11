@@ -5,6 +5,7 @@ export const routePaths = {
   welcome: '/welcome',
   findId: '/find-id',
   resetPassword: '/reset-password',
+  oauthCallback: '/oauth/callback',
   dashboard: '/dashboard',
   training: '/training',
   trainingCustomNew: '/training/custom/new',

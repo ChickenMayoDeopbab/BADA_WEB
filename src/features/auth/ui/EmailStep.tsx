@@ -1,61 +1,62 @@
-import CustomButton from '@shared/ui/CustomButton'
-import CustomInput from '@shared/ui/CustomInput'
-import { useState } from 'react'
+import type { SignupState } from '../model/useSignup'
+import { AuthButton } from './AuthButton'
+import { AuthCard } from './AuthCard'
+import { AuthTextField } from './AuthTextField'
 
-type EmailProps = {
-  email: string
-  setEmail: React.Dispatch<React.SetStateAction<string>>
-  onNext: () => void
-  onPrev: () => void
+type EmailStepProps = {
+  signup: SignupState
 }
 
-export default function EmailStep({ email, setEmail, onNext, onPrev }: EmailProps) {
-  const [verificationCode, setVerificationCode] = useState('')
-  const [isSent, setIsSent] = useState(false)
+// 회원가입 첫 단계로 사용할 이메일을 인증합니다.
+export const EmailStep = ({ signup }: EmailStepProps) => {
+  const { emailVerification } = signup
 
   return (
-    <div>
-      <div>
-        <div className="gap-3 flex items-start">
-          <div className="mb-5 mt-12 flex-1">
-            <CustomInput
-              label="이메일"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="off"
-              // error="이메일을 입력해주세요"
-              success={isSent ? '인증 코드가 전송되었습니다' : undefined}
-            />
-          </div>
-          <div className="mt-[40px] w-[112px]">
-            <CustomButton
-              label="인증코드 전송"
-              bgColor="#0AE365"
-              color="white"
-              onClick={() => setIsSent(true)}
-              fontSize="text-base"
-              rounded="rounded-xl"
-            />
-          </div>
+    <AuthCard title="회원가입 · 이메일" description="사용할 이메일을 인증해 주세요.">
+      <form
+        className="gap-8 flex w-full flex-col"
+        onSubmit={(event) => {
+          event.preventDefault()
+          void signup.submitEmailStep()
+        }}
+        noValidate
+      >
+        <div className="gap-3 flex w-full flex-col">
+          <AuthTextField
+            label="이메일"
+            placeholder="이메일을 입력하세요."
+            type="email"
+            autoComplete="email"
+            value={emailVerification.email}
+            onValueChange={emailVerification.changeEmail}
+            error={emailVerification.emailError}
+            success={emailVerification.isSent ? '인증코드가 전송되었습니다.' : ''}
+          />
+          <AuthTextField
+            label="인증번호"
+            placeholder="인증번호를 입력하세요."
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            value={emailVerification.authCode}
+            onValueChange={emailVerification.changeAuthCode}
+            error={emailVerification.authCodeError}
+          />
         </div>
 
-        <CustomInput
-          label="인증코드"
-          value={verificationCode}
-          onChange={(e) => setVerificationCode(e.target.value)}
-          error="인증 코드가 일치하지 않습니다"
-        />
-      </div>
-
-      <div className="gap-3 mt-17 flex flex-col">
-        <CustomButton label="인증하기" bgColor="#0AE365" color="#F6F6F6" onClick={onNext} />
-      </div>
-
-      <div className="gap-4 mt-3 flex">
-        <button className="text-sm cursor-pointer font-medium text-[#5C5E5E]" onClick={onPrev}>
-          이전으로
-        </button>
-      </div>
-    </div>
+        <div className="gap-3 flex w-full flex-col">
+          <AuthButton
+            label={emailVerification.isSent ? '인증번호 다시 받기' : '인증번호 받기'}
+            onClick={() => void emailVerification.sendCode()}
+            disabled={emailVerification.isSending}
+          />
+          <AuthButton
+            type="submit"
+            variant="secondary"
+            label="다음"
+            disabled={emailVerification.isVerifying}
+          />
+        </div>
+      </form>
+    </AuthCard>
   )
 }

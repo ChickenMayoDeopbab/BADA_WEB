@@ -4,5 +4,5 @@ import { useState } from 'react'
 export default function Login() {
   const [mode, setMode] = useState<LoginMode>('social')
 
-  return <div>{mode === 'social' ? <SocialLogin setMode={setMode} /> : <IdLogin />}</div>
+  return mode === 'social' ? <SocialLogin onSelectIdLogin={() => setMode('id')} /> : <IdLogin />
 }

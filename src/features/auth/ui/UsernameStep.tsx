@@ -1,52 +1,62 @@
-import CustomButton from '@shared/ui/CustomButton'
-import CustomInput from '@shared/ui/CustomInput'
-import { useNavigate } from 'react-router-dom'
+import type { SignupState } from '../model/useSignup'
+import { AuthButton } from './AuthButton'
+import { AuthCard } from './AuthCard'
+import { AuthTextField } from './AuthTextField'
 
-type UsernameProps = {
-  username: string
-  setUsername: React.Dispatch<React.SetStateAction<string>>
-  onNext: () => void
+type UsernameStepProps = {
+  signup: SignupState
 }
 
-export default function UsernameStep({ username, setUsername, onNext }: UsernameProps) {
-  const navigte = useNavigate()
-
-  return (
-    <div>
-      <div className="mb-5 mt-12 flex-1">
-        <CustomInput label="이름" error="이름을 입력해주세요" />
-      </div>
-
-      <div className="gap-3 flex items-start">
-        <CustomInput
-          label="아이디"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          error="아이디를 입력해주세요"
+// 회원가입 마지막 단계로 이름과 아이디를 입력받습니다.
+export const UsernameStep = ({ signup }: UsernameStepProps) => (
+  <AuthCard
+    variant="plain"
+    title="회원가입 · 아이디"
+    description="이름과 사용할 아이디를 입력해 주세요."
+    className="min-h-[600px]"
+  >
+    <form
+      className="flex flex-col"
+      onSubmit={(event) => {
+        event.preventDefault()
+        void signup.submitProfileStep()
+      }}
+      noValidate
+    >
+      <div className="gap-1.5 flex flex-col">
+        <AuthTextField
+          variant="inset"
+          label="이름"
+          placeholder="이름을 입력하세요."
+          autoComplete="name"
+          value={signup.name}
+          onValueChange={signup.changeName}
+          error={signup.nameError}
         />
-        <div className="w-[112px]">
-          <CustomButton
+        <div className="gap-4 flex items-start">
+          <AuthTextField
+            variant="inset"
+            label="아이디"
+            placeholder="아이디를 입력하세요."
+            autoComplete="username"
+            value={signup.username}
+            onValueChange={signup.changeUsername}
+            error={signup.usernameError}
+            success={signup.isUsernameChecked ? '사용할 수 있는 아이디입니다.' : ''}
+          />
+          <AuthButton
+            size="small"
             label="중복 확인"
-            bgColor="#0AE365"
-            color="white"
-            fontSize="text-base"
-            rounded="rounded-xl"
+            onClick={() => void signup.confirmUsername()}
+            disabled={signup.isCheckingUsername}
           />
         </div>
       </div>
 
-      <div className="gap-3 mt-17 flex flex-col">
-        <CustomButton label="다음으로" bgColor="#0AE365" color="#F6F6F6" onClick={onNext} />
+      <div className="mt-8 gap-4 flex flex-col">
+        <AuthButton type="submit" label="회원가입" disabled={signup.isSubmitting} />
+        <AuthButton variant="secondary" label="이전으로" onClick={signup.goToPasswordStep} />
       </div>
-
-      <div className="gap-4 mt-3 flex">
-        <button
-          className="text-sm cursor-pointer font-medium text-[#5C5E5E]"
-          onClick={() => navigte('/login')}
-        >
-          이미 계정이 있어요
-        </button>
-      </div>
-    </div>
-  )
-}
+    </form>
+  </AuthCard>
+)
