@@ -2,20 +2,35 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('../model/useProfile', () => ({
-  useMyPage: () => ({
+const { profileQueryMock } = vi.hoisted(() => ({
+  profileQueryMock: {
     data: {
       name: '변성우',
       username: 'b2ong222',
       email: 'bongchock45@gmail.com',
-      s3Key: undefined,
+      s3Key: undefined as string | undefined,
       level: 'LEVEL_2',
       levelName: '초급',
       trainCount: 7,
       attendance: 3,
-    },
+    } as
+      | {
+          name: string
+          username: string
+          email: string
+          s3Key?: string
+          level: string
+          levelName: string
+          trainCount: number
+          attendance: number
+        }
+      | undefined,
     isError: false,
-  }),
+  },
+}))
+
+vi.mock('../model/useProfile', () => ({
+  useMyPage: () => profileQueryMock,
   useProfileImage: () => ({ data: undefined }),
   useRecentTrainings: () => ({
     data: [
@@ -80,22 +95,33 @@ describe('Profile pages', () => {
     expect(screen.getByRole('heading', { name: '훈련 기록' })).toBeInTheDocument()
   })
 
-  it('toggles each notification setting', () => {
+  it('shows a dash for a notification setting that is not provided by the API', () => {
     render(
       <MemoryRouter>
         <ProfileNotificationsPage />
       </MemoryRouter>,
     )
 
-    const marketingToggle = screen.getByRole('button', { name: '마케팅 정보 켜기' })
-    expect(marketingToggle).toHaveAttribute('aria-pressed', 'false')
+    const marketingRow = screen.getByText('마케팅 정보').closest('div')?.parentElement
+    expect(marketingRow).toHaveTextContent('-')
+    expect(screen.queryByRole('button', { name: /마케팅 정보/ })).not.toBeInTheDocument()
+  })
 
-    fireEvent.click(marketingToggle)
+  it('shows dashes instead of dummy profile data when the profile is unavailable', () => {
+    const previousProfile = profileQueryMock.data
+    profileQueryMock.data = undefined
 
-    expect(screen.getByRole('button', { name: '마케팅 정보 끄기' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
+    const { container } = render(
+      <MemoryRouter>
+        <ProfileOverviewPage />
+      </MemoryRouter>,
     )
+
+    expect(within(container).queryByText('변성우')).not.toBeInTheDocument()
+    expect(within(container).queryByText('@b2ong222')).not.toBeInTheDocument()
+    expect(within(container).getAllByText('-').length).toBeGreaterThan(0)
+
+    profileQueryMock.data = previousProfile
   })
 
   it('selects a ringtone and previews the default ringtone', () => {

@@ -22,13 +22,7 @@ import {
 import { FiChevronRight, FiPlay } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 
-const fallbackProfile = {
-  name: '변성우',
-  username: 'b2ong222',
-  email: 'bongchock45@gmail.com',
-  trainCount: 0,
-  levelName: '-',
-}
+const EMPTY_VALUE = '-'
 
 interface PageFrameProps {
   title: string
@@ -81,10 +75,10 @@ const SecondaryButton = ({
 )
 
 const quickSettings = [
-  { title: '벨소리', value: '기본 벨소리', to: routePaths.profileRingtone },
-  { title: '알림', value: '주요 알림 켜짐', to: routePaths.profileNotifications },
-  { title: '언어', value: '한국어', to: routePaths.profileLanguage },
-  { title: '프로필 사진', value: '기본 이미지 사용 중', to: routePaths.profilePhoto },
+  { title: '벨소리', value: EMPTY_VALUE, to: routePaths.profileRingtone },
+  { title: '알림', value: EMPTY_VALUE, to: routePaths.profileNotifications },
+  { title: '언어', value: EMPTY_VALUE, to: routePaths.profileLanguage },
+  { title: '프로필 사진', value: EMPTY_VALUE, to: routePaths.profilePhoto },
 ]
 
 const formatTrainingDate = (date: string, includeYear = true) => {
@@ -102,31 +96,43 @@ export const ProfileOverviewPage = () => {
   const profileQuery = useMyPage()
   const trainingQuery = useRecentTrainings()
   const notificationQuery = useNotificationSettings()
-  const profileData = profileQuery.data ?? fallbackProfile
+  const profileData = profileQuery.data
   const recentTrainings = trainingQuery.data ?? []
   const profileImageQuery = useProfileImage(profileQuery.data?.s3Key)
 
   const summaryCards = [
-    ['총 훈련 횟수', `${profileData.trainCount}회`, '누적 완료한 훈련'],
+    [
+      '총 훈련 횟수',
+      profileData?.trainCount == null ? EMPTY_VALUE : `${profileData.trainCount}회`,
+      '누적 완료한 훈련',
+    ],
     [
       '최근 훈련',
-      recentTrainings[0] ? formatTrainingDate(recentTrainings[0].trainedAt, false) : '-',
+      recentTrainings[0] ? formatTrainingDate(recentTrainings[0].trainedAt, false) : EMPTY_VALUE,
       '마지막 훈련 날짜',
     ],
-    ['현재 단계', profileData.levelName || '-', '진행 중인 단계'],
+    ['현재 단계', profileData?.levelName || EMPTY_VALUE, '진행 중인 단계'],
   ]
 
   const quickSettingsWithApiState = quickSettings.map((item) =>
     item.title === '알림'
       ? {
           ...item,
-          value:
-            notificationQuery.data?.trainingEnabled || notificationQuery.data?.communityEnabled
+          value: notificationQuery.data
+            ? notificationQuery.data.trainingEnabled || notificationQuery.data.communityEnabled
               ? '주요 알림 켜짐'
-              : '주요 알림 꺼짐',
+              : '주요 알림 꺼짐'
+            : EMPTY_VALUE,
         }
       : item.title === '프로필 사진'
-        ? { ...item, value: profileQuery.data?.s3Key ? '등록 이미지 사용 중' : '기본 이미지 사용 중' }
+        ? {
+            ...item,
+            value: profileData
+              ? profileData.s3Key
+                ? '등록 이미지 사용 중'
+                : '기본 이미지 사용 중'
+              : EMPTY_VALUE,
+          }
         : item,
   )
 
@@ -138,15 +144,19 @@ export const ProfileOverviewPage = () => {
           <img
             className="size-[54px] rounded-pill object-cover"
             src={profileImageQuery.data ?? defaultProfileSummary}
-            alt={`${profileData.name} 프로필`}
+            alt={`${profileData?.name || EMPTY_VALUE} 프로필`}
           />
         </div>
         <div className="absolute top-[34px] left-[167px] w-[350px]">
-          <h2 className="text-title2 font-bold text-label-normal">{profileData.name}</h2>
+          <h2 className="text-title2 font-bold text-label-normal">
+            {profileData?.name || EMPTY_VALUE}
+          </h2>
           <p className="mt-1 text-[15px] font-medium text-label-alternative">
-            @{profileData.username}
+            {profileData?.username ? `@${profileData.username}` : EMPTY_VALUE}
           </p>
-          <p className="mt-2 text-label text-label-alternative">{profileData.email}</p>
+          <p className="mt-2 text-label text-label-alternative">
+            {profileData?.email || EMPTY_VALUE}
+          </p>
         </div>
         <Link
           className="h-12 absolute top-[63px] left-[807px] flex w-[184px] items-center justify-center rounded-component bg-primary-normal text-body font-bold text-common-0"
@@ -261,11 +271,16 @@ export const ProfileEditPage = () => {
   const [username, setUsername] = useState<string>()
   const [usernameMessage, setUsernameMessage] = useState('')
   const [submitError, setSubmitError] = useState('')
-  const profileData = profileQuery.data ?? fallbackProfile
-  const displayedName = name ?? profileData.name
-  const displayedUsername = username ?? profileData.username
+  const profileData = profileQuery.data
+  const displayedName = name ?? profileData?.name ?? EMPTY_VALUE
+  const displayedUsername = username ?? profileData?.username ?? EMPTY_VALUE
 
   const handleUsernameCheck = async () => {
+    if (!profileData) {
+      setUsernameMessage('프로필 정보를 불러온 뒤 다시 시도해 주세요.')
+      return
+    }
+
     if (!displayedUsername.trim()) {
       setUsernameMessage('아이디를 입력해 주세요.')
       return
@@ -365,7 +380,7 @@ export const ProfileEditPage = () => {
             </Field>
             <div className="col-span-2">
               <Field label="이메일" description="인증 및 알림에 사용되는 이메일입니다.">
-                <input className={inputClass} value={profileData.email} readOnly />
+                <input className={inputClass} value={profileData?.email || EMPTY_VALUE} readOnly />
               </Field>
             </div>
             <div className="pt-6 col-span-2 border-t border-line-alternative">
@@ -390,7 +405,10 @@ export const ProfileEditPage = () => {
             <PrimaryButton
               type="submit"
               disabled={
-                updateProfile.isPending || !displayedName.trim() || !displayedUsername.trim()
+                updateProfile.isPending ||
+                !profileData ||
+                !displayedName.trim() ||
+                !displayedUsername.trim()
               }
             >
               {updateProfile.isPending ? '저장 중' : '변경사항 저장'}
@@ -538,20 +556,22 @@ export const ProfileNotificationsPage = () => {
     ['마케팅 정보', '이벤트와 프로모션 정보를 받아봅니다.'],
   ]
 
-  const settings = settingOverrides ?? [
-    notificationQuery.data?.trainingEnabled ?? true,
-    notificationQuery.data?.communityEnabled ?? true,
-    notificationQuery.data?.allEnabled ?? true,
-    false,
-  ]
+  const settings = settingOverrides ??
+    (notificationQuery.data
+      ? [
+          notificationQuery.data.trainingEnabled,
+          notificationQuery.data.communityEnabled,
+          notificationQuery.data.allEnabled,
+        ]
+      : null)
 
   const toggleSetting = async (index: number) => {
+    if (!settings) return
+
     const previous = settings
     const next = settings.map((value, itemIndex) => (itemIndex === index ? !value : value))
     setSettingOverrides(next)
     setUpdateError('')
-
-    if (index === 3) return
 
     try {
       await updateNotifications.mutateAsync({
@@ -587,11 +607,15 @@ export const ProfileNotificationsPage = () => {
                 <p className="text-body font-bold text-label-normal">{title}</p>
                 <p className="mt-1 text-[13px] text-label-alternative">{description}</p>
               </div>
-              <Toggle
-                checked={settings[index]}
-                label={`${title} ${settings[index] ? '끄기' : '켜기'}`}
-                onChange={() => void toggleSetting(index)}
-              />
+              {settings?.[index] == null ? (
+                <span className="text-body font-medium text-label-alternative">{EMPTY_VALUE}</span>
+              ) : (
+                <Toggle
+                  checked={settings[index]}
+                  label={`${title} ${settings[index] ? '끄기' : '켜기'}`}
+                  onChange={() => void toggleSetting(index)}
+                />
+              )}
             </div>
           ))}
         </div>
