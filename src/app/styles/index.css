@@ -26,3 +26,47 @@ input {
 button {
   cursor: pointer;
 }
+
+@keyframes record-detail-enter {
+  from {
+    opacity: 0;
+    transform: translateX(calc(100% + 16px));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes record-detail-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(calc(100% + 16px));
+  }
+}
+
+@keyframes record-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes record-backdrop-exit {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
