@@ -1,6 +1,6 @@
 import { changePassword } from '../api/authApi'
 import { useEmailVerification } from './useEmailVerification'
-import { validateLoginUsername, validatePassword, validatePasswordConfirm } from './validation'
+import { validatePassword, validatePasswordConfirm } from './validation'
 import { getApiErrorMessage } from '@shared/api'
 import { routePaths } from '@shared/config'
 import { useState } from 'react'
@@ -29,27 +29,16 @@ export const useResetPassword = () => {
   const navigate = useNavigate()
   const emailVerification = useEmailVerification('RESET_PASSWORD')
   const [step, setStep] = useState<ResetPasswordStep>('verify')
-  const [username, setUsername] = useState('')
-  const [usernameError, setUsernameError] = useState('')
   const [passwords, setPasswords] = useState<PasswordValues>(EMPTY_PASSWORD_VALUES)
   const [passwordErrors, setPasswordErrors] = useState<PasswordValues>(EMPTY_PASSWORD_VALUES)
   const [visiblePasswords, setVisiblePasswords] = useState(HIDDEN_PASSWORD_VALUES)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const changeUsername = (nextUsername: string) => {
-    setUsername(nextUsername)
-    setUsernameError('')
-  }
-
-  // 아이디 입력과 이메일 인증을 마치면 새 비밀번호 단계로 이동합니다.
+  // 이메일 인증을 마치면 새 비밀번호 단계로 이동합니다.
   const submitVerifyStep = async () => {
-    const nextUsernameError = validateLoginUsername(username)
-    setUsernameError(nextUsernameError)
-
-    const isVerified = await emailVerification.verifyCode()
-    if (nextUsernameError || !isVerified) return
-
-    setStep('password')
+    if (await emailVerification.verifyCode()) {
+      setStep('password')
+    }
   }
 
   const changePasswordField = (field: PasswordField, value: string) => {
@@ -97,14 +86,11 @@ export const useResetPassword = () => {
 
   return {
     step,
-    username,
-    usernameError,
     emailVerification,
     passwords,
     passwordErrors,
     visiblePasswords,
     isSubmitting,
-    changeUsername,
     submitVerifyStep,
     changePasswordField,
     togglePasswordVisibility,

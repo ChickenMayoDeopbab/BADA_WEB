@@ -104,7 +104,7 @@ export const ResetPasswordFlow = () => {
       <AuthCard
         variant="plain"
         title="비밀번호 재설정"
-        description="아이디와 가입 이메일을 인증해 주세요."
+        description="가입 이메일을 인증해 주세요."
         className="min-h-[690px]"
       >
         <form
@@ -116,15 +116,6 @@ export const ResetPasswordFlow = () => {
           noValidate
         >
           <div className="gap-1.5 flex flex-col">
-            <AuthTextField
-              variant="inset"
-              label="아이디"
-              placeholder="아이디를 입력하세요."
-              autoComplete="username"
-              value={resetPassword.username}
-              onValueChange={resetPassword.changeUsername}
-              error={resetPassword.usernameError}
-            />
             <EmailCodeFields verification={resetPassword.emailVerification} />
           </div>
           <div className="gap-4 mt-[38px] flex flex-col">
