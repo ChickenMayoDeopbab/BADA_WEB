@@ -105,7 +105,7 @@ export const ResetPasswordFlow = () => {
         variant="plain"
         title="비밀번호 재설정"
         description="가입 이메일을 인증해 주세요."
-        className="min-h-[690px]"
+        className="min-h-[612px]"
       >
         <form
           className="flex flex-col"
