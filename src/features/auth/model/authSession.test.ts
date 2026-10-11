@@ -1,4 +1,11 @@
-import { clearAuthSession, getAccessToken, hasAuthSession, setAccessToken } from './authSession'
+import {
+  clearAuthSession,
+  getAccessToken,
+  getRefreshToken,
+  hasAuthSession,
+  setAccessToken,
+  setAuthTokens,
+} from './authSession'
 import { afterEach, describe, expect, it } from 'vitest'
 
 describe('authSession', () => {
@@ -19,5 +26,29 @@ describe('authSession', () => {
 
     expect(getAccessToken()).toBeNull()
     expect(hasAuthSession()).toBe(false)
+  })
+
+  it('stores tokens in localStorage when the session should persist', () => {
+    setAuthTokens({ accessToken: 'access', refreshToken: 'refresh' }, true)
+
+    expect(window.localStorage.getItem('bada.accessToken')).toBe('access')
+    expect(window.sessionStorage.getItem('bada.accessToken')).toBeNull()
+    expect(getRefreshToken()).toBe('refresh')
+  })
+
+  it('stores tokens in sessionStorage when the session should not persist', () => {
+    setAuthTokens({ accessToken: 'access', refreshToken: 'refresh' }, false)
+
+    expect(window.localStorage.getItem('bada.accessToken')).toBeNull()
+    expect(getAccessToken()).toBe('access')
+    expect(getRefreshToken()).toBe('refresh')
+  })
+
+  it('replaces a previous session stored in the other storage', () => {
+    setAuthTokens({ accessToken: 'old', refreshToken: 'old-refresh' }, true)
+    setAuthTokens({ accessToken: 'new', refreshToken: 'new-refresh' }, false)
+
+    expect(window.localStorage.getItem('bada.accessToken')).toBeNull()
+    expect(getAccessToken()).toBe('new')
   })
 })
