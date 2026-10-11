@@ -1,69 +1,55 @@
-import CustomButton from '@shared/ui/CustomButton'
-import CustomInput from '@shared/ui/CustomInput'
-import { useState } from 'react'
-import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
+import type { SignupState } from '../model/useSignup'
+import { AuthButton } from './AuthButton'
+import { AuthCard } from './AuthCard'
+import { AuthTextField } from './AuthTextField'
+import { PasswordVisibilityButton } from './PasswordVisibilityButton'
 
-type PasswordProps = {
-  password: string
-  setPassword: React.Dispatch<React.SetStateAction<string>>
-  onPrev: () => void
-  onNext: () => void
+type PasswordStepProps = {
+  signup: SignupState
 }
 
-export default function PasswordStep({ password, setPassword, onPrev, onNext }: PasswordProps) {
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
-  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false)
-
-  return (
-    <div>
-      <div className="mb-5 mt-12 flex-1">
-        <CustomInput
+// 회원가입 두 번째 단계로 비밀번호를 설정합니다.
+export const PasswordStep = ({ signup }: PasswordStepProps) => (
+  <AuthCard title="회원가입 · 비밀번호" description="안전한 비밀번호를 설정해 주세요.">
+    <form
+      className="gap-8 flex w-full flex-col"
+      onSubmit={(event) => {
+        event.preventDefault()
+        signup.submitPasswordStep()
+      }}
+      noValidate
+    >
+      <div className="gap-3 flex w-full flex-col">
+        <AuthTextField
           label="비밀번호"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          type={isPasswordVisible ? 'text' : 'password'}
-          error="비밀번호를 입력해주세요"
-          rightIcon={
-            <button
-              type="button"
-              onClick={() => setIsPasswordVisible((v) => !v)}
-              className="text-[#BDBEBE]"
-            >
-              {isPasswordVisible ? <IoMdEyeOff size={20} /> : <IoMdEye size={20} />}
-            </button>
-          }
+          placeholder="비밀번호를 입력하세요."
+          type="password"
+          autoComplete="new-password"
+          value={signup.password}
+          onValueChange={signup.changePassword}
+          error={signup.passwordError}
         />
-      </div>
-
-      <div className="mb-4">
-        <CustomInput
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          type={isConfirmPasswordVisible ? 'text' : 'password'}
+        <AuthTextField
+          label="비밀번호 확인"
           placeholder="비밀번호를 다시 입력하세요."
-          error="비밀번호가 일치하지 않습니다"
-          rightIcon={
-            <button
-              type="button"
-              onClick={() => setIsConfirmPasswordVisible((v) => !v)}
-              className="text-[#BDBEBE]"
-            >
-              {isConfirmPasswordVisible ? <IoMdEyeOff size={20} /> : <IoMdEye size={20} />}
-            </button>
+          type={signup.isPasswordConfirmVisible ? 'text' : 'password'}
+          autoComplete="new-password"
+          value={signup.passwordConfirm}
+          onValueChange={signup.changePasswordConfirm}
+          error={signup.passwordConfirmError}
+          trailing={
+            <PasswordVisibilityButton
+              isVisible={signup.isPasswordConfirmVisible}
+              onToggle={signup.togglePasswordConfirmVisibility}
+            />
           }
         />
       </div>
 
-      <div className="gap-3 mt-17 flex flex-col">
-        <CustomButton label="다음으로" bgColor="#0AE365" color="#F6F6F6" onClick={onNext} />
+      <div className="gap-3 flex w-full flex-col">
+        <AuthButton type="submit" label="다음" />
+        <AuthButton variant="secondary" label="이전" onClick={signup.goToEmailStep} />
       </div>
-
-      <div className="gap-4 mt-3 flex">
-        <button className="text-sm cursor-pointer font-medium text-[#5C5E5E]" onClick={onPrev}>
-          이전으로
-        </button>
-      </div>
-    </div>
-  )
-}
+    </form>
+  </AuthCard>
+)
