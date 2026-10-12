@@ -1,7 +1,6 @@
-import { AppSidebar } from './AppSidebar'
+import { SidebarUserProfile } from './SidebarUserProfile'
 import { useCurrentUser, useCurrentUserProfileImage } from '@entities/user'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@entities/user', () => ({
@@ -12,7 +11,7 @@ vi.mock('@entities/user', () => ({
 const mockedUseCurrentUser = vi.mocked(useCurrentUser)
 const mockedUseCurrentUserProfileImage = vi.mocked(useCurrentUserProfileImage)
 
-describe('AppSidebar', () => {
+describe('SidebarUserProfile', () => {
   beforeEach(() => {
     mockedUseCurrentUser.mockReturnValue({
       data: {
@@ -33,11 +32,7 @@ describe('AppSidebar', () => {
   })
 
   it('renders the current user information and profile image', () => {
-    render(
-      <MemoryRouter>
-        <AppSidebar />
-      </MemoryRouter>,
-    )
+    render(<SidebarUserProfile />)
 
     expect(screen.getByText('바다')).toBeInTheDocument()
     expect(screen.getByText('bada-user')).toBeInTheDocument()
@@ -54,21 +49,13 @@ describe('AppSidebar', () => {
       isPending: true,
     } as ReturnType<typeof useCurrentUser>)
 
-    render(
-      <MemoryRouter>
-        <AppSidebar />
-      </MemoryRouter>,
-    )
+    render(<SidebarUserProfile />)
 
     expect(screen.getByLabelText('사용자 정보 로딩 중')).toBeInTheDocument()
   })
 
   it('falls back to the user initial when the remote image fails', () => {
-    render(
-      <MemoryRouter>
-        <AppSidebar />
-      </MemoryRouter>,
-    )
+    render(<SidebarUserProfile />)
     const image = screen.getByRole('img', { name: '바다 프로필' })
 
     fireEvent.error(image)
@@ -77,6 +64,21 @@ describe('AppSidebar', () => {
     expect(screen.queryByRole('img', { name: '바다 프로필' })).not.toHaveAttribute(
       'src',
       'https://example.com/profile.png',
+    )
+  })
+
+  it('tries a new profile image after a previous URL failed', () => {
+    const { rerender } = render(<SidebarUserProfile />)
+    fireEvent.error(screen.getByRole('img', { name: '바다 프로필' }))
+    mockedUseCurrentUserProfileImage.mockReturnValue({
+      data: 'https://example.com/new-profile.png',
+    } as ReturnType<typeof useCurrentUserProfileImage>)
+
+    rerender(<SidebarUserProfile />)
+
+    expect(screen.getByRole('img', { name: '바다 프로필' })).toHaveAttribute(
+      'src',
+      'https://example.com/new-profile.png',
     )
   })
 
@@ -93,11 +95,7 @@ describe('AppSidebar', () => {
       data: undefined,
     } as ReturnType<typeof useCurrentUserProfileImage>)
 
-    render(
-      <MemoryRouter>
-        <AppSidebar />
-      </MemoryRouter>,
-    )
+    render(<SidebarUserProfile />)
 
     expect(screen.getByRole('img', { name: '바다 프로필' })).toHaveTextContent('바')
     expect(mockedUseCurrentUserProfileImage).toHaveBeenCalledWith(undefined)
