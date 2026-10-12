@@ -86,12 +86,13 @@ describe('useTrainingRecords', () => {
     expect(result.current.totalPages).toBe(1)
   })
 
-  it('현재 페이지 기록의 상세 피드백 개수를 함께 조회한다', async () => {
+  it('전체 기록의 상세 피드백 개수를 조회해 합산한다', async () => {
     const { result } = renderHook(() => useTrainingRecords(), { wrapper: createWrapper() })
 
-    await waitFor(() => expect(result.current.paginatedRecords[0]?.feedbackCount).toBe(1))
+    await waitFor(() => expect(result.current.totalFeedbackCount).toBe(66))
 
     expect(getTrainingRecord).toHaveBeenCalledWith(1)
+    expect(getTrainingRecord).toHaveBeenCalledTimes(11)
     expect(result.current.paginatedRecords[9]?.feedbackCount).toBe(10)
   })
 

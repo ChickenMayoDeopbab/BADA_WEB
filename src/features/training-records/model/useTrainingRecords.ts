@@ -92,19 +92,25 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
 
     return filteredRecords.slice(startIndex, startIndex + RECORDS_PER_PAGE)
   }, [filteredRecords, safeCurrentPage])
-  const visibleRecordDetailQueries = useQueries({
-    queries: paginatedListRecords.map((record) => ({
+  const filteredRecordDetailQueries = useQueries({
+    queries: filteredRecords.map((record) => ({
       queryKey: [...TRAINING_RECORDS_QUERY_KEY, record.id],
       queryFn: () => getTrainingRecord(record.id),
       staleTime: 60_000,
     })),
   })
-  const paginatedRecords = useMemo(
+  const detailedRecordsById = useMemo(
     () =>
-      paginatedListRecords.map(
-        (record, index) => visibleRecordDetailQueries[index]?.data ?? record,
+      new Map(
+        filteredRecordDetailQueries.flatMap((query) =>
+          query.data ? ([[query.data.id, query.data]] as const) : [],
+        ),
       ),
-    [paginatedListRecords, visibleRecordDetailQueries],
+    [filteredRecordDetailQueries],
+  )
+  const paginatedRecords = useMemo(
+    () => paginatedListRecords.map((record) => detailedRecordsById.get(record.id) ?? record),
+    [detailedRecordsById, paginatedListRecords],
   )
   const selectedListRecord = records.find((record) => record.id === selectedRecordId) ?? null
   const selectedRecord = recordDetailQuery.data ?? selectedListRecord
@@ -112,9 +118,13 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
     (total, record) => total + record.durationSeconds,
     0,
   )
-  const totalFeedbackCount = filteredRecords.every((record) => record.feedbackCount === undefined)
-    ? null
-    : filteredRecords.reduce((total, record) => total + (record.feedbackCount ?? 0), 0)
+  const isFeedbackCountReady = filteredRecordDetailQueries.every((query) => query.isSuccess)
+  const totalFeedbackCount = isFeedbackCountReady
+    ? filteredRecordDetailQueries.reduce(
+        (total, query) => total + (query.data?.feedbackCount ?? 0),
+        0,
+      )
+    : null
 
   // 기간을 변경하고 기록 목록을 첫 페이지로 이동합니다.
   const handlePeriodChange = (nextPeriod: TrainingPeriod) => {
