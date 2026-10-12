@@ -1,6 +1,7 @@
 import type { CommunityAttachment, CommunityPost, ReactionKind } from '@entities/community'
 import scenarioImage from '@shared/assets/community/figma-1.png'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
+import calendarIcon from '@shared/assets/training-records/calendar.svg'
 import { routePaths } from '@shared/config'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -21,6 +22,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   getAttachableScenarios,
   getAttachableTrainingRecords,
+  type SelectableAttachment,
   uploadCommunityImage,
 } from '../api/communityApi'
 import {
@@ -685,9 +687,7 @@ const SelectionModal = ({
   onClose: () => void
   onSelect: (attachment: Attachment) => void
 }) => {
-  const [records, setRecords] = useState<
-    Array<{ id: number; title: string; detail: string; imageUrl?: string | null }>
-  >([])
+  const [records, setRecords] = useState<SelectableAttachment[]>([])
   const [selected, setSelected] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
@@ -700,78 +700,129 @@ const SelectionModal = ({
       .finally(() => setIsLoading(false))
   }, [type])
 
+  const recordDate = records.find((item) => item.trainedAt)?.trainedAt?.slice(0, 10)
+  const visibleRecords =
+    type === 'record' && recordDate
+      ? records.filter((item) => item.trainedAt?.startsWith(recordDate))
+      : records
+
+  const formatTrainingTime = (value?: string) => {
+    if (!value) return ''
+    return new Intl.DateTimeFormat('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).format(new Date(value))
+  }
+
   return (
     <div className="inset-0 bg-black/30 fixed z-30 flex items-center justify-center">
-      <div className="p-5 flex h-[80vh] max-h-[640px] w-[544px] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
-        <div className="flex shrink-0 justify-between">
+      <div className="px-8 py-7 flex h-[min(880px,calc(100vh-64px))] w-[min(930px,calc(100vw-64px))] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+        <div className="flex shrink-0 items-start justify-between">
           <div>
             <h3 className="text-headline1 font-bold">
               첨부 {type === 'record' ? '훈련기록' : '시나리오'} 선택
             </h3>
             <p className="mt-1 text-label text-label-alternative">
-              게시글에 함께 보여줄 항목을 선택해 주세요.
+              {type === 'record'
+                ? '게시글에 함께 공유할 훈련 기록을 선택해 주세요.'
+                : '게시글에 함께 보여줄 시나리오를 선택해 주세요.'}
             </p>
           </div>
-          <button type="button" onClick={onClose}>
-            <FiX className="size-6" />
+          <button
+            type="button"
+            aria-label="닫기"
+            onClick={onClose}
+            className="size-10 flex items-center justify-center rounded-pill bg-fill-normal text-label-neutral"
+          >
+            <FiX className="size-5" />
           </button>
         </div>
+        {type === 'record' && recordDate && (
+          <div className="mt-5 px-5 h-14 flex shrink-0 items-center justify-between rounded-control bg-fill-normal">
+            <img src={calendarIcon} alt="" className="size-5 opacity-50" />
+            <span className="text-body font-medium text-label-normal">{recordDate}</span>
+          </div>
+        )}
         {type === 'scenario' && (
           <button
             type="button"
-            className="gap-2 mt-3 px-3 py-2 ml-auto flex shrink-0 items-center rounded-control bg-fill-normal text-label"
+            className="gap-8 mt-5 px-5 h-14 ml-auto flex shrink-0 items-center rounded-control bg-fill-normal text-label"
           >
             전체 <FiChevronDown />
           </button>
         )}
-        <div className="mt-3 gap-2 min-h-0 pr-1 flex flex-1 flex-col overflow-y-auto">
+        <div className="mt-4 gap-3 min-h-0 pr-1 flex flex-1 flex-col overflow-y-auto">
           {isLoading && (
             <p className="py-6 text-center text-label-alternative">목록을 불러오는 중이에요.</p>
           )}
           {hasError && (
             <p className="py-6 text-center text-status-error">목록을 불러오지 못했어요.</p>
           )}
-          {!isLoading && !hasError && records.length === 0 && (
+          {!isLoading && !hasError && visibleRecords.length === 0 && (
             <p className="py-6 text-center text-label-alternative">첨부할 항목이 없어요.</p>
           )}
-          {records.map((item) => (
+          {visibleRecords.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setSelected(item.id)}
-              className={`p-3 flex shrink-0 items-center justify-between overflow-hidden rounded-component border ${selected === item.id ? 'border-primary-normal' : 'border-line-alternative'} ${type === 'scenario' ? 'text-white relative bg-secondary-normal' : ''}`}
+              className={`relative flex shrink-0 items-center overflow-hidden border text-left ${type === 'scenario' ? 'h-24 px-5 text-white rounded-component border-line-alternative bg-secondary-normal' : 'h-24 px-6 rounded-control border-line-alternative bg-background-normal shadow-subtle-card'} ${selected === item.id ? 'border-primary-normal' : ''}`}
             >
               {type === 'scenario' && (
                 <img
                   src={item.imageUrl || scenarioImage}
                   alt=""
-                  className="inset-0 absolute size-full object-cover opacity-35"
+                  className="inset-0 absolute size-full object-cover"
                   onError={(event) => {
                     event.currentTarget.onerror = null
                     event.currentTarget.src = scenarioImage
                   }}
                 />
               )}
-              <div className="relative text-left">
-                <strong className="block text-body">
-                  {type === 'record' ? '🍕 ' : ''}
-                  {item.title}
-                </strong>
-                <span className="text-caption opacity-70">{item.detail}</span>
-              </div>
+              {type === 'scenario' && <span className="inset-0 absolute bg-black/45" />}
+              {type === 'record' ? (
+                <>
+                  <span className="size-14 mr-4 flex shrink-0 items-center justify-center overflow-hidden rounded-control bg-primary-pale">
+                    {item.iconUrl ? (
+                      <img src={item.iconUrl} alt="" className="size-9 object-contain" />
+                    ) : (
+                      <span className="text-title2">🍕</span>
+                    )}
+                  </span>
+                  <strong className="min-w-0 flex-1 truncate text-body font-bold">{item.title}</strong>
+                  <span className="w-44 shrink-0 text-label text-label-alternative">
+                    {item.detail}
+                    {item.feedbackCount !== undefined ? ` · 피드백 ${item.feedbackCount}개` : ''}
+                  </span>
+                  <span className="w-32 shrink-0 text-label text-label-disabled">
+                    {formatTrainingTime(item.trainedAt)}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <strong className="relative min-w-0 flex-1 truncate text-body font-medium">
+                    {item.title}
+                  </strong>
+                  <span className="relative w-28 shrink-0 flex items-center gap-1 text-label">
+                    <FiRotateCw className="size-4" /> {item.practiceCount ?? 0}회
+                  </span>
+                  <span className="relative w-48 shrink-0 text-label">커스텀 시나리오</span>
+                </>
+              )}
               <span
-                className={`size-6 relative flex shrink-0 items-center justify-center rounded-pill border-2 ${selected === item.id ? 'text-white border-primary-normal bg-primary-normal' : 'border-line-normal text-label-alternative'}`}
+                className={`size-8 relative ml-4 flex shrink-0 items-center justify-center rounded-pill border-2 ${selected === item.id ? 'text-white border-primary-normal bg-primary-normal' : type === 'scenario' ? 'border-white text-white bg-white/20' : 'border-line-normal text-label-alternative'}`}
               >
-                <FiCheck className="size-4" />
+                <FiCheck className="size-5" />
               </span>
             </button>
           ))}
         </div>
-        <div className="gap-2 pt-4 flex shrink-0 justify-end">
+        <div className="gap-4 pt-6 flex shrink-0 justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-3 rounded-control bg-fill-normal"
+            className="h-14 w-36 rounded-control bg-fill-normal text-label font-medium"
           >
             취소
           </button>
@@ -782,9 +833,9 @@ const SelectionModal = ({
               const item = records.find((record) => record.id === selected)
               if (item) onSelect({ id: item.id, type, title: item.title })
             }}
-            className="px-6 py-3 text-white rounded-control bg-primary-normal disabled:opacity-40"
+            className="h-14 w-64 text-white rounded-control bg-primary-normal text-label font-bold disabled:opacity-30"
           >
-            {type === 'record' ? '훈련기록' : '시나리오'} 첨부하기
+            선택 {type === 'record' ? '훈련기록' : '시나리오'} 첨부
           </button>
         </div>
       </div>

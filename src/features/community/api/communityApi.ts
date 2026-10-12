@@ -66,9 +66,15 @@ interface TrainingRecordSummary {
   recordId: number
   scenarioName: string
   durationSeconds: number
+  trainedAt: string
+  scenarioImage?: string | null
+  categoryIconUrl?: string | null
 }
 interface TrainingRecordPage {
   content?: TrainingRecordSummary[]
+}
+interface TrainingRecordDetail {
+  positiveFeedbacks?: unknown[]
 }
 
 export interface SelectableAttachment {
@@ -76,6 +82,11 @@ export interface SelectableAttachment {
   title: string
   detail: string
   imageUrl?: string | null
+  iconUrl?: string | null
+  trainedAt?: string
+  feedbackCount?: number
+  practiceCount?: number
+  category?: string
 }
 export interface CreatePostInput {
   title: string
@@ -251,11 +262,24 @@ export const getAttachableTrainingRecords = async (): Promise<SelectableAttachme
     '/api/v1/training-records',
     { params: { page: 0, size: 20 } },
   )
-  return (response.data.data?.content ?? []).map((item) => ({
-    id: item.recordId,
-    title: item.scenarioName,
-    detail: `${Math.floor(item.durationSeconds / 60)}분 ${item.durationSeconds % 60}초`,
-  }))
+  return Promise.all(
+    (response.data.data?.content ?? []).map(async (item) => {
+      const detail = await httpClient
+        .get<SpringApiResponse<TrainingRecordDetail>>(`/api/v1/training-records/${item.recordId}`)
+        .then(({ data }) => data.data)
+        .catch(() => undefined)
+
+      return {
+        id: item.recordId,
+        title: item.scenarioName,
+        detail: `${Math.floor(item.durationSeconds / 60)}분 ${item.durationSeconds % 60}초`,
+        imageUrl: item.scenarioImage,
+        iconUrl: item.categoryIconUrl,
+        trainedAt: item.trainedAt,
+        feedbackCount: detail?.positiveFeedbacks?.length,
+      }
+    }),
+  )
 }
 export const getAttachableScenarios = async (): Promise<SelectableAttachment[]> => {
   const response = await aiHttpClient.get<{ scenarios: ScenarioResponse[] }>(
@@ -268,6 +292,8 @@ export const getAttachableScenarios = async (): Promise<SelectableAttachment[]> 
       title: item.title,
       detail: `${item.category} · ${item.practice_count}회`,
       imageUrl: item.scenario_image,
+      practiceCount: item.practice_count,
+      category: item.category,
     }))
 }
 export const uploadCommunityImage = async (file: File) => {
