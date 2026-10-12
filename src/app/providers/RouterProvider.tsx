@@ -7,6 +7,7 @@ import {
   ResetPasswordPage,
   SignupPage,
 } from '@pages/auth'
+import { DashboardPage } from '@pages/dashboard'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
 import { TrainingRecordsPage } from '@pages/records'
 import { routePaths } from '@shared/config'
@@ -49,7 +50,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: routePaths.dashboard,
-            element: <ServicePlaceholderPage title="대시보드 화면" />,
+            element: <DashboardPage />,
           },
           {
             path: routePaths.training,
