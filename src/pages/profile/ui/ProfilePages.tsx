@@ -388,7 +388,11 @@ export const ProfileEditPage = () => {
               <p className="mt-2 text-caption text-label-alternative">
                 보안을 위해 주기적으로 비밀번호를 변경해 주세요.
               </p>
-              <SecondaryButton className="mt-5 w-[220px]" type="button">
+              <SecondaryButton
+                className="mt-5 w-[220px]"
+                type="button"
+                onClick={() => navigate(routePaths.resetPassword)}
+              >
                 비밀번호 변경
               </SecondaryButton>
             </div>
