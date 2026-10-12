@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from 'react'
 import {
   FiArrowLeft,
   FiCheck,
-  FiChevronDown,
   FiChevronLeft,
   FiChevronRight,
   FiEye,
@@ -757,7 +756,7 @@ const SelectionModal = ({
 
   return (
     <div className="inset-0 bg-black/30 fixed z-30 flex items-center justify-center">
-      <div className="px-8 py-7 flex h-[min(880px,calc(100vh-64px))] w-[min(930px,calc(100vw-64px))] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+      <div className="px-6 py-6 flex h-[min(720px,calc(100vh-48px))] w-[min(800px,calc(100vw-48px))] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
         <div className="flex shrink-0 items-start justify-between">
           <div>
             <h3 className="text-headline1 font-bold">
@@ -773,19 +772,19 @@ const SelectionModal = ({
             type="button"
             aria-label="닫기"
             onClick={onClose}
-            className="size-10 flex items-center justify-center rounded-pill bg-fill-normal text-label-neutral"
+            className="size-9 flex items-center justify-center rounded-pill bg-fill-normal text-label-neutral"
           >
             <FiX className="size-5" />
           </button>
         </div>
         {type === 'record' && (
-          <div ref={datePickerRef} className="mt-5 relative shrink-0">
+          <div ref={datePickerRef} className="mt-4 relative shrink-0">
             <button
               type="button"
               aria-haspopup="dialog"
               aria-expanded={isDatePickerOpen}
               onClick={() => setIsDatePickerOpen((open) => !open)}
-              className="px-5 h-14 flex w-full items-center justify-between rounded-control bg-fill-normal focus:outline-2 focus:outline-primary-normal"
+              className="px-4 h-12 flex w-full items-center justify-between rounded-control bg-fill-normal focus:outline-2 focus:outline-primary-normal"
             >
               <img src={calendarIcon} alt="" className="size-5 opacity-50" />
               <span className="text-body font-medium text-label-normal">
@@ -865,14 +864,6 @@ const SelectionModal = ({
             )}
           </div>
         )}
-        {type === 'scenario' && (
-          <button
-            type="button"
-            className="gap-8 mt-5 px-5 h-14 ml-auto flex shrink-0 items-center rounded-control bg-fill-normal text-label"
-          >
-            전체 <FiChevronDown />
-          </button>
-        )}
         <div className="mt-4 gap-3 min-h-0 pr-1 flex flex-1 flex-col overflow-y-auto">
           {isLoading && (
             <p className="py-6 text-center text-label-alternative">목록을 불러오는 중이에요.</p>
@@ -888,7 +879,7 @@ const SelectionModal = ({
               key={item.id}
               type="button"
               onClick={() => setSelected(item.id)}
-              className={`relative flex shrink-0 items-center overflow-hidden border text-left ${type === 'scenario' ? 'h-24 px-5 text-white rounded-component border-line-alternative bg-secondary-normal' : 'h-24 px-6 rounded-control border-line-alternative bg-background-normal shadow-subtle-card'} ${selected === item.id ? 'border-primary-normal' : ''}`}
+              className={`relative flex shrink-0 items-center overflow-hidden border text-left ${type === 'scenario' ? 'h-20 px-4 text-white rounded-component border-line-alternative bg-secondary-normal' : 'h-20 px-4 rounded-control border-line-alternative bg-background-normal shadow-subtle-card'} ${selected === item.id ? 'border-primary-normal' : ''}`}
             >
               {type === 'scenario' && (
                 <img
@@ -904,19 +895,19 @@ const SelectionModal = ({
               {type === 'scenario' && <span className="inset-0 absolute bg-black/45" />}
               {type === 'record' ? (
                 <>
-                  <span className="size-14 mr-4 flex shrink-0 items-center justify-center overflow-hidden rounded-control bg-primary-pale">
+                  <span className="size-12 mr-3 flex shrink-0 items-center justify-center overflow-hidden rounded-control bg-primary-pale">
                     {item.iconUrl ? (
-                      <img src={item.iconUrl} alt="" className="size-9 object-contain" />
+                      <img src={item.iconUrl} alt="" className="size-8 object-contain" />
                     ) : (
                       <span className="text-title2">🍕</span>
                     )}
                   </span>
                   <strong className="min-w-0 flex-1 truncate text-body font-bold">{item.title}</strong>
-                  <span className="w-44 shrink-0 text-label text-label-alternative">
+                  <span className="w-40 shrink-0 text-label text-label-alternative">
                     {item.detail}
                     {item.feedbackCount !== undefined ? ` · 피드백 ${item.feedbackCount}개` : ''}
                   </span>
-                  <span className="w-32 shrink-0 text-label text-label-disabled">
+                  <span className="w-24 shrink-0 text-label font-medium text-label-alternative">
                     {formatTrainingTime(item.trainedAt)}
                   </span>
                 </>
@@ -925,14 +916,14 @@ const SelectionModal = ({
                   <strong className="relative min-w-0 flex-1 truncate text-body font-medium">
                     {item.title}
                   </strong>
-                  <span className="relative w-28 shrink-0 flex items-center gap-1 text-label">
+                  <span className="relative w-24 shrink-0 flex items-center gap-1 text-label">
                     <FiRotateCw className="size-4" /> {item.practiceCount ?? 0}회
                   </span>
-                  <span className="relative w-48 shrink-0 text-label">커스텀 시나리오</span>
+                  <span className="relative w-36 shrink-0 text-label">커스텀 시나리오</span>
                 </>
               )}
               <span
-                className={`size-8 relative ml-4 flex shrink-0 items-center justify-center rounded-pill border-2 ${selected === item.id ? 'text-white border-primary-normal bg-primary-normal' : type === 'scenario' ? 'border-white text-white bg-white/20' : 'border-line-normal text-label-alternative'}`}
+                className={`size-8 relative ml-3 flex shrink-0 items-center justify-center rounded-pill border-2 ${selected === item.id ? 'text-white border-primary-normal bg-primary-normal' : type === 'scenario' ? 'border-white text-white bg-white/20' : 'border-line-normal text-label-alternative'}`}
               >
                 <FiCheck className="size-5" />
               </span>
