@@ -21,10 +21,17 @@ describe('authSession', () => {
   })
 
   it('clears the stored session', () => {
-    setAccessToken('test-access-token')
+    window.localStorage.setItem('bada.accessToken', 'local-access')
+    window.localStorage.setItem('bada.refreshToken', 'local-refresh')
+    window.sessionStorage.setItem('bada.accessToken', 'session-access')
+    window.sessionStorage.setItem('bada.refreshToken', 'session-refresh')
+
     clearAuthSession()
 
-    expect(getAccessToken()).toBeNull()
+    expect(window.localStorage.getItem('bada.accessToken')).toBeNull()
+    expect(window.localStorage.getItem('bada.refreshToken')).toBeNull()
+    expect(window.sessionStorage.getItem('bada.accessToken')).toBeNull()
+    expect(window.sessionStorage.getItem('bada.refreshToken')).toBeNull()
     expect(hasAuthSession()).toBe(false)
   })
 
