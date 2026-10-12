@@ -689,21 +689,26 @@ const SelectionModal = ({
 }) => {
   const [records, setRecords] = useState<SelectableAttachment[]>([])
   const [selected, setSelected] = useState<number | null>(null)
+  const [selectedDate, setSelectedDate] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
 
   useEffect(() => {
     const request = type === 'record' ? getAttachableTrainingRecords() : getAttachableScenarios()
     request
-      .then(setRecords)
+      .then((items) => {
+        setRecords(items)
+        if (type === 'record') {
+          setSelectedDate(items.find((item) => item.trainedAt)?.trainedAt?.slice(0, 10) ?? '')
+        }
+      })
       .catch(() => setHasError(true))
       .finally(() => setIsLoading(false))
   }, [type])
 
-  const recordDate = records.find((item) => item.trainedAt)?.trainedAt?.slice(0, 10)
   const visibleRecords =
-    type === 'record' && recordDate
-      ? records.filter((item) => item.trainedAt?.startsWith(recordDate))
+    type === 'record' && selectedDate
+      ? records.filter((item) => item.trainedAt?.startsWith(selectedDate))
       : records
 
   const formatTrainingTime = (value?: string) => {
@@ -738,11 +743,23 @@ const SelectionModal = ({
             <FiX className="size-5" />
           </button>
         </div>
-        {type === 'record' && recordDate && (
-          <div className="mt-5 px-5 h-14 flex shrink-0 items-center justify-between rounded-control bg-fill-normal">
+        {type === 'record' && (
+          <label className="mt-5 px-5 h-14 relative flex shrink-0 cursor-pointer items-center justify-between rounded-control bg-fill-normal focus-within:outline-2 focus-within:outline-primary-normal">
             <img src={calendarIcon} alt="" className="size-5 opacity-50" />
-            <span className="text-body font-medium text-label-normal">{recordDate}</span>
-          </div>
+            <span className="text-body font-medium text-label-normal">
+              {selectedDate || '날짜 선택'}
+            </span>
+            <input
+              type="date"
+              aria-label="훈련기록 날짜 선택"
+              value={selectedDate}
+              onChange={(event) => {
+                setSelectedDate(event.target.value)
+                setSelected(null)
+              }}
+              className="inset-0 absolute size-full cursor-pointer opacity-0"
+            />
+          </label>
         )}
         {type === 'scenario' && (
           <button
