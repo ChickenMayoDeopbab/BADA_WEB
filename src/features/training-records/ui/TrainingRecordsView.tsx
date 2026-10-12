@@ -160,11 +160,13 @@ const TimelineItem = ({
         <button
           type="button"
           onClick={() => onToggle(feedback.id)}
-          className="flex w-full items-center justify-between text-left"
+          className="gap-4 flex w-full items-center justify-between text-left"
           aria-expanded={isExpanded}
         >
-          <span className="text-body font-medium text-label-neutral">{feedback.title}</span>
-          <span className="h-3 w-6 flex items-center justify-center">
+          <span className="min-w-0 flex-1 text-body font-medium text-label-neutral">
+            {feedback.title}
+          </span>
+          <span className="h-3 w-6 flex shrink-0 items-center justify-center">
             <img
               className={`ease-out transition-transform duration-300 ${isExpanded ? 'rotate-90' : '-rotate-90'}`}
               src={isExpanded ? feedbackArrowOpen : feedbackArrow}
@@ -183,7 +185,7 @@ const TimelineItem = ({
               <div className="space-y-2">
                 <AudioPreview
                   isPlaying={isAudioPlaying}
-                  audioUrl={isExpanded ? (recordingUrl ?? feedback.audioUrl) : undefined}
+                  audioUrl={recordingUrl ?? feedback.audioUrl}
                   startSecond={recordingUrl ? feedback.startSecond : 0}
                   endSecond={
                     recordingUrl

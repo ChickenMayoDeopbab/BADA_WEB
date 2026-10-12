@@ -52,6 +52,8 @@ describe('AudioPreview', () => {
       expect(screen.getByRole('button', { name: '음성 미리보기 재생' })).toBeEnabled(),
     )
     expect(pauseMock).toHaveBeenCalled()
+    expect(screen.getByText('0:03')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: '음성 파형' }).children).toHaveLength(25)
   })
 
   it('녹음 주소가 없으면 재생 버튼을 비활성화한다', () => {
