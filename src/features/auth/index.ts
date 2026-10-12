@@ -6,6 +6,7 @@ export {
   setAccessToken,
   setAuthTokens,
 } from './model/authSession'
+export { configureAuthHttpClient } from './api/configureAuthHttpClient'
 export type { LoginMode } from './model/types'
 export { FindIdFlow } from './ui/FindIdFlow'
 export { IdLogin } from './ui/IdLogin'

@@ -6,9 +6,10 @@ import type {
   LoginRequest,
   OAuthProvider,
   OAuthTokenResponse,
+  RefreshTokenRequest,
   SignUpRequest,
 } from '../model/types'
-import { httpClient } from '@shared/api'
+import { httpClient, plainHttpClient } from '@shared/api'
 import type { ApiResponse } from '@shared/types'
 
 const AUTH_PATH = '/api/v1/auth'
@@ -16,6 +17,16 @@ const AUTH_PATH = '/api/v1/auth'
 /** 아이디와 비밀번호로 로그인합니다. */
 export const login = async (request: LoginRequest) => {
   const { data } = await httpClient.post<ApiResponse<AuthTokens>>(`${AUTH_PATH}/login`, request)
+
+  return data.data
+}
+
+/** 리프레시 토큰으로 새 인증 토큰을 발급합니다. */
+export const refreshAuthTokens = async (request: RefreshTokenRequest) => {
+  const { data } = await plainHttpClient.post<ApiResponse<AuthTokens>>(
+    `${AUTH_PATH}/refresh`,
+    request,
+  )
 
   return data.data
 }
