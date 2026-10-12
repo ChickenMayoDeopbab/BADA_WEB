@@ -8,8 +8,8 @@ import historyIcon from '@shared/assets/training-records/nav-history.svg'
 import homeIcon from '@shared/assets/training-records/nav-home.svg'
 import logoutIcon from '@shared/assets/training-records/nav-logout.svg'
 import profileIcon from '@shared/assets/training-records/nav-profile.svg'
-import profileImage from '@shared/assets/training-records/profile.png'
 import { routePaths } from '@shared/config'
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
 const primaryItems = [
@@ -94,12 +94,42 @@ const SidebarItem = ({
   </NavLink>
 )
 
+interface UserAvatarProps {
+  imageUrl?: string
+  name?: string
+}
+
+const UserAvatar = ({ imageUrl, name }: UserAvatarProps) => {
+  const [hasImageError, setHasImageError] = useState(false)
+  const label = name ? `${name} 프로필` : '사용자 프로필'
+
+  if (imageUrl && !hasImageError) {
+    return (
+      <img
+        className="size-10 rounded-pill object-cover"
+        src={imageUrl}
+        alt={label}
+        onError={() => setHasImageError(true)}
+      />
+    )
+  }
+
+  return (
+    <div
+      className="size-10 flex shrink-0 items-center justify-center rounded-pill bg-primary-alternative text-headline2 font-bold text-primary-normal"
+      role="img"
+      aria-label={label}
+    >
+      {name?.trim().charAt(0) || '?'}
+    </div>
+  )
+}
+
 // 애플리케이션 공통 사이드바를 표시합니다.
 export const AppSidebar = () => {
   const currentUserQuery = useCurrentUser()
   const currentUser = currentUserQuery.data
   const profileImageQuery = useCurrentUserProfileImage(currentUser?.s3Key)
-  const currentProfileImage = profileImageQuery.data ?? profileImage
 
   return (
     <aside className="top-4 pb-1 pt-7 sticky flex h-[calc(100vh-32px)] min-h-[720px] w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-[0_2px_16px_rgba(0,0,0,0.08)]">
@@ -122,14 +152,7 @@ export const AppSidebar = () => {
         </nav>
         <div className="px-4 py-3 border-t border-line-alternative">
           <div className="gap-3 flex items-center">
-            <img
-              className="size-10 rounded-pill object-cover"
-              src={currentProfileImage}
-              alt={currentUser ? `${currentUser.name} 프로필` : '사용자 프로필'}
-              onError={(event) => {
-                event.currentTarget.src = profileImage
-              }}
-            />
+            <UserAvatar imageUrl={profileImageQuery.data} name={currentUser?.name} />
             <div className="min-w-0 flex-1">
               {currentUserQuery.isPending ? (
                 <div

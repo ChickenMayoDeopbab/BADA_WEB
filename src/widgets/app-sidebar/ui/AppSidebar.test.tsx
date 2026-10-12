@@ -63,7 +63,7 @@ describe('AppSidebar', () => {
     expect(screen.getByLabelText('사용자 정보 로딩 중')).toBeInTheDocument()
   })
 
-  it('falls back to the default profile image when the remote image fails', () => {
+  it('falls back to the user initial when the remote image fails', () => {
     render(
       <MemoryRouter>
         <AppSidebar />
@@ -73,7 +73,33 @@ describe('AppSidebar', () => {
 
     fireEvent.error(image)
 
-    expect(image.getAttribute('src')).toContain('profile')
-    expect(image).not.toHaveAttribute('src', 'https://example.com/profile.png')
+    expect(screen.getByRole('img', { name: '바다 프로필' })).toHaveTextContent('바')
+    expect(screen.queryByRole('img', { name: '바다 프로필' })).not.toHaveAttribute(
+      'src',
+      'https://example.com/profile.png',
+    )
+  })
+
+  it('shows the user initial without requesting a profile image when s3Key is absent', () => {
+    mockedUseCurrentUser.mockReturnValue({
+      data: {
+        username: 'bada-user',
+        email: 'user@example.com',
+        name: '바다',
+      },
+      isPending: false,
+    } as ReturnType<typeof useCurrentUser>)
+    mockedUseCurrentUserProfileImage.mockReturnValue({
+      data: undefined,
+    } as ReturnType<typeof useCurrentUserProfileImage>)
+
+    render(
+      <MemoryRouter>
+        <AppSidebar />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('img', { name: '바다 프로필' })).toHaveTextContent('바')
+    expect(mockedUseCurrentUserProfileImage).toHaveBeenCalledWith(undefined)
   })
 })
