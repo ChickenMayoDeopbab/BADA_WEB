@@ -5,6 +5,7 @@ import { routePaths } from '@shared/config'
 import { useEffect, useRef, useState } from 'react'
 import {
   FiArrowLeft,
+  FiCheck,
   FiChevronDown,
   FiEye,
   FiMessageCircle,
@@ -746,9 +747,9 @@ const SelectionModal = ({
                 <span className="text-caption opacity-70">{item.detail}</span>
               </div>
               <span
-                className={`size-6 rounded-pill border-2 ${selected === item.id ? 'border-primary-normal bg-primary-normal' : 'border-line-normal'}`}
+                className={`size-6 flex shrink-0 items-center justify-center rounded-pill border-2 ${selected === item.id ? 'text-white border-primary-normal bg-primary-normal' : 'border-line-normal text-label-alternative'}`}
               >
-                ✓
+                <FiCheck className="size-4" />
               </span>
             </button>
           ))}
