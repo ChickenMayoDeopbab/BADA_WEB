@@ -89,8 +89,19 @@ describe('Profile pages', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '회원 탈퇴' }))
 
-    expect(screen.getByRole('dialog', { name: '정말 회원 탈퇴할까요?' })).toBeInTheDocument()
+    const dialog = screen.getByRole('dialog', { name: '정말 회원 탈퇴할까요?' })
+    expect(dialog).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '프로필', level: 1 })).toBeInTheDocument()
+    expect(document.body.style.overflow).toBe('hidden')
+    expect(document.documentElement.style.overflow).toBe('hidden')
+    expect(document.body.style.touchAction).toBe('none')
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(document.body.style.overflow).toBe('')
+    expect(document.documentElement.style.overflow).toBe('')
+    expect(document.body.style.touchAction).toBe('')
   })
 
   it('confirms account withdrawal and moves to login', async () => {

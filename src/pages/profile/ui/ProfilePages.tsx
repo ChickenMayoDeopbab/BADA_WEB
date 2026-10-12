@@ -108,11 +108,23 @@ const AccountWithdrawalDialog = ({ isOpen, onClose }: AccountWithdrawalDialogPro
   useEffect(() => {
     if (!isOpen) return
 
+    const previousBodyOverflow = document.body.style.overflow
+    const previousRootOverflow = document.documentElement.style.overflow
+    const previousTouchAction = document.body.style.touchAction
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !withdrawAccount.isPending) onClose()
     }
+
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
     window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousBodyOverflow
+      document.documentElement.style.overflow = previousRootOverflow
+      document.body.style.touchAction = previousTouchAction
+      window.removeEventListener('keydown', closeOnEscape)
+    }
   }, [isOpen, onClose, withdrawAccount.isPending])
 
   if (!isOpen) return null
