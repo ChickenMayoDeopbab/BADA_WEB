@@ -1,6 +1,6 @@
 import type { CommunityAttachment, CommunityPost, ReactionKind } from '@entities/community'
-import profileImage from '@shared/assets/training-records/profile.png'
 import scenarioImage from '@shared/assets/community/figma-1.png'
+import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import { routePaths } from '@shared/config'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -43,16 +43,31 @@ const Profile = ({
   author: string
   imageUrl?: string | null
   large?: boolean
-}) => (
-  <div className="gap-1.5 flex items-center text-label text-label-alternative">
-    <img
-      className={`${large ? 'size-6' : 'size-5'} rounded-control object-cover`}
-      src={imageUrl || profileImage}
-      alt=""
-    />
-    <span>{author}</span>
-  </div>
-)
+}) => {
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
+  const sizeClassName = large ? 'size-6' : 'size-5'
+
+  return (
+    <div className="gap-1.5 flex items-center text-label text-label-alternative">
+      {imageUrl && imageUrl !== failedImageUrl ? (
+        <img
+          className={`${sizeClassName} rounded-pill object-cover`}
+          src={imageUrl}
+          alt=""
+          onError={() => setFailedImageUrl(imageUrl)}
+        />
+      ) : (
+        <span
+          className={`${sizeClassName} flex shrink-0 items-center justify-center rounded-pill bg-fill-normal`}
+          aria-hidden="true"
+        >
+          <img className={large ? 'size-4' : 'size-3.5'} src={defaultProfileSummary} alt="" />
+        </span>
+      )}
+      <span>{author}</span>
+    </div>
+  )
+}
 
 const CommunityHeader = () => (
   <header className="gap-3 flex items-center">
