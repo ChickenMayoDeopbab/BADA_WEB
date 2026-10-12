@@ -464,7 +464,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   const deleteComment = useDeleteCommunityComment(post.id)
 
   const submitComment = () => {
-    if (!comment.trim()) return
+    if (!comment.trim() || createComment.isPending) return
     createComment.mutate(
       { content: comment.trim(), parentCommentId: replyTo ? Number(replyTo) : undefined },
       {
@@ -616,6 +616,11 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
               <input
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' || event.nativeEvent.isComposing) return
+                  event.preventDefault()
+                  submitComment()
+                }}
                 placeholder="댓글을 입력해주세요."
                 className="min-w-0 flex-1 bg-transparent text-label text-label-normal outline-none"
               />
