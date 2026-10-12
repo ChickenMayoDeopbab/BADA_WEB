@@ -448,6 +448,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   const [expanded, setExpanded] = useState<string[]>([])
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [comment, setComment] = useState('')
+  const [isRefreshingComments, setIsRefreshingComments] = useState(false)
   const [editingComment, setEditingComment] = useState<{ id: string; content: string } | null>(null)
   const [deletingTarget, setDeletingTarget] = useState<
     { type: 'post' } | { type: 'comment'; id: string } | null
@@ -455,7 +456,6 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   const {
     data: comments = [],
     isLoading: areCommentsLoading,
-    isRefetching: areCommentsRefreshing,
     refetch: refreshComments,
   } = useCommunityComments(post.id)
   const createComment = useCreateCommunityComment(post.id)
@@ -474,6 +474,18 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
         },
       },
     )
+  }
+
+  const refreshCommentList = async () => {
+    setIsRefreshingComments(true)
+    try {
+      await Promise.all([
+        refreshComments(),
+        new Promise((resolve) => window.setTimeout(resolve, 1000)),
+      ])
+    } finally {
+      setIsRefreshingComments(false)
+    }
   }
 
   return (
@@ -526,11 +538,11 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
             <button
               type="button"
               aria-label="댓글 새로고침"
-              onClick={() => void refreshComments()}
-              disabled={areCommentsLoading || areCommentsRefreshing}
+              onClick={() => void refreshCommentList()}
+              disabled={areCommentsLoading || isRefreshingComments}
               className="p-1 rounded-pill text-label-alternative hover:bg-fill-normal disabled:cursor-wait"
             >
-              <FiRotateCw className={`size-5 ${areCommentsRefreshing ? 'animate-spin' : ''}`} />
+              <FiRotateCw className={`size-5 ${isRefreshingComments ? 'animate-spin' : ''}`} />
             </button>
           </div>
           <div className="divide-y divide-line-alternative">
