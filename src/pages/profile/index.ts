@@ -1,5 +1,4 @@
 export {
-  ProfileDeleteAccountPage,
   ProfileEditPage,
   ProfileLanguagePage,
   ProfileNotificationsPage,

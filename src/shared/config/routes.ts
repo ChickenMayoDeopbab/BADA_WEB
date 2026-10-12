@@ -21,5 +21,4 @@ export const routePaths = {
   profileRingtone: '/profile/ringtone',
   profileNotifications: '/profile/notifications',
   profileLanguage: '/profile/language',
-  profileDeleteAccount: '/profile/delete-account',
 } as const

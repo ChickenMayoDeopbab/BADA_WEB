@@ -61,7 +61,6 @@ vi.mock('@features/auth', () => ({ clearAuthSession: vi.fn() }))
 afterEach(() => cleanup())
 
 import {
-  ProfileDeleteAccountPage,
   ProfileEditPage,
   ProfileLanguagePage,
   ProfileNotificationsPage,
@@ -85,33 +84,27 @@ describe('Profile pages', () => {
     expect(screen.getByRole('heading', { name: '프로필 수정', level: 1 })).toBeInTheDocument()
   })
 
-  it('opens the delete account page from account management', () => {
-    render(
-      <MemoryRouter initialEntries={['/profile']}>
-        <Routes>
-          <Route path="/profile" element={<ProfileOverviewPage />} />
-          <Route path="/profile/delete-account" element={<ProfileDeleteAccountPage />} />
-        </Routes>
-      </MemoryRouter>,
-    )
+  it('opens the delete account dialog on the profile page', () => {
+    render(<ProfileOverviewPage />, { wrapper: MemoryRouter })
 
-    fireEvent.click(screen.getByRole('link', { name: '회원 탈퇴' }))
+    fireEvent.click(screen.getByRole('button', { name: '회원 탈퇴' }))
 
-    expect(screen.getByRole('heading', { name: '회원 탈퇴', level: 1 })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: '정말 회원 탈퇴할까요?' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '프로필', level: 1 })).toBeInTheDocument()
   })
 
   it('confirms account withdrawal and moves to login', async () => {
     withdrawAccountMock.mockResolvedValue(undefined)
     render(
-      <MemoryRouter initialEntries={['/profile/delete-account']}>
+      <MemoryRouter initialEntries={['/profile']}>
         <Routes>
-          <Route path="/profile/delete-account" element={<ProfileDeleteAccountPage />} />
+          <Route path="/profile" element={<ProfileOverviewPage />} />
           <Route path="/login" element={<h1>로그인</h1>} />
         </Routes>
       </MemoryRouter>,
     )
 
-    fireEvent.click(screen.getAllByRole('button', { name: '회원 탈퇴' })[0])
+    fireEvent.click(screen.getByRole('button', { name: '회원 탈퇴' }))
     const dialog = screen.getByRole('dialog', { name: '정말 회원 탈퇴할까요?' })
     fireEvent.click(within(dialog).getByRole('button', { name: '회원 탈퇴' }))
 

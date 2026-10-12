@@ -9,7 +9,6 @@ import {
 } from '@pages/auth'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
 import {
-  ProfileDeleteAccountPage,
   ProfileEditPage,
   ProfileLanguagePage,
   ProfileNotificationsPage,
@@ -107,10 +106,6 @@ const router = createBrowserRouter([
           {
             path: routePaths.profileLanguage,
             element: <ProfileLanguagePage />,
-          },
-          {
-            path: routePaths.profileDeleteAccount,
-            element: <ProfileDeleteAccountPage />,
           },
         ],
       },

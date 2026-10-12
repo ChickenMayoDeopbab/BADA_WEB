@@ -95,6 +95,102 @@ const formatTrainingDate = (date: string, includeYear = true) => {
 
 const sessionTypeLabels = { SCENARIO: '시나리오', CUSTOM: '커스텀', WARMUP: '워밍업' } as const
 
+interface AccountWithdrawalDialogProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+const AccountWithdrawalDialog = ({ isOpen, onClose }: AccountWithdrawalDialogProps) => {
+  const navigate = useNavigate()
+  const withdrawAccount = useWithdrawAccount()
+  const [withdrawError, setWithdrawError] = useState('')
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !withdrawAccount.isPending) onClose()
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [isOpen, onClose, withdrawAccount.isPending])
+
+  if (!isOpen) return null
+
+  const confirmWithdrawal = async () => {
+    setWithdrawError('')
+
+    try {
+      await withdrawAccount.mutateAsync()
+      clearAuthSession()
+      navigate(routePaths.login, { replace: true })
+    } catch (error) {
+      setWithdrawError(
+        getApiErrorMessage(error, '회원 탈퇴에 실패했습니다. 잠시 후 다시 시도해 주세요.'),
+      )
+    }
+  }
+
+  return (
+    <div
+      className="inset-0 z-50 fixed flex items-center justify-center bg-common-100/30"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !withdrawAccount.isPending) onClose()
+      }}
+    >
+      <section
+        className="p-10 w-[500px] rounded-card bg-common-0 shadow-[0_14px_36px_rgba(0,0,0,0.16)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="withdraw-dialog-title"
+        aria-describedby="withdraw-dialog-description"
+      >
+        <h2
+          id="withdraw-dialog-title"
+          className="text-center text-headline1 font-bold text-label-normal"
+        >
+          정말 회원 탈퇴할까요?
+        </h2>
+        <p
+          id="withdraw-dialog-description"
+          className="mt-6 text-center text-body text-label-normal"
+        >
+          탈퇴하면 프로필과 훈련 기록이 삭제되며
+          <br />
+          복구할 수 없습니다.
+        </p>
+        <p className="mt-7 rounded-[10px] bg-red-90/20 py-[17px] text-center text-[13px] font-bold text-status-error">
+          삭제 후에는 계정을 복구할 수 없습니다.
+        </p>
+        {withdrawError && (
+          <p className="mt-3 text-center text-caption text-status-error" role="alert">
+            {withdrawError}
+          </p>
+        )}
+        <div className="gap-5 mt-7 flex">
+          <button
+            className="h-[52px] flex-1 rounded-component bg-fill-normal text-body font-bold text-label-normal disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            disabled={withdrawAccount.isPending}
+            onClick={onClose}
+          >
+            취소
+          </button>
+          <button
+            className="h-[52px] flex-1 rounded-component bg-status-error text-body font-bold text-common-0 disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            disabled={withdrawAccount.isPending}
+            onClick={() => void confirmWithdrawal()}
+          >
+            {withdrawAccount.isPending ? '탈퇴 중' : '회원 탈퇴'}
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
 export const ProfileOverviewPage = () => {
   const profileQuery = useMyPage()
   const trainingQuery = useRecentTrainings()
@@ -102,6 +198,7 @@ export const ProfileOverviewPage = () => {
   const profileData = profileQuery.data
   const recentTrainings = trainingQuery.data ?? []
   const profileImageQuery = useProfileImage(profileQuery.data?.s3Key)
+  const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false)
 
   const summaryCards = [
     [
@@ -249,14 +346,19 @@ export const ProfileOverviewPage = () => {
             더 이상 Bada를 이용하지 않는다면 계정을 삭제할 수 있습니다.
           </p>
         </div>
-        <Link
+        <button
           className="px-5 flex h-11 items-center justify-center rounded-component border border-status-error text-label font-bold text-status-error hover:bg-red-90/20"
-          to={routePaths.profileDeleteAccount}
+          type="button"
+          onClick={() => setIsWithdrawalDialogOpen(true)}
         >
           회원 탈퇴
-        </Link>
+        </button>
       </Card>
       </div>
+      <AccountWithdrawalDialog
+        isOpen={isWithdrawalDialogOpen}
+        onClose={() => setIsWithdrawalDialogOpen(false)}
+      />
     </PageFrame>
   )
 }
@@ -814,155 +916,6 @@ export const ProfilePhotoPage = () => {
           </div>
         </div>
       </Card>
-    </PageFrame>
-  )
-}
-
-const withdrawalItems = [
-  ['프로필 및 계정 정보', '이름, 이메일, 프로필 이미지 등 계정 정보가 삭제됩니다.'],
-  ['훈련 기록', '저장된 훈련 결과와 활동 기록이 모두 삭제됩니다.'],
-  ['커뮤니티 활동', '작성한 게시글과 댓글은 서비스 정책에 따라 처리됩니다.'],
-] as const
-
-export const ProfileDeleteAccountPage = () => {
-  const navigate = useNavigate()
-  const withdrawAccount = useWithdrawAccount()
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [withdrawError, setWithdrawError] = useState('')
-
-  useEffect(() => {
-    if (!isDialogOpen) return
-
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !withdrawAccount.isPending) setIsDialogOpen(false)
-    }
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [isDialogOpen, withdrawAccount.isPending])
-
-  const confirmWithdrawal = async () => {
-    setWithdrawError('')
-
-    try {
-      await withdrawAccount.mutateAsync()
-      clearAuthSession()
-      navigate(routePaths.login, { replace: true })
-    } catch (error) {
-      setWithdrawError(
-        getApiErrorMessage(error, '회원 탈퇴에 실패했습니다. 잠시 후 다시 시도해 주세요.'),
-      )
-    }
-  }
-
-  return (
-    <PageFrame title="회원 탈퇴" description="계정을 삭제하기 전에 안내 내용을 확인하세요.">
-      <div className="max-w-[1024px] space-y-6">
-        <Card className="p-7">
-          <h2 className="text-[22px] font-bold text-label-normal">탈퇴 전 확인해 주세요</h2>
-          <p className="mt-1 text-label text-label-alternative">
-            회원 탈퇴 시 아래 정보가 삭제되며 복구할 수 없습니다.
-          </p>
-          <ul className="mt-7 space-y-3">
-            {withdrawalItems.map(([title, description]) => (
-              <li
-                className="px-5 flex h-[84px] items-center justify-between rounded-component bg-fill-normal"
-                key={title}
-              >
-                <span>
-                  <span className="block text-body font-bold text-label-normal">{title}</span>
-                  <span className="mt-1 block text-[13px] text-label-alternative">
-                    {description}
-                  </span>
-                </span>
-                <FiChevronRight className="text-label-alternative" aria-hidden="true" />
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        <section className="p-7 flex min-h-[196px] items-start justify-between rounded-[18px] border border-status-error/15 bg-common-0 shadow-subtle-card">
-          <div>
-            <h2 className="text-headline1 font-bold text-status-error">Danger Zone</h2>
-            <p className="mt-2 text-label text-label-alternative">
-              계정을 영구적으로 삭제합니다. 이 작업은 되돌릴 수 없습니다.
-            </p>
-            <p className="mt-8 text-caption text-label-alternative">
-              계속하려면 회원 탈퇴 버튼을 눌러 확인 절차를 진행하세요.
-            </p>
-          </div>
-          <button
-            className="mt-[33px] h-12 w-[188px] rounded-component bg-status-error text-body font-bold text-common-0 hover:opacity-90"
-            type="button"
-            onClick={() => {
-              setWithdrawError('')
-              setIsDialogOpen(true)
-            }}
-          >
-            회원 탈퇴
-          </button>
-        </section>
-      </div>
-
-      {isDialogOpen && (
-        <div
-          className="inset-0 z-50 fixed flex items-center justify-center bg-common-100/30"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !withdrawAccount.isPending) {
-              setIsDialogOpen(false)
-            }
-          }}
-        >
-          <section
-            className="p-10 w-[500px] rounded-card bg-common-0 shadow-[0_14px_36px_rgba(0,0,0,0.16)]"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="withdraw-dialog-title"
-            aria-describedby="withdraw-dialog-description"
-          >
-            <h2
-              id="withdraw-dialog-title"
-              className="text-center text-headline1 font-bold text-label-normal"
-            >
-              정말 회원 탈퇴할까요?
-            </h2>
-            <p
-              id="withdraw-dialog-description"
-              className="mt-6 text-center text-body text-label-normal"
-            >
-              탈퇴하면 프로필과 훈련 기록이 삭제되며
-              <br />
-              복구할 수 없습니다.
-            </p>
-            <p className="mt-7 rounded-[10px] bg-red-90/20 py-[17px] text-center text-[13px] font-bold text-status-error">
-              삭제 후에는 계정을 복구할 수 없습니다.
-            </p>
-            {withdrawError && (
-              <p className="mt-3 text-center text-caption text-status-error" role="alert">
-                {withdrawError}
-              </p>
-            )}
-            <div className="gap-5 mt-7 flex">
-              <button
-                className="h-[52px] flex-1 rounded-component bg-fill-normal text-body font-bold text-label-normal disabled:cursor-not-allowed disabled:opacity-50"
-                type="button"
-                disabled={withdrawAccount.isPending}
-                onClick={() => setIsDialogOpen(false)}
-              >
-                취소
-              </button>
-              <button
-                className="h-[52px] flex-1 rounded-component bg-status-error text-body font-bold text-common-0 disabled:cursor-not-allowed disabled:opacity-50"
-                type="button"
-                disabled={withdrawAccount.isPending}
-                onClick={() => void confirmWithdrawal()}
-              >
-                {withdrawAccount.isPending ? '탈퇴 중' : '회원 탈퇴'}
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
     </PageFrame>
   )
 }
