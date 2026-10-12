@@ -2,6 +2,7 @@ export type ReactionKind = 'helpful' | 'empathy' | 'like'
 
 export interface CommunityReply {
   id: string
+  authorId: number
   author: string
   content: string
   createdAt: string
@@ -9,6 +10,7 @@ export interface CommunityReply {
 
 export interface CommunityComment {
   id: string
+  authorId: number
   author: string
   content: string
   createdAt: string
@@ -17,6 +19,7 @@ export interface CommunityComment {
 
 export interface CommunityPost {
   id: number
+  authorId: number
   author: string
   authorImage?: string | null
   title: string

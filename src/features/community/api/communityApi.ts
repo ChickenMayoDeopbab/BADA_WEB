@@ -82,6 +82,10 @@ export interface CreatePostInput {
   content: string
   attachments: Array<{ kind: ApiAttachmentKind; ref_id: number }>
 }
+export interface UpdatePostInput {
+  title: string
+  content: string
+}
 
 const reactionFromApi = (reaction?: ApiReactionKind | null): ReactionKind | null => {
   if (reaction === 'CHEER') return 'helpful'
@@ -144,6 +148,7 @@ const mapPost = (
   authorImage: string | null,
 ): CommunityPost => ({
   id: post.post_id,
+  authorId: post.author.user_id,
   author: authorName(post.author),
   authorImage,
   title: post.title,
@@ -162,11 +167,13 @@ const mapPost = (
 })
 const mapComment = (comment: CommentResponse): CommunityComment => ({
   id: String(comment.comment_id),
+  authorId: comment.author.user_id,
   author: authorName(comment.author),
   content: comment.content,
   createdAt: formatRelativeTime(comment.created_at),
   replies: (comment.replies ?? []).map((reply) => ({
     id: String(reply.comment_id),
+    authorId: reply.author.user_id,
     author: authorName(reply.author),
     content: reply.content,
     createdAt: formatRelativeTime(reply.created_at),
@@ -206,6 +213,15 @@ export const createCommunityPost = async (input: CreatePostInput) => {
   const post = (await aiHttpClient.post<PostDetailResponse>('/api/v1/community/posts', input)).data
   return mapPost(post, await resolveProfileImageUrl(post.author.profile_image_url))
 }
+export const updateCommunityPost = async (postId: number, input: UpdatePostInput) => {
+  const post = (
+    await aiHttpClient.patch<PostDetailResponse>(`/api/v1/community/posts/${postId}`, input)
+  ).data
+  return mapPost(post, await resolveProfileImageUrl(post.author.profile_image_url))
+}
+export const deleteCommunityPost = async (postId: number) => {
+  await aiHttpClient.delete(`/api/v1/community/posts/${postId}`)
+}
 export const createCommunityComment = async (
   postId: number,
   content: string,
@@ -215,6 +231,12 @@ export const createCommunityComment = async (
     content,
     parent_comment_id: parentCommentId ?? null,
   })
+}
+export const updateCommunityComment = async (commentId: number, content: string) => {
+  await aiHttpClient.patch(`/api/v1/community/comments/${commentId}`, { content })
+}
+export const deleteCommunityComment = async (commentId: number) => {
+  await aiHttpClient.delete(`/api/v1/community/comments/${commentId}`)
 }
 export const setCommunityReaction = async (postId: number, kind: ReactionKind | null) => {
   if (kind)

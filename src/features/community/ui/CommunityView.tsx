@@ -8,6 +8,7 @@ import {
   FiChevronDown,
   FiEye,
   FiMessageCircle,
+  FiMoreVertical,
   FiPaperclip,
   FiSearch,
   FiSend,
@@ -27,7 +28,12 @@ import {
   useCommunityReaction,
   useCreateCommunityComment,
   useCreateCommunityPost,
+  useDeleteCommunityComment,
+  useDeleteCommunityPost,
+  useUpdateCommunityComment,
+  useUpdateCommunityPost,
 } from '../model/useCommunity'
+import { getCurrentUserId } from '@shared/lib'
 
 const reactionMeta: Record<ReactionKind, { emoji: string; label: string }> = {
   helpful: { emoji: '👍', label: '힘내요' },
@@ -252,13 +258,192 @@ const AttachmentCard = ({ attachment }: { attachment: CommunityAttachment }) => 
   )
 }
 
+const ActionMenu = ({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        aria-label="더보기"
+        onClick={() => setIsOpen((value) => !value)}
+        className="p-1 rounded-pill text-label-alternative hover:bg-fill-normal"
+      >
+        <FiMoreVertical className="size-5" />
+      </button>
+      {isOpen && (
+        <div className="right-0 top-8 w-24 absolute z-20 overflow-hidden rounded-control border border-line-alternative bg-background-normal shadow-elevated-card">
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false)
+              onEdit()
+            }}
+            className="px-3 py-2 block w-full text-left text-label hover:bg-fill-normal"
+          >
+            수정
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false)
+              onDelete()
+            }}
+            className="px-3 py-2 block w-full text-left text-label text-status-error hover:bg-fill-normal"
+          >
+            삭제
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const ConfirmDeleteModal = ({
+  target,
+  isPending,
+  onClose,
+  onConfirm,
+}: {
+  target: '게시글' | '댓글'
+  isPending: boolean
+  onClose: () => void
+  onConfirm: () => void
+}) => (
+  <div
+    className="inset-0 bg-black/30 fixed z-40 flex items-center justify-center"
+    role="presentation"
+  >
+    <div
+      className="p-6 w-[360px] rounded-dialog bg-background-normal shadow-elevated-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-modal-title"
+    >
+      <h3 id="delete-modal-title" className="text-headline1 font-bold">
+        정말 {target}을 삭제하시겠습니까?
+      </h3>
+      <p className="mt-2 text-label text-label-alternative">삭제한 내용은 다시 복구할 수 없어요.</p>
+      <div className="gap-2 mt-6 flex justify-end">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isPending}
+          className="px-5 py-2.5 rounded-control bg-fill-normal text-label"
+        >
+          취소
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          disabled={isPending}
+          className="px-5 py-2.5 text-white rounded-control bg-status-error text-label disabled:opacity-40"
+        >
+          {isPending ? '삭제 중...' : '삭제'}
+        </button>
+      </div>
+    </div>
+  </div>
+)
+
+const EditModal = ({
+  title,
+  initialTitle,
+  initialContent,
+  isPending,
+  onClose,
+  onSave,
+}: {
+  title: string
+  initialTitle?: string
+  initialContent: string
+  isPending: boolean
+  onClose: () => void
+  onSave: (value: { title?: string; content: string }) => void
+}) => {
+  const [editedTitle, setEditedTitle] = useState(initialTitle ?? '')
+  const [editedContent, setEditedContent] = useState(initialContent)
+  const canSave =
+    editedContent.trim().length > 0 && (initialTitle === undefined || editedTitle.trim().length > 0)
+
+  return (
+    <div
+      className="inset-0 bg-black/30 fixed z-40 flex items-center justify-center"
+      role="presentation"
+    >
+      <div
+        className="p-6 w-[480px] rounded-dialog bg-background-normal shadow-elevated-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-modal-title"
+      >
+        <div className="flex items-center justify-between">
+          <h3 id="edit-modal-title" className="text-headline1 font-bold">
+            {title}
+          </h3>
+          <button type="button" aria-label="닫기" onClick={onClose} disabled={isPending}>
+            <FiX className="size-6" />
+          </button>
+        </div>
+        {initialTitle !== undefined && (
+          <input
+            value={editedTitle}
+            onChange={(event) => setEditedTitle(event.target.value)}
+            className="mt-4 px-3 h-12 block w-full rounded-control bg-fill-field outline-primary-normal"
+            aria-label="게시물 제목"
+          />
+        )}
+        <textarea
+          value={editedContent}
+          onChange={(event) => setEditedContent(event.target.value)}
+          className="mt-3 p-3 min-h-40 block w-full resize-none rounded-control bg-fill-field outline-primary-normal"
+          aria-label={initialTitle === undefined ? '댓글 내용' : '게시물 본문'}
+        />
+        <div className="gap-2 mt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isPending}
+            className="px-5 py-2.5 rounded-control bg-fill-normal text-label"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            disabled={!canSave || isPending}
+            onClick={() =>
+              onSave({
+                ...(initialTitle !== undefined ? { title: editedTitle.trim() } : {}),
+                content: editedContent.trim(),
+              })
+            }
+            className="px-5 py-2.5 text-white rounded-control bg-primary-normal text-label disabled:opacity-40"
+          >
+            {isPending ? '저장 중...' : '저장'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const PostDetail = ({ post }: { post: CommunityPost }) => {
   const navigate = useNavigate()
+  const currentUserId = getCurrentUserId()
   const [expanded, setExpanded] = useState<string[]>([])
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [comment, setComment] = useState('')
+  const [isEditingPost, setIsEditingPost] = useState(false)
+  const [editingComment, setEditingComment] = useState<{ id: string; content: string } | null>(null)
+  const [deletingTarget, setDeletingTarget] = useState<
+    { type: 'post' } | { type: 'comment'; id: string } | null
+  >(null)
   const { data: comments = [], isLoading: areCommentsLoading } = useCommunityComments(post.id)
   const createComment = useCreateCommunityComment(post.id)
+  const updatePost = useUpdateCommunityPost(post.id)
+  const deletePost = useDeleteCommunityPost(post.id)
+  const updateComment = useUpdateCommunityComment(post.id)
+  const deleteComment = useDeleteCommunityComment(post.id)
 
   const submitComment = () => {
     if (!comment.trim()) return
@@ -288,7 +473,15 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
       </button>
       <div className="gap-4 mt-4 grid flex-1 grid-cols-[minmax(520px,1fr)_230px]">
         <article className="p-5 flex min-h-[580px] flex-col rounded-component bg-background-normal shadow-surface-card">
-          <h2 className="text-title2 font-bold">{post.title}</h2>
+          <div className="flex items-start justify-between">
+            <h2 className="text-title2 font-bold">{post.title}</h2>
+            {post.authorId === currentUserId && (
+              <ActionMenu
+                onEdit={() => setIsEditingPost(true)}
+                onDelete={() => setDeletingTarget({ type: 'post' })}
+              />
+            )}
+          </div>
           <div className="mt-2 flex items-center justify-between">
             <Profile author={post.author} imageUrl={post.authorImage} large />
             <div className="gap-2 flex text-label text-label-alternative">
@@ -319,7 +512,15 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
               const isExpanded = expanded.includes(item.id)
               return (
                 <div key={item.id} className="py-3">
-                  <Profile author={item.author} />
+                  <div className="flex items-center justify-between">
+                    <Profile author={item.author} />
+                    {item.authorId === currentUserId && (
+                      <ActionMenu
+                        onEdit={() => setEditingComment({ id: item.id, content: item.content })}
+                        onDelete={() => setDeletingTarget({ type: 'comment', id: item.id })}
+                      />
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => setReplyTo(item.id)}
@@ -343,7 +544,17 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                   {isExpanded &&
                     item.replies.map((reply) => (
                       <div key={reply.id} className="mt-2 pl-5">
-                        <Profile author={reply.author} />
+                        <div className="flex items-center justify-between">
+                          <Profile author={reply.author} />
+                          {reply.authorId === currentUserId && (
+                            <ActionMenu
+                              onEdit={() =>
+                                setEditingComment({ id: reply.id, content: reply.content })
+                              }
+                              onDelete={() => setDeletingTarget({ type: 'comment', id: reply.id })}
+                            />
+                          )}
+                        </div>
                         <p className="mt-1 text-label">{reply.content}</p>
                       </div>
                     ))}
@@ -379,6 +590,53 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
           </div>
         </aside>
       </div>
+      {isEditingPost && (
+        <EditModal
+          title="게시글 수정"
+          initialTitle={post.title}
+          initialContent={post.content}
+          isPending={updatePost.isPending}
+          onClose={() => setIsEditingPost(false)}
+          onSave={({ title, content }) =>
+            updatePost.mutate(
+              { title: title!, content },
+              { onSuccess: () => setIsEditingPost(false) },
+            )
+          }
+        />
+      )}
+      {editingComment && (
+        <EditModal
+          title="댓글 수정"
+          initialContent={editingComment.content}
+          isPending={updateComment.isPending}
+          onClose={() => setEditingComment(null)}
+          onSave={({ content }) =>
+            updateComment.mutate(
+              { commentId: Number(editingComment.id), content },
+              { onSuccess: () => setEditingComment(null) },
+            )
+          }
+        />
+      )}
+      {deletingTarget && (
+        <ConfirmDeleteModal
+          target={deletingTarget.type === 'post' ? '게시글' : '댓글'}
+          isPending={deletePost.isPending || deleteComment.isPending}
+          onClose={() => setDeletingTarget(null)}
+          onConfirm={() => {
+            if (deletingTarget.type === 'post') {
+              deletePost.mutate(undefined, {
+                onSuccess: () => navigate(routePaths.community),
+              })
+              return
+            }
+            deleteComment.mutate(Number(deletingTarget.id), {
+              onSuccess: () => setDeletingTarget(null),
+            })
+          }}
+        />
+      )}
     </div>
   )
 }
