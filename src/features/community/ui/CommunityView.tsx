@@ -583,6 +583,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                 aria-label="댓글 등록"
                 onClick={submitComment}
                 disabled={!comment.trim() || createComment.isPending}
+                className={comment.trim() ? 'text-primary-normal' : 'text-label-disabled'}
               >
                 <FiSend className="size-5" />
               </button>
