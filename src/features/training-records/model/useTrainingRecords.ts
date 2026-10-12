@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { TrainingRecordDateRange } from './useTrainingRecordCalendar'
 
 const RECORDS_PER_PAGE = 10
+const RECORDS_SYNC_INTERVAL_MS = 5_000
 const TRAINING_RECORDS_QUERY_KEY = ['training-records'] as const
 
 // 훈련 기록 화면의 조회, 검색, 선택, 상세 패널 상태를 관리합니다.
@@ -28,6 +29,10 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
   const recordsQuery = useQuery({
     queryKey: TRAINING_RECORDS_QUERY_KEY,
     queryFn: getTrainingRecords,
+    refetchInterval: RECORDS_SYNC_INTERVAL_MS,
+    refetchOnMount: 'always',
+    refetchOnReconnect: 'always',
+    refetchOnWindowFocus: 'always',
   })
   const recordDetailQuery = useQuery({
     queryKey: [...TRAINING_RECORDS_QUERY_KEY, selectedRecordId],

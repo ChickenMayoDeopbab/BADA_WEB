@@ -4,10 +4,10 @@ import {
   getTrainingRecords,
 } from '../api/trainingRecordsApi'
 import type { TrainingRecord } from '@entities/training-record'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, renderHook, waitFor } from '@testing-library/react'
+import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { createElement, type ReactNode } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTrainingRecords } from './useTrainingRecords'
 
 vi.mock('../api/trainingRecordsApi', () => ({
@@ -44,11 +44,17 @@ const createWrapper = () => {
 
 describe('useTrainingRecords', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     vi.mocked(getTrainingRecords).mockResolvedValue(
       Array.from({ length: 11 }, (_, index) => createRecord(index + 1)),
     )
     vi.mocked(getTrainingRecord).mockImplementation(async (recordId) => createRecord(recordId))
     vi.mocked(deleteTrainingRecord).mockResolvedValue(undefined)
+  })
+
+  afterEach(() => {
+    cleanup()
+    focusManager.setFocused(undefined)
   })
 
   it('API 기록을 조회하고 열 개씩 페이지를 나눈다', async () => {
@@ -107,6 +113,20 @@ describe('useTrainingRecords', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.filteredRecords.map((record) => record.id)).toEqual([2, 3, 1])
+  })
+
+  it('화면을 다시 활성화하면 다른 기기에서 생성된 기록을 동기화한다', async () => {
+    vi.mocked(getTrainingRecords)
+      .mockResolvedValueOnce([createRecord(1)])
+      .mockResolvedValue([createRecord(2), createRecord(1)])
+    const { result } = renderHook(() => useTrainingRecords(), { wrapper: createWrapper() })
+    await waitFor(() => expect(result.current.records).toHaveLength(1))
+
+    act(() => focusManager.setFocused(false))
+    act(() => focusManager.setFocused(true))
+
+    await waitFor(() => expect(getTrainingRecords).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(result.current.records.map((record) => record.id)).toEqual([2, 1]))
   })
 
   it('선택한 기록을 상세 조회하고 서버에서 삭제한다', async () => {
