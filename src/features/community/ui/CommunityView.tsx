@@ -900,7 +900,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
               추가하기 +
             </button>
             {menuOpen && (
-              <div className="right-0 top-11 absolute z-10 w-[120px] overflow-hidden rounded-control bg-background-normal shadow-elevated-card">
+              <div className="right-0 top-11 w-44 absolute z-10 overflow-hidden rounded-control bg-background-normal shadow-elevated-card">
                 {[
                   { label: '파일', type: 'file' },
                   { label: '내 커스텀 시나리오', type: 'scenario' },
@@ -914,7 +914,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
                       if (item.type === 'file') fileRef.current?.click()
                       else setModal(item.type as 'record' | 'scenario')
                     }}
-                    className="px-3 py-3 block w-full text-left text-caption hover:bg-fill-normal"
+                    className="px-3 py-3 block w-full text-left text-caption whitespace-nowrap hover:bg-fill-normal"
                   >
                     {item.label}
                   </button>
