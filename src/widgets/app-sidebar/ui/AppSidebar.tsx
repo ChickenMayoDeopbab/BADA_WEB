@@ -1,4 +1,5 @@
 import { clearAuthSession } from '@features/auth'
+import { useCurrentUser, useCurrentUserProfileImage } from '@entities/user'
 import badaLogo from '@shared/assets/training-records/bada-logo.svg'
 import bellIcon from '@shared/assets/training-records/nav-bell.svg'
 import callIcon from '@shared/assets/training-records/nav-call.svg'
@@ -94,34 +95,64 @@ const SidebarItem = ({
 )
 
 // 애플리케이션 공통 사이드바를 표시합니다.
-export const AppSidebar = () => (
-  <aside className="top-4 pb-1 pt-7 sticky flex h-[calc(100vh-32px)] min-h-[720px] w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-[0_2px_16px_rgba(0,0,0,0.08)]">
-    <div className="gap-2.5 flex flex-col">
-      <div className="py-5 flex items-center justify-center border-b border-line-alternative">
-        <img src={badaLogo} alt="Bada" />
-      </div>
-      <nav className="px-3" aria-label="주요 메뉴">
-        {primaryItems.map((item) => (
-          <SidebarItem key={item.label} {...item} />
-        ))}
-      </nav>
-    </div>
+export const AppSidebar = () => {
+  const currentUserQuery = useCurrentUser()
+  const currentUser = currentUserQuery.data
+  const profileImageQuery = useCurrentUserProfileImage(currentUser?.s3Key)
+  const currentProfileImage = profileImageQuery.data ?? profileImage
 
-    <div className="gap-2.5 flex flex-col">
-      <nav className="px-3" aria-label="계정 메뉴">
-        {utilityItems.map((item) => (
-          <SidebarItem key={item.label} {...item} />
-        ))}
-      </nav>
-      <div className="px-4 py-3 border-t border-line-alternative">
-        <div className="gap-3 flex items-center">
-          <img className="size-10 rounded-pill" src={profileImage} alt="배준하 프로필" />
-          <div className="min-w-0">
-            <p className="truncate text-headline2 font-bold text-label-normal">배준하</p>
-            <p className="truncate text-label text-label-neutral">uhihi09</p>
+  return (
+    <aside className="top-4 pb-1 pt-7 sticky flex h-[calc(100vh-32px)] min-h-[720px] w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-[0_2px_16px_rgba(0,0,0,0.08)]">
+      <div className="gap-2.5 flex flex-col">
+        <div className="py-5 flex items-center justify-center border-b border-line-alternative">
+          <img src={badaLogo} alt="Bada" />
+        </div>
+        <nav className="px-3" aria-label="주요 메뉴">
+          {primaryItems.map((item) => (
+            <SidebarItem key={item.label} {...item} />
+          ))}
+        </nav>
+      </div>
+
+      <div className="gap-2.5 flex flex-col">
+        <nav className="px-3" aria-label="계정 메뉴">
+          {utilityItems.map((item) => (
+            <SidebarItem key={item.label} {...item} />
+          ))}
+        </nav>
+        <div className="px-4 py-3 border-t border-line-alternative">
+          <div className="gap-3 flex items-center">
+            <img
+              className="size-10 rounded-pill object-cover"
+              src={currentProfileImage}
+              alt={currentUser ? `${currentUser.name} 프로필` : '사용자 프로필'}
+              onError={(event) => {
+                event.currentTarget.src = profileImage
+              }}
+            />
+            <div className="min-w-0 flex-1">
+              {currentUserQuery.isPending ? (
+                <div
+                  className="gap-1.5 animate-pulse flex flex-col"
+                  aria-label="사용자 정보 로딩 중"
+                >
+                  <span className="h-5 w-20 rounded-control bg-fill-normal" />
+                  <span className="h-4 w-24 rounded-control bg-fill-normal" />
+                </div>
+              ) : (
+                <>
+                  <p className="truncate text-headline2 font-bold text-label-normal">
+                    {currentUser?.name ?? '사용자'}
+                  </p>
+                  <p className="truncate text-label text-label-neutral">
+                    {currentUser?.username ?? ''}
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </aside>
-)
+    </aside>
+  )
+}
