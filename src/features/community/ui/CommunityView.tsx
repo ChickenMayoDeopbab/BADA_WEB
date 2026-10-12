@@ -10,6 +10,7 @@ import {
   FiMessageCircle,
   FiMoreVertical,
   FiPaperclip,
+  FiRefreshCw,
   FiSearch,
   FiSend,
   FiTrash2,
@@ -451,7 +452,12 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   const [deletingTarget, setDeletingTarget] = useState<
     { type: 'post' } | { type: 'comment'; id: string } | null
   >(null)
-  const { data: comments = [], isLoading: areCommentsLoading } = useCommunityComments(post.id)
+  const {
+    data: comments = [],
+    isLoading: areCommentsLoading,
+    isRefetching: areCommentsRefreshing,
+    refetch: refreshComments,
+  } = useCommunityComments(post.id)
   const createComment = useCreateCommunityComment(post.id)
   const deletePost = useDeleteCommunityPost(post.id)
   const updateComment = useUpdateCommunityComment(post.id)
@@ -512,10 +518,21 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
           </div>
         </article>
         <aside className="p-4 h-fit rounded-component bg-background-normal shadow-surface-card">
-          <h3 className="text-headline2 font-bold">
-            댓글{' '}
-            <span className="ml-1 font-regular text-label-alternative">{post.commentCount}</span>
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-headline2 font-bold">
+              댓글{' '}
+              <span className="ml-1 font-regular text-label-alternative">{post.commentCount}</span>
+            </h3>
+            <button
+              type="button"
+              aria-label="댓글 새로고침"
+              onClick={() => void refreshComments()}
+              disabled={areCommentsLoading || areCommentsRefreshing}
+              className="p-1 rounded-pill text-label-alternative hover:bg-fill-normal disabled:cursor-wait"
+            >
+              <FiRefreshCw className={`size-5 ${areCommentsRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
           <div className="divide-y divide-line-alternative">
             {areCommentsLoading && (
               <p className="py-4 text-label text-label-alternative">댓글을 불러오는 중이에요.</p>
