@@ -435,14 +435,12 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   const [expanded, setExpanded] = useState<string[]>([])
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [comment, setComment] = useState('')
-  const [isEditingPost, setIsEditingPost] = useState(false)
   const [editingComment, setEditingComment] = useState<{ id: string; content: string } | null>(null)
   const [deletingTarget, setDeletingTarget] = useState<
     { type: 'post' } | { type: 'comment'; id: string } | null
   >(null)
   const { data: comments = [], isLoading: areCommentsLoading } = useCommunityComments(post.id)
   const createComment = useCreateCommunityComment(post.id)
-  const updatePost = useUpdateCommunityPost(post.id)
   const deletePost = useDeleteCommunityPost(post.id)
   const updateComment = useUpdateCommunityComment(post.id)
   const deleteComment = useDeleteCommunityComment(post.id)
@@ -479,7 +477,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
             <h2 className="text-title2 font-bold">{post.title}</h2>
             {post.authorId === currentUserId && (
               <ActionMenu
-                onEdit={() => setIsEditingPost(true)}
+                onEdit={() => navigate(`/community/${post.id}/edit`)}
                 onDelete={() => setDeletingTarget({ type: 'post' })}
               />
             )}
@@ -592,21 +590,6 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
           </div>
         </aside>
       </div>
-      {isEditingPost && (
-        <EditModal
-          title="게시글 수정"
-          initialTitle={post.title}
-          initialContent={post.content}
-          isPending={updatePost.isPending}
-          onClose={() => setIsEditingPost(false)}
-          onSave={({ title, content }) =>
-            updatePost.mutate(
-              { title: title!, content },
-              { onSuccess: () => setIsEditingPost(false) },
-            )
-          }
-        />
-      )}
       {editingComment && (
         <EditModal
           title="댓글 수정"
@@ -748,15 +731,25 @@ const SelectionModal = ({
   )
 }
 
-const PostComposer = () => {
+const PostComposer = ({ post }: { post?: CommunityPost }) => {
   const navigate = useNavigate()
   const fileRef = useRef<HTMLInputElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [modal, setModal] = useState<'record' | 'scenario' | null>(null)
-  const [attachments, setAttachments] = useState<Attachment[]>([])
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
+  const [attachments, setAttachments] = useState<Attachment[]>(() =>
+    (post?.attachments ?? []).map((attachment) => ({
+      id: attachment.id,
+      type: attachment.type,
+      title: attachment.title,
+    })),
+  )
+  const [title, setTitle] = useState(post?.title ?? '')
+  const [content, setContent] = useState(post?.content ?? '')
   const createPost = useCreateCommunityPost()
+  const updatePost = useUpdateCommunityPost(post?.id ?? 0)
+  const isEditing = Boolean(post)
+  const isPending = createPost.isPending || updatePost.isPending
+  const returnPath = post ? `/community/${post.id}` : routePaths.community
 
   const handleFile = async (file?: File) => {
     if (!file) return
@@ -765,22 +758,27 @@ const PostComposer = () => {
   }
 
   const submitPost = () => {
-    createPost.mutate(
-      {
-        title: title.trim(),
-        content: content.trim(),
-        attachments: attachments.map((item) => ({
-          kind:
-            item.type === 'scenario'
-              ? 'SCENARIO'
-              : item.type === 'record'
-                ? 'TRAINING_RECORD'
-                : 'FILE',
-          ref_id: item.id,
-        })),
-      },
-      { onSuccess: (post) => navigate(`/community/${post.id}`) },
-    )
+    const input = {
+      title: title.trim(),
+      content: content.trim(),
+      attachments: attachments.map((item) => ({
+        kind:
+          item.type === 'scenario'
+            ? ('SCENARIO' as const)
+            : item.type === 'record'
+              ? ('TRAINING_RECORD' as const)
+              : ('FILE' as const),
+        ref_id: item.id,
+      })),
+    }
+
+    if (post) {
+      updatePost.mutate(input, { onSuccess: () => navigate(`/community/${post.id}`) })
+      return
+    }
+    createPost.mutate(input, {
+      onSuccess: (createdPost) => navigate(`/community/${createdPost.id}`),
+    })
   }
 
   return (
@@ -788,14 +786,14 @@ const PostComposer = () => {
       <CommunityHeader />
       <button
         type="button"
-        onClick={() => navigate(routePaths.community)}
+        onClick={() => navigate(returnPath)}
         className="gap-2 mt-4 flex w-fit items-center text-body"
       >
-        <FiArrowLeft /> 전체 글
+        <FiArrowLeft /> {isEditing ? '게시글로 돌아가기' : '전체 글'}
       </button>
       <div className="gap-4 mt-4 grid flex-1 grid-cols-[minmax(520px,1fr)_230px]">
         <section className="p-5 flex flex-col rounded-component bg-background-normal shadow-surface-card">
-          <h2 className="text-title2 font-bold">새 게시물 작성</h2>
+          <h2 className="text-title2 font-bold">{isEditing ? '게시물 수정' : '새 게시물 작성'}</h2>
           <label className="mt-4 text-label font-medium">
             게시물 제목
             <input
@@ -817,18 +815,18 @@ const PostComposer = () => {
           <div className="gap-2 mt-4 flex justify-end">
             <button
               type="button"
-              onClick={() => navigate(routePaths.community)}
+              onClick={() => navigate(returnPath)}
               className="px-8 py-3 rounded-control bg-fill-normal"
             >
               취소
             </button>
             <button
               type="button"
-              disabled={!title.trim() || !content.trim() || createPost.isPending}
+              disabled={!title.trim() || !content.trim() || isPending}
               onClick={submitPost}
               className="px-8 py-3 text-white rounded-control bg-primary-normal disabled:opacity-40"
             >
-              {createPost.isPending ? '등록 중...' : '등록하기'}
+              {isPending ? '저장 중...' : isEditing ? '수정하기' : '등록하기'}
             </button>
           </div>
         </section>
@@ -926,10 +924,24 @@ const CommunityDetailRoute = ({ postId }: { postId: number }) => {
   return <PostDetail post={post} />
 }
 
+const CommunityEditRoute = ({ postId }: { postId: number }) => {
+  const { data: post, isLoading, isError } = useCommunityPost(postId)
+
+  if (isLoading)
+    return <div className="p-12 flex-1 text-label-alternative">게시글을 불러오는 중이에요.</div>
+  if (isError || !post)
+    return <div className="p-12 flex-1 text-status-error">게시글을 불러오지 못했어요.</div>
+  if (post.authorId !== getCurrentUserId())
+    return <div className="p-12 flex-1 text-status-error">게시글 수정 권한이 없어요.</div>
+  return <PostComposer post={post} />
+}
+
 export const CommunityView = () => {
   const { postId } = useParams()
   const isComposer = window.location.pathname === routePaths.communityNew
+  const isEditing = window.location.pathname.endsWith('/edit')
   if (isComposer) return <PostComposer />
+  if (postId && isEditing) return <CommunityEditRoute postId={Number(postId)} />
   if (postId) return <CommunityDetailRoute postId={Number(postId)} />
   return <CommunityList />
 }

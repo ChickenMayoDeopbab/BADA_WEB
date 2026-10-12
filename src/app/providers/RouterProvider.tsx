@@ -77,6 +77,10 @@ const router = createBrowserRouter([
             element: <CommunityPage />,
           },
           {
+            path: routePaths.communityPostEdit,
+            element: <CommunityPage />,
+          },
+          {
             path: routePaths.communityNew,
             element: <CommunityPage />,
           },

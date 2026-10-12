@@ -85,6 +85,7 @@ export interface CreatePostInput {
 export interface UpdatePostInput {
   title: string
   content: string
+  attachments: Array<{ kind: ApiAttachmentKind; ref_id: number }>
 }
 
 const reactionFromApi = (reaction?: ApiReactionKind | null): ReactionKind | null => {

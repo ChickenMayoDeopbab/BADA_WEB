@@ -15,6 +15,7 @@ export const routePaths = {
   records: '/records',
   community: '/community',
   communityPost: '/community/:postId',
+  communityPostEdit: '/community/:postId/edit',
   communityNew: '/community/new',
   notifications: '/notifications',
   profile: '/profile',
