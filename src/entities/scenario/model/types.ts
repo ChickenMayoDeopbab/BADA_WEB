@@ -1,4 +1,5 @@
-export type ScenarioRecommendationReason = 'CUSTOM_NOT_PRACTICED' | 'NOT_PRACTICED' | 'LONGEST_ABSENT'
+export type ScenarioRecommendationReason =
+  'CUSTOM_NOT_PRACTICED' | 'NOT_PRACTICED' | 'LONGEST_ABSENT'
 
 export interface ScenarioRecommendationResponse {
   scenario: {

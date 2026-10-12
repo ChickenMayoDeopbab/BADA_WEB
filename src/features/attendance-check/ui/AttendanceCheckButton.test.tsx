@@ -14,7 +14,9 @@ vi.mock('@shared/api', () => ({
 
 const renderButton = () =>
   render(
-    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
       <AttendanceCheckButton />
     </QueryClientProvider>,
   )
