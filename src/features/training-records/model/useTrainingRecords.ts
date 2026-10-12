@@ -5,7 +5,7 @@ import {
 } from '../api/trainingRecordsApi'
 import type { TrainingPeriod } from '@entities/training-record'
 import { getApiErrorMessage } from '@shared/api'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { TrainingRecordDateRange } from './useTrainingRecordCalendar'
 
@@ -87,11 +87,25 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
 
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / RECORDS_PER_PAGE))
   const safeCurrentPage = Math.min(currentPage, totalPages)
-  const paginatedRecords = useMemo(() => {
+  const paginatedListRecords = useMemo(() => {
     const startIndex = (safeCurrentPage - 1) * RECORDS_PER_PAGE
 
     return filteredRecords.slice(startIndex, startIndex + RECORDS_PER_PAGE)
   }, [filteredRecords, safeCurrentPage])
+  const visibleRecordDetailQueries = useQueries({
+    queries: paginatedListRecords.map((record) => ({
+      queryKey: [...TRAINING_RECORDS_QUERY_KEY, record.id],
+      queryFn: () => getTrainingRecord(record.id),
+      staleTime: 60_000,
+    })),
+  })
+  const paginatedRecords = useMemo(
+    () =>
+      paginatedListRecords.map(
+        (record, index) => visibleRecordDetailQueries[index]?.data ?? record,
+      ),
+    [paginatedListRecords, visibleRecordDetailQueries],
+  )
   const selectedListRecord = records.find((record) => record.id === selectedRecordId) ?? null
   const selectedRecord = recordDetailQuery.data ?? selectedListRecord
   const totalDurationSeconds = filteredRecords.reduce(

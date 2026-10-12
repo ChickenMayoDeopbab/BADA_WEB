@@ -1,5 +1,3 @@
-import audioMarker from '@shared/assets/training-records/audio-marker.svg'
-import audioProgressLine from '@shared/assets/training-records/audio-progress-line.svg'
 import waveform from '@shared/assets/training-records/waveform.svg'
 import { useEffect, useRef, useState } from 'react'
 
@@ -137,22 +135,6 @@ export const AudioPreview = ({
             ? '재생 실패'
             : `${Math.ceil(segmentDuration)}초`}
       </span>
-      <div
-        className={`top-0 absolute left-[162px] h-full w-px ${isPlaying ? 'animate-pulse' : ''}`}
-        aria-hidden="true"
-      >
-        <img className="top-0 absolute -left-[3px] max-w-none" src={audioMarker} alt="" />
-        <img
-          className="absolute -bottom-px -left-[3px] max-w-none rotate-180"
-          src={audioMarker}
-          alt=""
-        />
-        <img
-          className="left-0 top-0 absolute max-w-none origin-top-left rotate-90"
-          src={audioProgressLine}
-          alt=""
-        />
-      </div>
     </div>
   )
 }

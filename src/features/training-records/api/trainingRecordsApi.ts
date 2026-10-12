@@ -123,12 +123,17 @@ export const mapTrainingRecordDetail = (record: TrainingRecordDetailResponse): T
   const feedbacks = (record.positiveFeedbacks ?? []).map((feedback, index) =>
     mapPositiveFeedback(feedback, record.recordId, index),
   )
+  const recordingUrl = resolveAudioUrl(record.recordingUrl)
+  const feedbackCount = feedbacks.filter(
+    (feedback) =>
+      Boolean(recordingUrl ?? feedback.audioUrl) && feedback.endSecond > feedback.startSecond,
+  ).length
 
   return {
     ...mapTrainingRecord(record),
     anxietyScore: record.anxietyScore,
-    recordingUrl: resolveAudioUrl(record.recordingUrl),
-    feedbackCount: feedbacks.length,
+    recordingUrl,
+    feedbackCount,
     feedbacks,
   }
 }

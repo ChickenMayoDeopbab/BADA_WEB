@@ -48,7 +48,10 @@ describe('useTrainingRecords', () => {
     vi.mocked(getTrainingRecords).mockResolvedValue(
       Array.from({ length: 11 }, (_, index) => createRecord(index + 1)),
     )
-    vi.mocked(getTrainingRecord).mockImplementation(async (recordId) => createRecord(recordId))
+    vi.mocked(getTrainingRecord).mockImplementation(async (recordId) => ({
+      ...createRecord(recordId),
+      feedbackCount: recordId,
+    }))
     vi.mocked(deleteTrainingRecord).mockResolvedValue(undefined)
   })
 
@@ -81,6 +84,15 @@ describe('useTrainingRecords', () => {
 
     expect(result.current.currentPage).toBe(1)
     expect(result.current.totalPages).toBe(1)
+  })
+
+  it('현재 페이지 기록의 상세 피드백 개수를 함께 조회한다', async () => {
+    const { result } = renderHook(() => useTrainingRecords(), { wrapper: createWrapper() })
+
+    await waitFor(() => expect(result.current.paginatedRecords[0]?.feedbackCount).toBe(1))
+
+    expect(getTrainingRecord).toHaveBeenCalledWith(1)
+    expect(result.current.paginatedRecords[9]?.feedbackCount).toBe(10)
   })
 
   it('적용한 날짜 범위에 포함된 기록만 표시한다', async () => {

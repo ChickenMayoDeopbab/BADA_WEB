@@ -33,5 +33,6 @@ describe('mapTrainingRecordDetail', () => {
       endSecond: 13.8,
       time: '0:10',
     })
+    expect(record.feedbackCount).toBe(1)
   })
 })

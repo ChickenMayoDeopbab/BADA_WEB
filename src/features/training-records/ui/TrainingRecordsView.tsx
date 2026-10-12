@@ -12,7 +12,6 @@ import menuDots from '@shared/assets/training-records/menu-dots.svg'
 import rowArrow from '@shared/assets/training-records/row-arrow.svg'
 import searchIcon from '@shared/assets/training-records/search.svg'
 import summaryArrow from '@shared/assets/training-records/summary-arrow.svg'
-import timelineLine from '@shared/assets/training-records/timeline-line.svg'
 import timelinePoint from '@shared/assets/training-records/timeline-point.svg'
 import { formatTrainingRecordDateRange } from '../model/formatTrainingRecordDateRange'
 import { useDragScroll } from '../model/useDragScroll'
@@ -70,7 +69,7 @@ const RecordRow = ({ record, onOpen }: RecordRowProps) => (
       <span>{record.duration}</span>
       <span className="h-4 w-px bg-line-neutral" aria-hidden="true" />
       <span>
-        {record.feedbackCount === undefined ? '상세 보기' : `피드백 ${record.feedbackCount}개`}
+        {record.feedbackCount === undefined ? '피드백 -' : `피드백 ${record.feedbackCount}개`}
       </span>
       <span className="h-4 w-px bg-line-neutral" aria-hidden="true" />
       <span>{record.startedAt}</span>
@@ -129,6 +128,7 @@ const RecordPagination = ({ currentPage, totalPages, onChange }: RecordPaginatio
 interface TimelineItemProps {
   feedback: TrainingFeedback
   recordingUrl?: string
+  isLast: boolean
   isExpanded: boolean
   isAudioPlaying: boolean
   onToggle: (feedbackId: string) => void
@@ -139,13 +139,19 @@ interface TimelineItemProps {
 const TimelineItem = ({
   feedback,
   recordingUrl,
+  isLast,
   isExpanded,
   isAudioPlaying,
   onToggle,
   onToggleAudio,
 }: TimelineItemProps) => (
   <div className="gap-1.5 relative z-10 flex w-full items-start">
-    <img src={timelinePoint} alt="" />
+    <span className="relative z-10 shrink-0">
+      <img src={timelinePoint} alt="" />
+      {!isLast && (
+        <span className="top-7 -bottom-4 w-0.5 absolute left-1/2 -translate-x-1/2 bg-line-neutral" />
+      )}
+    </span>
     <div className="min-w-0 flex-1">
       <p className="h-7 flex items-center text-headline2 font-medium text-label-neutral">
         {feedback.time}
@@ -157,11 +163,7 @@ const TimelineItem = ({
           className="flex w-full items-center justify-between text-left"
           aria-expanded={isExpanded}
         >
-          <span
-            className={`text-body text-label-neutral ${isExpanded ? 'font-bold' : 'font-medium'}`}
-          >
-            {feedback.title}
-          </span>
+          <span className="text-body font-medium text-label-neutral">{feedback.title}</span>
           <span className="h-3 w-6 flex items-center justify-center">
             <img
               className={`ease-out transition-transform duration-300 ${isExpanded ? 'rotate-90' : '-rotate-90'}`}
@@ -180,7 +182,6 @@ const TimelineItem = ({
             <div className="min-h-0 overflow-hidden">
               <div className="space-y-2">
                 <AudioPreview
-                  key={`${isExpanded ? 'expanded' : 'collapsed'}-${recordingUrl ?? feedback.audioUrl ?? 'empty'}`}
                   isPlaying={isAudioPlaying}
                   audioUrl={isExpanded ? (recordingUrl ?? feedback.audioUrl) : undefined}
                   startSecond={recordingUrl ? feedback.startSecond : 0}
@@ -326,11 +327,6 @@ const RecordDetailPanel = ({
               }`}
               {...dragScrollHandlers}
             >
-              <img
-                className="absolute top-[35px] left-[13px] origin-top-left rotate-90"
-                src={timelineLine}
-                alt=""
-              />
               {isLoading && (
                 <p className="py-8 text-center text-body text-label-alternative">
                   상세 기록을 불러오는 중입니다.
@@ -346,11 +342,12 @@ const RecordDetailPanel = ({
               )}
               {!isLoading &&
                 !errorMessage &&
-                record.feedbacks.map((feedback) => (
+                record.feedbacks.map((feedback, index) => (
                   <TimelineItem
                     key={feedback.id}
                     feedback={feedback}
                     recordingUrl={record.recordingUrl}
+                    isLast={index === record.feedbacks.length - 1}
                     isExpanded={expandedFeedbackId === feedback.id}
                     isAudioPlaying={isAudioPlaying && expandedFeedbackId === feedback.id}
                     onToggle={onToggleFeedback}
