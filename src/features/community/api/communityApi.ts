@@ -4,6 +4,7 @@ import type {
   CommunityPost,
   ReactionKind,
 } from '@entities/community'
+import { getProfileImageUrl } from '@entities/user'
 import { aiHttpClient, httpClient } from '@shared/api'
 
 type ApiReactionKind = 'CHEER' | 'RELATE' | 'LIKE'
@@ -128,10 +129,23 @@ const mapAttachment = (item: PostAttachmentResponse): CommunityAttachment => {
     url: item.file?.url,
   }
 }
-const mapPost = (post: PostSummaryResponse | PostDetailResponse): CommunityPost => ({
+const resolveProfileImageUrl = async (imageValue: string | null) => {
+  if (!imageValue) return null
+  if (/^https?:\/\//.test(imageValue)) return imageValue
+
+  try {
+    return await getProfileImageUrl(imageValue)
+  } catch {
+    return null
+  }
+}
+const mapPost = (
+  post: PostSummaryResponse | PostDetailResponse,
+  authorImage: string | null,
+): CommunityPost => ({
   id: post.post_id,
   author: authorName(post.author),
-  authorImage: post.author.profile_image_url,
+  authorImage,
   title: post.title,
   content: 'content' in post ? post.content : post.content_preview,
   views: post.view_count,
@@ -164,18 +178,34 @@ export const getCommunityPosts = async (mine: boolean, query: string) => {
   const response = await aiHttpClient.get<PostListResponse>(endpoint, {
     params: { page: 1, size: 50, ...(query && !mine ? { q: query } : {}) },
   })
-  return response.data.posts.map(mapPost)
+  const imageValues = [...new Set(response.data.posts.map((post) => post.author.profile_image_url))]
+  const resolvedImages = new Map(
+    await Promise.all(
+      imageValues.map(
+        async (imageValue) => [imageValue, await resolveProfileImageUrl(imageValue)] as const,
+      ),
+    ),
+  )
+
+  return response.data.posts.map((post) =>
+    mapPost(post, resolvedImages.get(post.author.profile_image_url) ?? null),
+  )
 }
-export const getCommunityPost = async (postId: number) =>
-  mapPost((await aiHttpClient.get<PostDetailResponse>(`/api/v1/community/posts/${postId}`)).data)
+export const getCommunityPost = async (postId: number) => {
+  const post = (await aiHttpClient.get<PostDetailResponse>(`/api/v1/community/posts/${postId}`))
+    .data
+  return mapPost(post, await resolveProfileImageUrl(post.author.profile_image_url))
+}
 export const getCommunityComments = async (postId: number) =>
   (
     await aiHttpClient.get<{ comments: CommentResponse[] }>(
       `/api/v1/community/posts/${postId}/comments`,
     )
   ).data.comments.map(mapComment)
-export const createCommunityPost = async (input: CreatePostInput) =>
-  mapPost((await aiHttpClient.post<PostDetailResponse>('/api/v1/community/posts', input)).data)
+export const createCommunityPost = async (input: CreatePostInput) => {
+  const post = (await aiHttpClient.post<PostDetailResponse>('/api/v1/community/posts', input)).data
+  return mapPost(post, await resolveProfileImageUrl(post.author.profile_image_url))
+}
 export const createCommunityComment = async (
   postId: number,
   content: string,
