@@ -756,7 +756,7 @@ const SelectionModal = ({
 
   return (
     <div className="inset-0 bg-black/30 fixed z-30 flex items-center justify-center">
-      <div className="px-6 py-6 flex h-[min(720px,calc(100vh-48px))] w-[min(800px,calc(100vw-48px))] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+      <div className="p-5 flex h-[min(560px,calc(100vh-48px))] w-[min(680px,calc(100vw-48px))] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
         <div className="flex shrink-0 items-start justify-between">
           <div>
             <h3 className="text-headline1 font-bold">
@@ -879,7 +879,7 @@ const SelectionModal = ({
               key={item.id}
               type="button"
               onClick={() => setSelected(item.id)}
-              className={`relative flex shrink-0 items-center overflow-hidden border text-left ${type === 'scenario' ? 'h-20 px-4 text-white rounded-component border-line-alternative bg-secondary-normal' : 'h-20 px-4 rounded-control border-line-alternative bg-background-normal shadow-subtle-card'} ${selected === item.id ? 'border-primary-normal' : ''}`}
+              className={`relative flex h-18 shrink-0 items-center overflow-hidden border px-4 text-left ${type === 'scenario' ? 'text-white rounded-component border-line-alternative bg-secondary-normal' : 'rounded-control border-line-alternative bg-background-normal shadow-subtle-card'} ${selected === item.id ? 'border-primary-normal' : ''}`}
             >
               {type === 'scenario' && (
                 <img
@@ -930,11 +930,11 @@ const SelectionModal = ({
             </button>
           ))}
         </div>
-        <div className="gap-4 pt-6 flex shrink-0 justify-end">
+        <div className="gap-3 pt-4 flex shrink-0 justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="h-14 w-36 rounded-control bg-fill-normal text-label font-medium"
+            className="h-12 w-32 rounded-control bg-fill-normal text-label font-medium"
           >
             취소
           </button>
@@ -945,7 +945,7 @@ const SelectionModal = ({
               const item = records.find((record) => record.id === selected)
               if (item) onSelect({ id: item.id, type, title: item.title })
             }}
-            className="h-14 w-64 text-white rounded-control bg-primary-normal text-label font-bold disabled:opacity-30"
+            className="h-12 w-56 text-white rounded-control bg-primary-normal text-label font-bold disabled:opacity-30"
           >
             선택 {type === 'record' ? '훈련기록' : '시나리오'} 첨부
           </button>
