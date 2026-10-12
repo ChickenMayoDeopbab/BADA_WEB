@@ -10,7 +10,7 @@ import {
   FiMessageCircle,
   FiMoreVertical,
   FiPaperclip,
-  FiRefreshCw,
+  FiRotateCw,
   FiSearch,
   FiSend,
   FiTrash2,
@@ -530,7 +530,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
               disabled={areCommentsLoading || areCommentsRefreshing}
               className="p-1 rounded-pill text-label-alternative hover:bg-fill-normal disabled:cursor-wait"
             >
-              <FiRefreshCw className={`size-5 ${areCommentsRefreshing ? 'animate-spin' : ''}`} />
+              <FiRotateCw className={`size-5 ${areCommentsRefreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
           <div className="divide-y divide-line-alternative">
