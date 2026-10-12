@@ -320,16 +320,18 @@ const ConfirmDeleteModal = ({
       aria-modal="true"
       aria-labelledby="delete-modal-title"
     >
-      <h3 id="delete-modal-title" className="text-headline1 font-bold">
+      <h3 id="delete-modal-title" className="text-center text-headline1 font-bold">
         정말 {target}을 삭제하시겠습니까?
       </h3>
-      <p className="mt-2 text-label text-label-alternative">삭제한 내용은 다시 복구할 수 없어요.</p>
-      <div className="gap-2 mt-6 flex justify-end">
+      <p className="mt-2 text-center text-label text-label-alternative">
+        삭제한 내용은 다시 복구할 수 없어요.
+      </p>
+      <div className="gap-2 mt-6 flex w-full">
         <button
           type="button"
           onClick={onClose}
           disabled={isPending}
-          className="px-5 py-2.5 rounded-control bg-fill-normal text-label"
+          className="px-5 py-2.5 flex-1 rounded-control bg-fill-normal text-label"
         >
           취소
         </button>
@@ -337,7 +339,7 @@ const ConfirmDeleteModal = ({
           type="button"
           onClick={onConfirm}
           disabled={isPending}
-          className="px-5 py-2.5 text-white rounded-control bg-status-error text-label disabled:opacity-40"
+          className="px-5 py-2.5 text-white flex-1 rounded-control bg-status-error text-label disabled:opacity-40"
         >
           {isPending ? '삭제 중...' : '삭제'}
         </button>
