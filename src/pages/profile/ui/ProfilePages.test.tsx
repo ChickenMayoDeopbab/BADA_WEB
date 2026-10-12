@@ -1,8 +1,9 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const { profileQueryMock } = vi.hoisted(() => ({
+const { profileQueryMock, withdrawAccountMock } = vi.hoisted(() => ({
+  withdrawAccountMock: vi.fn(),
   profileQueryMock: {
     data: {
       name: '변성우',
@@ -52,9 +53,15 @@ vi.mock('../model/useProfile', () => ({
   useCheckUsername: () => ({ mutateAsync: vi.fn().mockResolvedValue(true), isPending: false }),
   useUploadProfileImage: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateNotificationSettings: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useWithdrawAccount: () => ({ mutateAsync: withdrawAccountMock, isPending: false }),
 }))
 
+vi.mock('@features/auth', () => ({ clearAuthSession: vi.fn() }))
+
+afterEach(() => cleanup())
+
 import {
+  ProfileDeleteAccountPage,
   ProfileEditPage,
   ProfileLanguagePage,
   ProfileNotificationsPage,
@@ -76,6 +83,40 @@ describe('Profile pages', () => {
     fireEvent.click(screen.getByRole('link', { name: '프로필 수정' }))
 
     expect(screen.getByRole('heading', { name: '프로필 수정', level: 1 })).toBeInTheDocument()
+  })
+
+  it('opens the delete account page from account management', () => {
+    render(
+      <MemoryRouter initialEntries={['/profile']}>
+        <Routes>
+          <Route path="/profile" element={<ProfileOverviewPage />} />
+          <Route path="/profile/delete-account" element={<ProfileDeleteAccountPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: '회원 탈퇴' }))
+
+    expect(screen.getByRole('heading', { name: '회원 탈퇴', level: 1 })).toBeInTheDocument()
+  })
+
+  it('confirms account withdrawal and moves to login', async () => {
+    withdrawAccountMock.mockResolvedValue(undefined)
+    render(
+      <MemoryRouter initialEntries={['/profile/delete-account']}>
+        <Routes>
+          <Route path="/profile/delete-account" element={<ProfileDeleteAccountPage />} />
+          <Route path="/login" element={<h1>로그인</h1>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(screen.getAllByRole('button', { name: '회원 탈퇴' })[0])
+    const dialog = screen.getByRole('dialog', { name: '정말 회원 탈퇴할까요?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: '회원 탈퇴' }))
+
+    await waitFor(() => expect(withdrawAccountMock).toHaveBeenCalledOnce())
+    expect(await screen.findByRole('heading', { name: '로그인' })).toBeInTheDocument()
   })
 
   it('moves from a recent training to its record URL', () => {

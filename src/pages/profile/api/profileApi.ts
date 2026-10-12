@@ -60,6 +60,10 @@ export const updateMyPage = async (payload: UpdateMyPagePayload) => {
   await httpClient.patch('/api/v1/user/mypage', payload, { headers: authHeaders() })
 }
 
+export const withdrawAccount = async () => {
+  await httpClient.delete('/api/v1/auth/withdraw', { headers: authHeaders() })
+}
+
 export const uploadProfileImage = async (file: File) => {
   const formData = new FormData()
   formData.append('file', file)

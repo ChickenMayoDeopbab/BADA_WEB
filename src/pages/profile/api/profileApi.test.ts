@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { getMock, patchMock, postMock, putMock } = vi.hoisted(() => ({
+const { deleteMock, getMock, patchMock, postMock, putMock } = vi.hoisted(() => ({
+  deleteMock: vi.fn(),
   getMock: vi.fn(),
   patchMock: vi.fn(),
   postMock: vi.fn(),
@@ -9,7 +10,7 @@ const { getMock, patchMock, postMock, putMock } = vi.hoisted(() => ({
 
 vi.mock('@features/auth', () => ({ getAccessToken: () => 'access-token' }))
 vi.mock('@shared/api', () => ({
-  httpClient: { get: getMock, patch: patchMock, post: postMock, put: putMock },
+  httpClient: { delete: deleteMock, get: getMock, patch: patchMock, post: postMock, put: putMock },
 }))
 
 import {
@@ -19,6 +20,7 @@ import {
   updateMyPage,
   updateNotificationSettings,
   uploadProfileImage,
+  withdrawAccount,
 } from './profileApi'
 
 const authorization = { headers: { Authorization: 'Bearer access-token' } }
@@ -48,6 +50,14 @@ describe('profileApi', () => {
 
     await updateMyPage(payload)
     expect(patchMock).toHaveBeenCalledWith('/api/v1/user/mypage', payload, authorization)
+  })
+
+  it('withdraws the authenticated account', async () => {
+    deleteMock.mockResolvedValue({ data: {} })
+
+    await withdrawAccount()
+
+    expect(deleteMock).toHaveBeenCalledWith('/api/v1/auth/withdraw', authorization)
   })
 
   it('loads and updates notification settings', async () => {

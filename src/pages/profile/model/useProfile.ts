@@ -6,6 +6,7 @@ import {
   updateMyPage,
   updateNotificationSettings,
   uploadProfileImage,
+  withdrawAccount,
 } from '../api/profileApi'
 import { checkUsername } from '@features/auth'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -41,6 +42,8 @@ export const useUpdateMyPage = () => {
 export const useCheckUsername = () => useMutation({ mutationFn: checkUsername })
 
 export const useUploadProfileImage = () => useMutation({ mutationFn: uploadProfileImage })
+
+export const useWithdrawAccount = () => useMutation({ mutationFn: withdrawAccount })
 
 export const useNotificationSettings = () =>
   useQuery({ queryKey: profileKeys.notifications, queryFn: getNotificationSettings })

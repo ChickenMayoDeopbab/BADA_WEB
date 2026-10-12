@@ -9,6 +9,7 @@ import {
 } from '@pages/auth'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
 import {
+  ProfileDeleteAccountPage,
   ProfileEditPage,
   ProfileLanguagePage,
   ProfileNotificationsPage,
@@ -109,7 +110,7 @@ const router = createBrowserRouter([
           },
           {
             path: routePaths.profileDeleteAccount,
-            element: <ServicePlaceholderPage title="회원 탈퇴 화면" />,
+            element: <ProfileDeleteAccountPage />,
           },
         ],
       },
