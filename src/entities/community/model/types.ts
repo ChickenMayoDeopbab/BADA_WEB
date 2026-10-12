@@ -40,4 +40,8 @@ export interface CommunityAttachment {
   detail: string
   imageUrl?: string | null
   url?: string | null
+  isMine?: boolean
+  audioUrl?: string | null
+  audioStatus?: string
+  durationSeconds?: number
 }

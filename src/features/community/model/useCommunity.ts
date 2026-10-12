@@ -2,11 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createCommunityComment,
   createCommunityPost,
+  copyCommunityScenario,
   deleteCommunityComment,
   deleteCommunityPost,
   getCommunityComments,
   getCommunityPost,
   getCommunityPosts,
+  getSavedCommunityScenarioKeys,
   setCommunityReaction,
   updateCommunityComment,
   updateCommunityPost,
@@ -16,6 +18,7 @@ const communityKeys = {
   posts: (mine: boolean, query: string) => ['community', 'posts', mine, query] as const,
   post: (postId: number) => ['community', 'post', postId] as const,
   comments: (postId: number) => ['community', 'comments', postId] as const,
+  savedScenarios: ['community', 'saved-scenarios'] as const,
 }
 
 export const useCommunityPosts = (mine: boolean, query: string) =>
@@ -94,5 +97,20 @@ export const useCommunityReaction = (postId: number) => {
     mutationFn: (kind: Parameters<typeof setCommunityReaction>[1]) =>
       setCommunityReaction(postId, kind),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: communityKeys.post(postId) }),
+  })
+}
+
+export const useSavedCommunityScenarioKeys = () =>
+  useQuery({
+    queryKey: communityKeys.savedScenarios,
+    queryFn: getSavedCommunityScenarioKeys,
+  })
+
+export const useCopyCommunityScenario = (postId: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => copyCommunityScenario(postId),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: communityKeys.savedScenarios }),
   })
 }

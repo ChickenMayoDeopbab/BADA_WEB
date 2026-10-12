@@ -33,8 +33,18 @@ interface PostSummaryResponse {
 interface PostAttachmentResponse {
   kind: ApiAttachmentKind
   ref_id: number
-  scenario?: { title: string; category: string; scenario_image?: string | null } | null
-  training_record?: { scenario_name?: string | null; duration_seconds?: number | null } | null
+  scenario?: {
+    title: string
+    category: string
+    scenario_image?: string | null
+    is_mine?: boolean
+  } | null
+  training_record?: {
+    scenario_name?: string | null
+    duration_seconds?: number | null
+    audio_url?: string | null
+    audio_status?: string
+  } | null
   file?: { title?: string | null; url?: string | null } | null
 }
 interface PostDetailResponse extends Omit<PostSummaryResponse, 'content_preview'> {
@@ -58,6 +68,7 @@ interface ScenarioResponse {
   scenario_image: string | null
   practice_count: number
   is_custom: boolean
+  is_copied?: boolean
 }
 interface SpringApiResponse<T> {
   data?: T
@@ -127,6 +138,7 @@ const mapAttachment = (item: PostAttachmentResponse): CommunityAttachment => {
       title: item.scenario?.title ?? '시나리오',
       detail: item.scenario?.category ?? '',
       imageUrl: item.scenario?.scenario_image,
+      isMine: item.scenario?.is_mine ?? false,
     }
   if (item.kind === 'TRAINING_RECORD') {
     const seconds = item.training_record?.duration_seconds ?? 0
@@ -135,6 +147,9 @@ const mapAttachment = (item: PostAttachmentResponse): CommunityAttachment => {
       type: 'record',
       title: item.training_record?.scenario_name ?? '훈련 기록',
       detail: `${Math.floor(seconds / 60)}분 ${seconds % 60}초`,
+      audioUrl: item.training_record?.audio_url,
+      audioStatus: item.training_record?.audio_status,
+      durationSeconds: seconds,
     }
   }
   return {
@@ -256,6 +271,17 @@ export const setCommunityReaction = async (postId: number, kind: ReactionKind | 
       kind: reactionToApi[kind],
     })
   else await aiHttpClient.delete(`/api/v1/community/posts/${postId}/reaction`)
+}
+export const getSavedCommunityScenarioKeys = async () => {
+  const response = await aiHttpClient.get<{ scenarios: ScenarioResponse[] }>(
+    '/api/v1/scenario/scenarios',
+  )
+  return response.data.scenarios
+    .filter((scenario) => scenario.is_custom && scenario.is_copied)
+    .map((scenario) => `${scenario.category}:${scenario.title}`)
+}
+export const copyCommunityScenario = async (postId: number) => {
+  await aiHttpClient.post(`/api/v1/community/posts/${postId}/scenario/copy`)
 }
 export const getAttachableTrainingRecords = async (): Promise<SelectableAttachment[]> => {
   const response = await httpClient.get<SpringApiResponse<TrainingRecordPage>>(

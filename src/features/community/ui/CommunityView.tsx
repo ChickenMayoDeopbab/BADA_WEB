@@ -13,6 +13,8 @@ import {
   FiMessageCircle,
   FiMoreVertical,
   FiPaperclip,
+  FiPause,
+  FiPlay,
   FiRotateCw,
   FiSearch,
   FiSend,
@@ -31,10 +33,12 @@ import {
   useCommunityPost,
   useCommunityPosts,
   useCommunityReaction,
+  useCopyCommunityScenario,
   useCreateCommunityComment,
   useCreateCommunityPost,
   useDeleteCommunityComment,
   useDeleteCommunityPost,
+  useSavedCommunityScenarioKeys,
   useUpdateCommunityComment,
   useUpdateCommunityPost,
 } from '../model/useCommunity'
@@ -234,11 +238,50 @@ const CommunityList = () => {
   )
 }
 
-const AttachmentCard = ({ attachment }: { attachment: CommunityAttachment }) => {
+const formatAudioTime = (seconds: number) => {
+  const safeSeconds = Math.max(0, Math.ceil(seconds))
+  return `${Math.floor(safeSeconds / 60)}:${String(safeSeconds % 60).padStart(2, '0')}`
+}
+
+const AttachmentCard = ({
+  attachment,
+  postId,
+}: {
+  attachment: CommunityAttachment
+  postId: number
+}) => {
   const isScenario = attachment.type === 'scenario'
+  const isRecord = attachment.type === 'record'
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [audioDuration, setAudioDuration] = useState(attachment.durationSeconds ?? 0)
+  const { data: savedScenarioKeys = [] } = useSavedCommunityScenarioKeys()
+  const copyScenario = useCopyCommunityScenario(postId)
+  const scenarioKey = `${attachment.detail}:${attachment.title}`
+  const isScenarioSaved = Boolean(
+    attachment.isMine || savedScenarioKeys.includes(scenarioKey) || copyScenario.isSuccess,
+  )
+  const remaining = Math.max(0, audioDuration - currentTime)
+  const remainingPercent = audioDuration > 0 ? (remaining / audioDuration) * 100 : 100
+  const canPlayRecord = Boolean(
+    attachment.audioUrl && attachment.audioStatus?.toLowerCase() === 'ready',
+  )
+
+  const toggleAudio = async () => {
+    const audio = audioRef.current
+    if (!audio || !canPlayRecord) return
+    if (audio.ended || audio.currentTime >= audio.duration) audio.currentTime = 0
+    if (audio.paused) await audio.play()
+    else audio.pause()
+  }
+
   return (
     <div
-      className={`mt-5 px-3 py-2.5 overflow-hidden rounded-component border border-line-alternative ${isScenario ? 'text-white relative bg-secondary-normal' : 'bg-background-normal'}`}
+      onClick={() => {
+        if (isRecord) void toggleAudio()
+      }}
+      className={`mt-5 relative overflow-hidden rounded-component border border-line-alternative ${isScenario ? 'text-white bg-secondary-normal' : isPlaying ? 'text-white bg-primary-normal shadow-elevated-card' : 'bg-background-normal'}`}
     >
       {isScenario && (
         <img
@@ -247,18 +290,71 @@ const AttachmentCard = ({ attachment }: { attachment: CommunityAttachment }) => 
           className="inset-0 absolute size-full object-cover opacity-35"
         />
       )}
-      <div className="relative flex items-center justify-between">
+      {isRecord && isPlaying && (
+        <span
+          aria-hidden="true"
+          className="inset-y-0 left-0 absolute bg-common-0/20 transition-[width] duration-200 ease-linear animate-pulse"
+          style={{ width: `${remainingPercent}%` }}
+        />
+      )}
+      <div className="px-3 py-2.5 relative flex items-center justify-between">
         <div>
           <strong className="block text-body">{attachment.title}</strong>
-          <span className="text-caption opacity-80">{attachment.detail}</span>
+          <span className="text-caption opacity-80">
+            {isRecord && isPlaying ? `${formatAudioTime(remaining)} 남음` : attachment.detail}
+          </span>
         </div>
         <button
           type="button"
-          className="px-3 py-1 border-white/40 rounded-control border text-label"
+          onClick={(event) => {
+            event.stopPropagation()
+            if (isScenario && !isScenarioSaved) copyScenario.mutate()
+            if (isRecord) void toggleAudio()
+            if (attachment.type === 'file' && attachment.url) window.open(attachment.url, '_blank')
+          }}
+          disabled={
+            (isScenario && (isScenarioSaved || copyScenario.isPending)) ||
+            (isRecord && !canPlayRecord)
+          }
+          className={`px-3 py-1 gap-1 flex items-center rounded-control border text-label disabled:cursor-default ${isScenario || isPlaying ? 'border-white/40' : 'border-line-normal'}`}
         >
-          {isScenario ? '저장하기 〉' : attachment.type === 'file' ? '열기 〉' : '훈련 기록'}
+          {isScenario ? (
+            copyScenario.isPending ? (
+              '저장 중...'
+            ) : isScenarioSaved ? (
+              '저장됨'
+            ) : (
+              '저장하기 〉'
+            )
+          ) : attachment.type === 'file' ? (
+            '열기 〉'
+          ) : canPlayRecord ? (
+            <>
+              {isPlaying ? <FiPause /> : <FiPlay />}
+              {isPlaying ? '일시정지' : '훈련 재생'}
+            </>
+          ) : (
+            '재생 불가'
+          )}
         </button>
       </div>
+      {isRecord && attachment.audioUrl && (
+        <audio
+          ref={audioRef}
+          src={attachment.audioUrl}
+          preload="metadata"
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+          onLoadedMetadata={(event) => {
+            setCurrentTime(event.currentTarget.currentTime)
+            if (Number.isFinite(event.currentTarget.duration)) {
+              setAudioDuration(event.currentTarget.duration)
+            }
+          }}
+          onEnded={() => setIsPlaying(false)}
+        />
+      )}
     </div>
   )
 }
@@ -527,7 +623,11 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
           <hr className="my-4 border-line-alternative" />
           <p className="leading-relaxed text-body whitespace-pre-line">{post.content}</p>
           {post.attachments.map((attachment) => (
-            <AttachmentCard key={`${attachment.type}-${attachment.id}`} attachment={attachment} />
+            <AttachmentCard
+              key={`${attachment.type}-${attachment.id}`}
+              attachment={attachment}
+              postId={post.id}
+            />
           ))}
           <div className="mt-8 flex justify-end">
             <Reactions post={post} interactive />
