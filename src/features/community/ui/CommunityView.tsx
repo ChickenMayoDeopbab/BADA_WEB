@@ -835,6 +835,13 @@ const SelectionModal = ({
                     const isCurrentMonth = date.getMonth() === calendarMonthIndex
                     const hasRecords = availableDates.has(dateKey)
                     const isSelected = selectedDate === dateKey
+                    const dateStateClass = isSelected
+                      ? 'text-white bg-primary-normal font-bold'
+                      : hasRecords
+                        ? `${isCurrentMonth ? 'text-label-normal' : 'text-label-alternative opacity-70'} hover:bg-primary-pale`
+                        : isCurrentMonth
+                          ? 'cursor-not-allowed text-label-alternative opacity-65'
+                          : 'cursor-not-allowed text-label-disabled opacity-45'
 
                     return (
                       <button
@@ -847,7 +854,7 @@ const SelectionModal = ({
                           setSelected(null)
                           setIsDatePickerOpen(false)
                         }}
-                        className={`mx-auto size-9 flex items-center justify-center rounded-pill text-label ${isSelected ? 'text-white bg-primary-normal font-bold' : hasRecords ? 'text-label-normal hover:bg-primary-pale' : 'cursor-not-allowed text-label-disabled opacity-35'} ${isCurrentMonth ? '' : 'opacity-20'}`}
+                        className={`mx-auto size-9 flex items-center justify-center rounded-pill text-label ${dateStateClass}`}
                       >
                         {date.getDate()}
                       </button>
