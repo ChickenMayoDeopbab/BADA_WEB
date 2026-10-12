@@ -6,6 +6,7 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 interface CalendarMonthProps {
   month: Date
   range: TrainingRecordDateRange
+  recordDates: Date[]
   onPreviousMonth: () => void
   onNextMonth: () => void
   onSelectDate: (date: Date) => void
@@ -15,6 +16,7 @@ interface TrainingRecordCalendarProps {
   isOpen: boolean
   visibleMonth: Date
   range: TrainingRecordDateRange
+  recordDates: Date[]
   onCancel: () => void
   onApply: () => void
   onPreviousMonth: () => void
@@ -27,6 +29,9 @@ const isSameDate = (firstDate: Date, secondDate: Date) =>
   firstDate.getFullYear() === secondDate.getFullYear() &&
   firstDate.getMonth() === secondDate.getMonth() &&
   firstDate.getDate() === secondDate.getDate()
+
+// 날짜를 시간대 이동 없이 연월일 비교용 키로 변환합니다.
+const getDateKey = (date: Date) => `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
 
 // 달력에 표시할 빈 칸과 날짜 목록을 만듭니다.
 const getCalendarDays = (month: Date) => {
@@ -47,11 +52,13 @@ const getCalendarDays = (month: Date) => {
 const CalendarMonth = ({
   month,
   range,
+  recordDates,
   onPreviousMonth,
   onNextMonth,
   onSelectDate,
 }: CalendarMonthProps) => {
   const days = getCalendarDays(month)
+  const recordDateKeys = new Set(recordDates.map(getDateKey))
 
   return (
     <section className="min-h-0 min-w-0 px-6 py-5 flex-1">
@@ -101,6 +108,7 @@ const CalendarMonth = ({
           const isRangeStart = isSameDate(date, range.start)
           const isRangeEnd = isSameDate(date, range.end)
           const isInRange = date >= range.start && date <= range.end
+          const hasRecord = recordDateKeys.has(getDateKey(date))
           const isSunday = date.getDay() === 0
           const isSaturday = date.getDay() === 6
 
@@ -108,22 +116,34 @@ const CalendarMonth = ({
             <button
               key={date.toISOString()}
               type="button"
-              className={`size-10 mx-auto flex items-center justify-center rounded-pill text-label font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-normal ${
+              className={`size-10 relative mx-auto flex items-center justify-center rounded-pill text-label font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-normal ${
                 isRangeStart || isRangeEnd
                   ? 'bg-primary-normal text-label-button-text'
                   : isInRange
-                    ? 'bg-primary-alternative text-label-normal'
-                    : isSunday
-                      ? 'text-status-error hover:bg-fill-normal'
-                      : isSaturday
-                        ? 'text-status-info hover:bg-fill-normal'
-                        : 'text-label-normal hover:bg-fill-normal'
+                    ? hasRecord
+                      ? 'bg-primary-alternative font-bold text-label-normal'
+                      : 'bg-fill-normal text-label-disabled'
+                    : hasRecord
+                      ? isSunday
+                        ? 'font-bold text-status-error hover:bg-fill-normal'
+                        : isSaturday
+                          ? 'font-bold text-status-info hover:bg-fill-normal'
+                          : 'font-bold text-label-normal hover:bg-fill-normal'
+                      : 'text-label-disabled hover:bg-fill-normal'
               }`}
               aria-pressed={isInRange}
-              aria-label={`${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`}
+              aria-label={`${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일${hasRecord ? ', 훈련 기록 있음' : ''}`}
               onClick={() => onSelectDate(date)}
             >
-              {date.getDate()}
+              <span>{date.getDate()}</span>
+              {hasRecord && (
+                <span
+                  className={`bottom-1 size-1 absolute rounded-pill ${
+                    isRangeStart || isRangeEnd ? 'bg-label-button-text' : 'bg-primary-normal'
+                  }`}
+                  aria-hidden="true"
+                />
+              )}
             </button>
           )
         })}
@@ -137,6 +157,7 @@ export const TrainingRecordCalendar = ({
   isOpen,
   visibleMonth,
   range,
+  recordDates,
   onCancel,
   onApply,
   onPreviousMonth,
@@ -173,6 +194,7 @@ export const TrainingRecordCalendar = ({
         <CalendarMonth
           month={visibleMonth}
           range={range}
+          recordDates={recordDates}
           onPreviousMonth={onPreviousMonth}
           onNextMonth={onNextMonth}
           onSelectDate={onSelectDate}
