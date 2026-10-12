@@ -8,6 +8,8 @@ import {
   FiArrowLeft,
   FiCheck,
   FiChevronDown,
+  FiChevronLeft,
+  FiChevronRight,
   FiEye,
   FiMessageCircle,
   FiMoreVertical,
@@ -690,8 +692,11 @@ const SelectionModal = ({
   const [records, setRecords] = useState<SelectableAttachment[]>([])
   const [selected, setSelected] = useState<number | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
+  const [calendarMonth, setCalendarMonth] = useState(new Date())
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const datePickerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const request = type === 'record' ? getAttachableTrainingRecords() : getAttachableScenarios()
@@ -699,12 +704,42 @@ const SelectionModal = ({
       .then((items) => {
         setRecords(items)
         if (type === 'record') {
-          setSelectedDate(items.find((item) => item.trainedAt)?.trainedAt?.slice(0, 10) ?? '')
+          const latestDate = items.find((item) => item.trainedAt)?.trainedAt?.slice(0, 10) ?? ''
+          setSelectedDate(latestDate)
+          if (latestDate) setCalendarMonth(new Date(`${latestDate}T00:00:00`))
         }
       })
       .catch(() => setHasError(true))
       .finally(() => setIsLoading(false))
   }, [type])
+
+  useEffect(() => {
+    if (!isDatePickerOpen) return
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!datePickerRef.current?.contains(event.target as Node)) setIsDatePickerOpen(false)
+    }
+
+    document.addEventListener('mousedown', closeOnOutsideClick)
+    return () => document.removeEventListener('mousedown', closeOnOutsideClick)
+  }, [isDatePickerOpen])
+
+  const availableDates = new Set(
+    records.flatMap((item) => (item.trainedAt ? [item.trainedAt.slice(0, 10)] : [])),
+  )
+  const calendarYear = calendarMonth.getFullYear()
+  const calendarMonthIndex = calendarMonth.getMonth()
+  const calendarStart = new Date(calendarYear, calendarMonthIndex, 1 - new Date(calendarYear, calendarMonthIndex, 1).getDay())
+  const calendarDays = Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(calendarStart)
+    date.setDate(calendarStart.getDate() + index)
+    const dateKey = [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-')
+    return { date, dateKey }
+  })
 
   const visibleRecords =
     type === 'record' && selectedDate
@@ -744,22 +779,84 @@ const SelectionModal = ({
           </button>
         </div>
         {type === 'record' && (
-          <label className="mt-5 px-5 h-14 relative flex shrink-0 cursor-pointer items-center justify-between rounded-control bg-fill-normal focus-within:outline-2 focus-within:outline-primary-normal">
-            <img src={calendarIcon} alt="" className="size-5 opacity-50" />
-            <span className="text-body font-medium text-label-normal">
-              {selectedDate || '날짜 선택'}
-            </span>
-            <input
-              type="date"
-              aria-label="훈련기록 날짜 선택"
-              value={selectedDate}
-              onChange={(event) => {
-                setSelectedDate(event.target.value)
-                setSelected(null)
-              }}
-              className="inset-0 absolute size-full cursor-pointer opacity-0"
-            />
-          </label>
+          <div ref={datePickerRef} className="mt-5 relative shrink-0">
+            <button
+              type="button"
+              aria-haspopup="dialog"
+              aria-expanded={isDatePickerOpen}
+              onClick={() => setIsDatePickerOpen((open) => !open)}
+              className="px-5 h-14 flex w-full items-center justify-between rounded-control bg-fill-normal focus:outline-2 focus:outline-primary-normal"
+            >
+              <img src={calendarIcon} alt="" className="size-5 opacity-50" />
+              <span className="text-body font-medium text-label-normal">
+                {selectedDate || '날짜 선택'}
+              </span>
+            </button>
+            {isDatePickerOpen && (
+              <div
+                role="dialog"
+                aria-label="훈련기록 날짜 선택"
+                className="top-[calc(100%+8px)] right-0 p-4 absolute z-20 w-80 rounded-component border border-line-alternative bg-background-normal shadow-elevated-card"
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <button
+                    type="button"
+                    aria-label="이전 달"
+                    onClick={() =>
+                      setCalendarMonth(new Date(calendarYear, calendarMonthIndex - 1, 1))
+                    }
+                    className="size-8 flex items-center justify-center rounded-pill hover:bg-fill-normal"
+                  >
+                    <FiChevronLeft className="size-5" />
+                  </button>
+                  <strong className="text-label font-bold">
+                    {calendarYear}년 {calendarMonthIndex + 1}월
+                  </strong>
+                  <button
+                    type="button"
+                    aria-label="다음 달"
+                    onClick={() =>
+                      setCalendarMonth(new Date(calendarYear, calendarMonthIndex + 1, 1))
+                    }
+                    className="size-8 flex items-center justify-center rounded-pill hover:bg-fill-normal"
+                  >
+                    <FiChevronRight className="size-5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-7 text-center text-caption text-label-alternative">
+                  {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                    <span key={day} className="py-1">
+                      {day}
+                    </span>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-y-1">
+                  {calendarDays.map(({ date, dateKey }) => {
+                    const isCurrentMonth = date.getMonth() === calendarMonthIndex
+                    const hasRecords = availableDates.has(dateKey)
+                    const isSelected = selectedDate === dateKey
+
+                    return (
+                      <button
+                        key={dateKey}
+                        type="button"
+                        disabled={!hasRecords}
+                        aria-label={`${dateKey}${hasRecords ? '' : ', 훈련기록 없음'}`}
+                        onClick={() => {
+                          setSelectedDate(dateKey)
+                          setSelected(null)
+                          setIsDatePickerOpen(false)
+                        }}
+                        className={`mx-auto size-9 flex items-center justify-center rounded-pill text-label ${isSelected ? 'text-white bg-primary-normal font-bold' : hasRecords ? 'text-label-normal hover:bg-primary-pale' : 'cursor-not-allowed text-label-disabled opacity-35'} ${isCurrentMonth ? '' : 'opacity-20'}`}
+                      >
+                        {date.getDate()}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         )}
         {type === 'scenario' && (
           <button
