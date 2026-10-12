@@ -9,6 +9,11 @@ export type AuthTokens = {
   refreshToken: string
 }
 
+export type RefreshTokenRequest = {
+  refreshToken: string
+  userId: number
+}
+
 export type OAuthTokenResponse = AuthTokens & {
   isNewUser: boolean
 }

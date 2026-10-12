@@ -1,3 +1,4 @@
+import { SidebarUserProfile } from './SidebarUserProfile'
 import { clearAuthSession } from '@features/auth'
 import badaLogo from '@shared/assets/training-records/bada-logo.svg'
 import bellIcon from '@shared/assets/training-records/nav-bell.svg'
@@ -7,7 +8,6 @@ import historyIcon from '@shared/assets/training-records/nav-history.svg'
 import homeIcon from '@shared/assets/training-records/nav-home.svg'
 import logoutIcon from '@shared/assets/training-records/nav-logout.svg'
 import profileIcon from '@shared/assets/training-records/nav-profile.svg'
-import profileImage from '@shared/assets/training-records/profile.png'
 import { routePaths } from '@shared/config'
 import { NavLink } from 'react-router-dom'
 
@@ -114,13 +114,7 @@ export const AppSidebar = () => (
         ))}
       </nav>
       <div className="px-4 py-3 border-t border-line-alternative">
-        <div className="gap-3 flex items-center">
-          <img className="size-10 rounded-pill" src={profileImage} alt="배준하 프로필" />
-          <div className="min-w-0">
-            <p className="truncate text-headline2 font-bold text-label-normal">배준하</p>
-            <p className="truncate text-label text-label-neutral">uhihi09</p>
-          </div>
-        </div>
+        <SidebarUserProfile />
       </div>
     </div>
   </aside>
