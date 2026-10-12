@@ -1,4 +1,4 @@
-export { dummyTrainingRecords, trainingPeriodOptions } from './model/dummyTrainingRecords'
+export { trainingPeriodOptions } from './model/trainingPeriodOptions'
 export type {
   TrainingFeedback,
   TrainingPeriod,

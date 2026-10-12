@@ -17,15 +17,38 @@ import summaryArrow from '@shared/assets/training-records/summary-arrow.svg'
 import timelineLine from '@shared/assets/training-records/timeline-line.svg'
 import timelinePoint from '@shared/assets/training-records/timeline-point.svg'
 import waveform from '@shared/assets/training-records/waveform.svg'
+import { useEffect, useRef } from 'react'
 import { formatTrainingRecordDateRange } from '../model/formatTrainingRecordDateRange'
 import { useDragScroll } from '../model/useDragScroll'
 import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
 
+const formatSummaryDuration = (durationSeconds: number) => {
+  const hours = Math.floor(durationSeconds / 3600)
+  const minutes = Math.floor((durationSeconds % 3600) / 60)
+  const seconds = durationSeconds % 60
+
+  return [hours && `${hours}시간`, minutes && `${minutes}분`, `${seconds}초`]
+    .filter(Boolean)
+    .join(' ')
+}
+
+const groupRecordsByDate = (records: TrainingRecord[]) => {
+  const groups = new Map<string, TrainingRecord[]>()
+
+  records.forEach((record) => {
+    const recordsForDate = groups.get(record.date) ?? []
+    recordsForDate.push(record)
+    groups.set(record.date, recordsForDate)
+  })
+
+  return Array.from(groups, ([date, groupedRecords]) => ({ date, records: groupedRecords }))
+}
+
 interface RecordRowProps {
   record: TrainingRecord
-  onOpen: (recordId: string) => void
+  onOpen: (recordId: number) => void
 }
 
 // 목록에서 하나의 훈련 기록을 표시합니다.
@@ -37,15 +60,21 @@ const RecordRow = ({ record, onOpen }: RecordRowProps) => (
     aria-label={`${record.title} 기록 상세 보기`}
   >
     <span className="flex items-center gap-[15px]">
-      <span className="size-12 flex items-center justify-center rounded-component bg-fill-normal text-headline2">
-        {record.emoji}
+      <span className="size-12 flex items-center justify-center overflow-hidden rounded-component bg-fill-normal text-headline2">
+        {record.thumbnailUrl ? (
+          <img className="size-full object-cover" src={record.thumbnailUrl} alt="" />
+        ) : (
+          record.emoji
+        )}
       </span>
       <span className="text-headline2 font-bold text-label-normal">{record.title}</span>
     </span>
     <span className="gap-5 px-4 py-2 ml-auto flex items-center rounded-control bg-fill-normal text-label text-label-alternative">
       <span>{record.duration}</span>
       <span className="h-4 w-px bg-line-neutral" aria-hidden="true" />
-      <span>피드백 {record.feedbackCount}개</span>
+      <span>
+        {record.feedbackCount === undefined ? '상세 보기' : `피드백 ${record.feedbackCount}개`}
+      </span>
       <span className="h-4 w-px bg-line-neutral" aria-hidden="true" />
       <span>{record.startedAt}</span>
     </span>
@@ -102,44 +131,64 @@ const RecordPagination = ({ currentPage, totalPages, onChange }: RecordPaginatio
 
 interface AudioPreviewProps {
   isPlaying: boolean
-  isEnabled?: boolean
+  audioUrl?: string
   onToggle: () => void
 }
 
 // 선택한 피드백의 음성 미리보기 컨트롤을 표시합니다.
-const AudioPreview = ({ isPlaying, isEnabled = true, onToggle }: AudioPreviewProps) => (
-  <div className="py-3 relative flex w-full items-center justify-between overflow-hidden rounded-control bg-primary-alternative px-[13px]">
-    <button
-      type="button"
-      onClick={onToggle}
-      disabled={!isEnabled}
-      className="size-9 relative z-10 flex shrink-0 items-center justify-center rounded-pill bg-primary-normal"
-      aria-label={isPlaying ? '음성 미리보기 일시정지' : '음성 미리보기 재생'}
-    >
-      <span
-        className={`size-3.5 bg-common-0 ${isPlaying ? 'animate-pulse' : ''}`}
-        aria-hidden="true"
-      />
-    </button>
-    <div className="h-8 w-40 relative shrink-0">
-      <img src={waveform} alt="음성 파형" />
+const AudioPreview = ({ isPlaying, audioUrl, onToggle }: AudioPreviewProps) => {
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (isPlaying) {
+      void audio.play().catch(onToggle)
+    } else {
+      audio.pause()
+    }
+  }, [isPlaying, onToggle])
+
+  return (
+    <div className="py-3 relative flex w-full items-center justify-between overflow-hidden rounded-control bg-primary-alternative px-[13px]">
+      <audio ref={audioRef} src={audioUrl} onEnded={onToggle} />
+      <button
+        type="button"
+        onClick={onToggle}
+        disabled={!audioUrl}
+        className="size-9 relative z-10 flex shrink-0 items-center justify-center rounded-pill bg-primary-normal disabled:cursor-not-allowed disabled:opacity-40"
+        aria-label={isPlaying ? '음성 미리보기 일시정지' : '음성 미리보기 재생'}
+      >
+        <span
+          className={`size-3.5 bg-common-0 ${isPlaying ? 'animate-pulse' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
+      <div className="h-8 w-40 relative shrink-0">
+        <img src={waveform} alt="음성 파형" />
+      </div>
+      <span className="text-label font-medium text-primary-normal">
+        {audioUrl ? '재생' : '음성 없음'}
+      </span>
+      <div
+        className={`top-0 absolute left-[162px] h-full w-px ${isPlaying ? 'animate-pulse' : ''}`}
+      >
+        <img className="top-0 absolute -left-[3px] max-w-none" src={audioMarker} alt="" />
+        <img
+          className="absolute -bottom-px -left-[3px] max-w-none rotate-180"
+          src={audioMarker}
+          alt=""
+        />
+        <img
+          className="left-0 top-0 absolute max-w-none origin-top-left rotate-90"
+          src={audioProgressLine}
+          alt=""
+        />
+      </div>
     </div>
-    <span className="text-label font-medium text-primary-normal">0:04</span>
-    <div className={`top-0 absolute left-[162px] h-full w-px ${isPlaying ? 'animate-pulse' : ''}`}>
-      <img className="top-0 absolute -left-[3px] max-w-none" src={audioMarker} alt="" />
-      <img
-        className="absolute -bottom-px -left-[3px] max-w-none rotate-180"
-        src={audioMarker}
-        alt=""
-      />
-      <img
-        className="left-0 top-0 absolute max-w-none origin-top-left rotate-90"
-        src={audioProgressLine}
-        alt=""
-      />
-    </div>
-  </div>
-)
+  )
+}
 
 interface TimelineItemProps {
   feedback: TrainingFeedback
@@ -183,7 +232,7 @@ const TimelineItem = ({
             />
           </span>
         </button>
-        {feedback.description && (
+        {(feedback.description || feedback.audioUrl) && (
           <div
             className={`ease-out grid transition-[grid-template-rows,opacity,margin] duration-300 motion-reduce:transition-none ${
               isExpanded ? 'mt-2 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0'
@@ -194,12 +243,14 @@ const TimelineItem = ({
               <div className="space-y-2">
                 <AudioPreview
                   isPlaying={isAudioPlaying}
-                  isEnabled={isExpanded}
+                  audioUrl={isExpanded ? feedback.audioUrl : undefined}
                   onToggle={onToggleAudio}
                 />
-                <p className="text-body font-medium whitespace-pre-line text-label-neutral">
-                  {feedback.description}
-                </p>
+                {feedback.description && (
+                  <p className="text-body font-medium whitespace-pre-line text-label-neutral">
+                    {feedback.description}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -212,6 +263,10 @@ const TimelineItem = ({
 interface RecordDetailPanelProps {
   record: TrainingRecord
   isOpen: boolean
+  isLoading: boolean
+  errorMessage: string
+  isDeleting: boolean
+  deleteErrorMessage: string
   expandedFeedbackId: string | null
   isMenuOpen: boolean
   isAudioPlaying: boolean
@@ -226,6 +281,10 @@ interface RecordDetailPanelProps {
 const RecordDetailPanel = ({
   record,
   isOpen,
+  isLoading,
+  errorMessage,
+  isDeleting,
+  deleteErrorMessage,
   expandedFeedbackId,
   isMenuOpen,
   isAudioPlaying,
@@ -285,10 +344,14 @@ const RecordDetailPanel = ({
               <button
                 type="button"
                 onClick={onDelete}
-                className="p-3 flex h-[52px] w-full items-center text-left text-headline2 font-medium text-label-normal hover:bg-fill-normal"
+                disabled={isDeleting}
+                className="p-3 flex h-[52px] w-full items-center text-left text-headline2 font-medium text-label-normal hover:bg-fill-normal disabled:cursor-not-allowed disabled:text-label-disabled"
               >
-                기록 삭제하기
+                {isDeleting ? '삭제 중...' : '기록 삭제하기'}
               </button>
+              {deleteErrorMessage && (
+                <p className="px-3 pb-3 text-caption text-status-error">{deleteErrorMessage}</p>
+              )}
             </div>
           )}
 
@@ -300,12 +363,12 @@ const RecordDetailPanel = ({
               </div>
               <div>
                 <p className="text-body font-medium text-common-0/60">훈련시간</p>
-                <p className="text-title2 font-bold">2분 13초</p>
+                <p className="text-title2 font-bold">{record.duration}</p>
               </div>
             </div>
             <div className="flex h-full flex-col items-end justify-center">
               <p className="text-body font-medium text-common-0/60">불안 점수</p>
-              <p className="text-display1 font-bold">{record.anxietyScore}</p>
+              <p className="text-display1 font-bold">{record.anxietyScore ?? '-'}</p>
             </div>
           </section>
 
@@ -323,16 +386,31 @@ const RecordDetailPanel = ({
                 src={timelineLine}
                 alt=""
               />
-              {record.feedbacks.map((feedback) => (
-                <TimelineItem
-                  key={feedback.id}
-                  feedback={feedback}
-                  isExpanded={expandedFeedbackId === feedback.id}
-                  isAudioPlaying={isAudioPlaying && expandedFeedbackId === feedback.id}
-                  onToggle={onToggleFeedback}
-                  onToggleAudio={onToggleAudio}
-                />
-              ))}
+              {isLoading && (
+                <p className="py-8 text-center text-body text-label-alternative">
+                  상세 기록을 불러오는 중입니다.
+                </p>
+              )}
+              {!isLoading && errorMessage && (
+                <p className="py-8 text-center text-body text-status-error">{errorMessage}</p>
+              )}
+              {!isLoading && !errorMessage && record.feedbacks.length === 0 && (
+                <p className="py-8 text-center text-body text-label-alternative">
+                  표시할 피드백이 없습니다.
+                </p>
+              )}
+              {!isLoading &&
+                !errorMessage &&
+                record.feedbacks.map((feedback) => (
+                  <TimelineItem
+                    key={feedback.id}
+                    feedback={feedback}
+                    isExpanded={expandedFeedbackId === feedback.id}
+                    isAudioPlaying={isAudioPlaying && expandedFeedbackId === feedback.id}
+                    onToggle={onToggleFeedback}
+                    onToggleAudio={onToggleAudio}
+                  />
+                ))}
             </div>
           </section>
         </div>
@@ -368,6 +446,14 @@ export const TrainingRecordsView = () => {
     expandedFeedbackId,
     isMenuOpen,
     isAudioPlaying,
+    isLoading,
+    recordsErrorMessage,
+    isDetailLoading,
+    detailErrorMessage,
+    isDeleting,
+    deleteErrorMessage,
+    totalDurationSeconds,
+    totalFeedbackCount,
     handlePeriodChange,
     handleSearchQueryChange,
     handlePageChange,
@@ -389,6 +475,7 @@ export const TrainingRecordsView = () => {
   const activePeriodIndex = trainingPeriodOptions.findIndex(
     (periodOption) => periodOption.id === period,
   )
+  const groupedRecords = groupRecordsByDate(paginatedRecords)
 
   return (
     <main className="min-w-0 flex-1 overflow-hidden">
@@ -463,7 +550,9 @@ export const TrainingRecordsView = () => {
               </span>
               <img className="rotate-180" src={summaryArrow} alt="" />
             </button>
-            <strong className="text-title1 font-bold text-primary-normal">10분 43초</strong>
+            <strong className="text-title1 font-bold text-primary-normal">
+              {formatSummaryDuration(totalDurationSeconds)}
+            </strong>
           </div>
           <dl className="gap-14 flex whitespace-nowrap">
             <div className="space-y-1.5">
@@ -474,27 +563,47 @@ export const TrainingRecordsView = () => {
             </div>
             <div className="space-y-1.5">
               <dt className="text-label text-label-alternative">피드백</dt>
-              <dd className="text-title2 font-bold text-label-normal">13개</dd>
+              <dd className="text-title2 font-bold text-label-normal">
+                {totalFeedbackCount === null ? '-' : `${totalFeedbackCount}개`}
+              </dd>
             </div>
             <div className="space-y-1.5">
               <dt className="text-label text-label-alternative">평균 시간</dt>
-              <dd className="text-title2 font-bold text-label-normal">3분 34초</dd>
+              <dd className="text-title2 font-bold text-label-normal">
+                {formatSummaryDuration(
+                  filteredRecords.length > 0
+                    ? Math.floor(totalDurationSeconds / filteredRecords.length)
+                    : 0,
+                )}
+              </dd>
             </div>
           </dl>
         </section>
 
         <section className="gap-3 flex flex-col">
           <h2 className="text-title2 font-bold text-label-normal">최근 기록</h2>
-          <p className="pl-3 text-body font-medium text-label-normal">
-            {paginatedRecords[0]?.date ?? formatTrainingRecordDateRange(appliedRange)}
-          </p>
           <div className="gap-2.5 flex flex-col">
-            {paginatedRecords.map((record) => (
-              <RecordRow key={record.id} record={record} onOpen={handleOpenRecord} />
-            ))}
-            {filteredRecords.length === 0 && (
+            {isLoading && (
               <div className="flex h-[88px] items-center justify-center rounded-component border border-line-alternative bg-background-normal text-body text-neutral-60">
-                검색 결과가 없습니다.
+                훈련 기록을 불러오는 중입니다.
+              </div>
+            )}
+            {!isLoading && recordsErrorMessage && (
+              <div className="flex h-[88px] items-center justify-center rounded-component border border-line-alternative bg-background-normal text-body text-status-error">
+                {recordsErrorMessage}
+              </div>
+            )}
+            {groupedRecords.map((group) => (
+              <section key={group.date} className="gap-2.5 flex flex-col">
+                <h3 className="pl-3 text-body font-medium text-label-normal">{group.date}</h3>
+                {group.records.map((record) => (
+                  <RecordRow key={record.id} record={record} onOpen={handleOpenRecord} />
+                ))}
+              </section>
+            ))}
+            {!isLoading && !recordsErrorMessage && filteredRecords.length === 0 && (
+              <div className="flex h-[88px] items-center justify-center rounded-component border border-line-alternative bg-background-normal text-body text-neutral-60">
+                해당 기간의 훈련 기록이 없습니다.
               </div>
             )}
           </div>
@@ -523,6 +632,10 @@ export const TrainingRecordsView = () => {
         <RecordDetailPanel
           record={selectedRecord}
           isOpen={isDetailOpen}
+          isLoading={isDetailLoading}
+          errorMessage={detailErrorMessage}
+          isDeleting={isDeleting}
+          deleteErrorMessage={deleteErrorMessage}
           expandedFeedbackId={expandedFeedbackId}
           isMenuOpen={isMenuOpen}
           isAudioPlaying={isAudioPlaying}
