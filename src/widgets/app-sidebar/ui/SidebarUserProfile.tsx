@@ -1,4 +1,5 @@
 import { useCurrentUser, useCurrentUserProfileImage } from '@entities/user'
+import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import { useState } from 'react'
 
 interface UserAvatarProps {
@@ -23,11 +24,11 @@ const UserAvatar = ({ imageUrl, name }: UserAvatarProps) => {
 
   return (
     <div
-      className="size-10 flex shrink-0 items-center justify-center rounded-pill bg-primary-alternative text-headline2 font-bold text-primary-normal"
+      className="size-10 flex shrink-0 items-center justify-center rounded-pill bg-fill-normal"
       role="img"
       aria-label={label}
     >
-      {name?.trim().charAt(0) || '?'}
+      <img className="size-7" src={defaultProfileSummary} alt="" />
     </div>
   )
 }

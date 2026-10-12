@@ -1,5 +1,6 @@
 import { SidebarUserProfile } from './SidebarUserProfile'
 import { useCurrentUser, useCurrentUserProfileImage } from '@entities/user'
+import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -54,13 +55,17 @@ describe('SidebarUserProfile', () => {
     expect(screen.getByLabelText('사용자 정보 로딩 중')).toBeInTheDocument()
   })
 
-  it('falls back to the user initial when the remote image fails', () => {
+  it('falls back to the default profile image when the remote image fails', () => {
     render(<SidebarUserProfile />)
     const image = screen.getByRole('img', { name: '바다 프로필' })
 
     fireEvent.error(image)
 
-    expect(screen.getByRole('img', { name: '바다 프로필' })).toHaveTextContent('바')
+    expect(screen.getByRole('img', { name: '바다 프로필' })).toHaveClass('bg-fill-normal')
+    expect(screen.getByRole('img', { name: '바다 프로필' }).querySelector('img')).toHaveAttribute(
+      'src',
+      defaultProfileSummary,
+    )
     expect(screen.queryByRole('img', { name: '바다 프로필' })).not.toHaveAttribute(
       'src',
       'https://example.com/profile.png',
@@ -82,7 +87,7 @@ describe('SidebarUserProfile', () => {
     )
   })
 
-  it('shows the user initial without requesting a profile image when s3Key is absent', () => {
+  it('shows the default profile image without requesting a profile image when s3Key is absent', () => {
     mockedUseCurrentUser.mockReturnValue({
       data: {
         username: 'bada-user',
@@ -97,7 +102,11 @@ describe('SidebarUserProfile', () => {
 
     render(<SidebarUserProfile />)
 
-    expect(screen.getByRole('img', { name: '바다 프로필' })).toHaveTextContent('바')
+    expect(screen.getByRole('img', { name: '바다 프로필' })).toHaveClass('bg-fill-normal')
+    expect(screen.getByRole('img', { name: '바다 프로필' }).querySelector('img')).toHaveAttribute(
+      'src',
+      defaultProfileSummary,
+    )
     expect(mockedUseCurrentUserProfileImage).toHaveBeenCalledWith(undefined)
   })
 })
