@@ -700,8 +700,8 @@ const SelectionModal = ({
 
   return (
     <div className="inset-0 bg-black/30 fixed z-30 flex items-center justify-center">
-      <div className="p-5 flex h-[514px] w-[544px] flex-col rounded-component bg-background-normal shadow-elevated-card">
-        <div className="flex justify-between">
+      <div className="p-5 flex h-[80vh] max-h-[640px] w-[544px] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+        <div className="flex shrink-0 justify-between">
           <div>
             <h3 className="text-headline1 font-bold">
               첨부 {type === 'record' ? '훈련기록' : '시나리오'} 선택
@@ -717,12 +717,12 @@ const SelectionModal = ({
         {type === 'scenario' && (
           <button
             type="button"
-            className="gap-2 mt-3 px-3 py-2 ml-auto flex items-center rounded-control bg-fill-normal text-label"
+            className="gap-2 mt-3 px-3 py-2 ml-auto flex shrink-0 items-center rounded-control bg-fill-normal text-label"
           >
             전체 <FiChevronDown />
           </button>
         )}
-        <div className="mt-3 gap-2 flex flex-col">
+        <div className="mt-3 gap-2 min-h-0 pr-1 flex flex-1 flex-col overflow-y-auto">
           {isLoading && (
             <p className="py-6 text-center text-label-alternative">목록을 불러오는 중이에요.</p>
           )}
@@ -737,7 +737,7 @@ const SelectionModal = ({
               key={item.id}
               type="button"
               onClick={() => setSelected(item.id)}
-              className={`p-3 flex items-center justify-between rounded-component border ${selected === item.id ? 'border-primary-normal' : 'border-line-alternative'} ${type === 'scenario' ? 'text-white bg-secondary-normal' : ''}`}
+              className={`p-3 flex shrink-0 items-center justify-between rounded-component border ${selected === item.id ? 'border-primary-normal' : 'border-line-alternative'} ${type === 'scenario' ? 'text-white bg-secondary-normal' : ''}`}
             >
               <div className="text-left">
                 <strong className="block text-body">
@@ -754,7 +754,7 @@ const SelectionModal = ({
             </button>
           ))}
         </div>
-        <div className="gap-2 mt-auto flex justify-end">
+        <div className="gap-2 pt-4 flex shrink-0 justify-end">
           <button
             type="button"
             onClick={onClose}
@@ -771,7 +771,7 @@ const SelectionModal = ({
             }}
             className="px-6 py-3 text-white rounded-control bg-primary-normal disabled:opacity-40"
           >
-            선택 {type === 'record' ? '훈련기록' : '시나리오'} 첨부
+            {type === 'record' ? '훈련기록' : '시나리오'} 첨부하기
           </button>
         </div>
       </div>
