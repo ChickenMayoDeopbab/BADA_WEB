@@ -685,7 +685,9 @@ const SelectionModal = ({
   onClose: () => void
   onSelect: (attachment: Attachment) => void
 }) => {
-  const [records, setRecords] = useState<Array<{ id: number; title: string; detail: string }>>([])
+  const [records, setRecords] = useState<
+    Array<{ id: number; title: string; detail: string; imageUrl?: string | null }>
+  >([])
   const [selected, setSelected] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
@@ -737,9 +739,20 @@ const SelectionModal = ({
               key={item.id}
               type="button"
               onClick={() => setSelected(item.id)}
-              className={`p-3 flex shrink-0 items-center justify-between rounded-component border ${selected === item.id ? 'border-primary-normal' : 'border-line-alternative'} ${type === 'scenario' ? 'text-white bg-secondary-normal' : ''}`}
+              className={`p-3 flex shrink-0 items-center justify-between overflow-hidden rounded-component border ${selected === item.id ? 'border-primary-normal' : 'border-line-alternative'} ${type === 'scenario' ? 'text-white relative bg-secondary-normal' : ''}`}
             >
-              <div className="text-left">
+              {type === 'scenario' && (
+                <img
+                  src={item.imageUrl || scenarioImage}
+                  alt=""
+                  className="inset-0 absolute size-full object-cover opacity-35"
+                  onError={(event) => {
+                    event.currentTarget.onerror = null
+                    event.currentTarget.src = scenarioImage
+                  }}
+                />
+              )}
+              <div className="relative text-left">
                 <strong className="block text-body">
                   {type === 'record' ? '🍕 ' : ''}
                   {item.title}
@@ -747,7 +760,7 @@ const SelectionModal = ({
                 <span className="text-caption opacity-70">{item.detail}</span>
               </div>
               <span
-                className={`size-6 flex shrink-0 items-center justify-center rounded-pill border-2 ${selected === item.id ? 'text-white border-primary-normal bg-primary-normal' : 'border-line-normal text-label-alternative'}`}
+                className={`size-6 relative flex shrink-0 items-center justify-center rounded-pill border-2 ${selected === item.id ? 'text-white border-primary-normal bg-primary-normal' : 'border-line-normal text-label-alternative'}`}
               >
                 <FiCheck className="size-4" />
               </span>
