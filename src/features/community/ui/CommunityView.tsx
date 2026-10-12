@@ -260,9 +260,21 @@ const AttachmentCard = ({ attachment }: { attachment: CommunityAttachment }) => 
 
 const ActionMenu = ({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setIsOpen(false)
+    }
+
+    document.addEventListener('mousedown', closeOnOutsideClick)
+    return () => document.removeEventListener('mousedown', closeOnOutsideClick)
+  }, [isOpen])
 
   return (
-    <div className="relative">
+    <div ref={menuRef} className="relative">
       <button
         type="button"
         aria-label="더보기"
@@ -735,6 +747,7 @@ const SelectionModal = ({
 const PostComposer = ({ post }: { post?: CommunityPost }) => {
   const navigate = useNavigate()
   const fileRef = useRef<HTMLInputElement>(null)
+  const attachmentMenuRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [modal, setModal] = useState<'record' | 'scenario' | null>(null)
   const [attachments, setAttachments] = useState<Attachment[]>(() =>
@@ -751,6 +764,17 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
   const isEditing = Boolean(post)
   const isPending = createPost.isPending || updatePost.isPending
   const returnPath = post ? `/community/${post.id}` : routePaths.community
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!attachmentMenuRef.current?.contains(event.target as Node)) setMenuOpen(false)
+    }
+
+    document.addEventListener('mousedown', closeOnOutsideClick)
+    return () => document.removeEventListener('mousedown', closeOnOutsideClick)
+  }, [menuOpen])
 
   const handleFile = async (file?: File) => {
     if (!file) return
@@ -832,7 +856,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
           </div>
         </section>
         <aside className="p-4 h-fit rounded-component bg-background-normal shadow-surface-card">
-          <div className="relative flex items-center justify-between">
+          <div ref={attachmentMenuRef} className="relative flex items-center justify-between">
             <h3 className="text-label font-bold">첨부요소</h3>
             <button
               type="button"
