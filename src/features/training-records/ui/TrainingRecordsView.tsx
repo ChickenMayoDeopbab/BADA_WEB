@@ -380,6 +380,7 @@ export const TrainingRecordsView = () => {
     handleNextMonth,
   } = useTrainingRecordCalendar()
   const {
+    records,
     filteredRecords,
     paginatedRecords,
     period,
@@ -566,6 +567,7 @@ export const TrainingRecordsView = () => {
         isOpen={isCalendarOpen}
         visibleMonth={visibleMonth}
         range={draftRange}
+        recordDates={records.map((record) => new Date(record.trainedAt))}
         onCancel={handleCancelCalendar}
         onApply={handleApplyCalendar}
         onPreviousMonth={handlePreviousMonth}
