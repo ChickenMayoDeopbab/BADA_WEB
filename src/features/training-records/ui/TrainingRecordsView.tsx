@@ -4,8 +4,6 @@ import {
   type TrainingPeriod,
   type TrainingRecord,
 } from '@entities/training-record'
-import audioMarker from '@shared/assets/training-records/audio-marker.svg'
-import audioProgressLine from '@shared/assets/training-records/audio-progress-line.svg'
 import backArrow from '@shared/assets/training-records/back-arrow.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
 import feedbackArrow from '@shared/assets/training-records/feedback-arrow.svg'
@@ -16,12 +14,11 @@ import searchIcon from '@shared/assets/training-records/search.svg'
 import summaryArrow from '@shared/assets/training-records/summary-arrow.svg'
 import timelineLine from '@shared/assets/training-records/timeline-line.svg'
 import timelinePoint from '@shared/assets/training-records/timeline-point.svg'
-import waveform from '@shared/assets/training-records/waveform.svg'
-import { useEffect, useRef } from 'react'
 import { formatTrainingRecordDateRange } from '../model/formatTrainingRecordDateRange'
 import { useDragScroll } from '../model/useDragScroll'
 import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
+import { AudioPreview } from './AudioPreview'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
 
 const formatSummaryDuration = (durationSeconds: number) => {
@@ -129,69 +126,9 @@ const RecordPagination = ({ currentPage, totalPages, onChange }: RecordPaginatio
   </nav>
 )
 
-interface AudioPreviewProps {
-  isPlaying: boolean
-  audioUrl?: string
-  onToggle: () => void
-}
-
-// 선택한 피드백의 음성 미리보기 컨트롤을 표시합니다.
-const AudioPreview = ({ isPlaying, audioUrl, onToggle }: AudioPreviewProps) => {
-  const audioRef = useRef<HTMLAudioElement>(null)
-
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-
-    if (isPlaying) {
-      void audio.play().catch(onToggle)
-    } else {
-      audio.pause()
-    }
-  }, [isPlaying, onToggle])
-
-  return (
-    <div className="py-3 relative flex w-full items-center justify-between overflow-hidden rounded-control bg-primary-alternative px-[13px]">
-      <audio ref={audioRef} src={audioUrl} onEnded={onToggle} />
-      <button
-        type="button"
-        onClick={onToggle}
-        disabled={!audioUrl}
-        className="size-9 relative z-10 flex shrink-0 items-center justify-center rounded-pill bg-primary-normal disabled:cursor-not-allowed disabled:opacity-40"
-        aria-label={isPlaying ? '음성 미리보기 일시정지' : '음성 미리보기 재생'}
-      >
-        <span
-          className={`size-3.5 bg-common-0 ${isPlaying ? 'animate-pulse' : ''}`}
-          aria-hidden="true"
-        />
-      </button>
-      <div className="h-8 w-40 relative shrink-0">
-        <img src={waveform} alt="음성 파형" />
-      </div>
-      <span className="text-label font-medium text-primary-normal">
-        {audioUrl ? '재생' : '음성 없음'}
-      </span>
-      <div
-        className={`top-0 absolute left-[162px] h-full w-px ${isPlaying ? 'animate-pulse' : ''}`}
-      >
-        <img className="top-0 absolute -left-[3px] max-w-none" src={audioMarker} alt="" />
-        <img
-          className="absolute -bottom-px -left-[3px] max-w-none rotate-180"
-          src={audioMarker}
-          alt=""
-        />
-        <img
-          className="left-0 top-0 absolute max-w-none origin-top-left rotate-90"
-          src={audioProgressLine}
-          alt=""
-        />
-      </div>
-    </div>
-  )
-}
-
 interface TimelineItemProps {
   feedback: TrainingFeedback
+  recordingUrl?: string
   isExpanded: boolean
   isAudioPlaying: boolean
   onToggle: (feedbackId: string) => void
@@ -201,6 +138,7 @@ interface TimelineItemProps {
 // 통화 타임라인의 피드백 항목을 표시합니다.
 const TimelineItem = ({
   feedback,
+  recordingUrl,
   isExpanded,
   isAudioPlaying,
   onToggle,
@@ -232,7 +170,7 @@ const TimelineItem = ({
             />
           </span>
         </button>
-        {(feedback.description || feedback.audioUrl) && (
+        {(feedback.description || feedback.audioUrl || recordingUrl) && (
           <div
             className={`ease-out grid transition-[grid-template-rows,opacity,margin] duration-300 motion-reduce:transition-none ${
               isExpanded ? 'mt-2 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0'
@@ -242,8 +180,15 @@ const TimelineItem = ({
             <div className="min-h-0 overflow-hidden">
               <div className="space-y-2">
                 <AudioPreview
+                  key={`${isExpanded ? 'expanded' : 'collapsed'}-${recordingUrl ?? feedback.audioUrl ?? 'empty'}`}
                   isPlaying={isAudioPlaying}
-                  audioUrl={isExpanded ? feedback.audioUrl : undefined}
+                  audioUrl={isExpanded ? (recordingUrl ?? feedback.audioUrl) : undefined}
+                  startSecond={recordingUrl ? feedback.startSecond : 0}
+                  endSecond={
+                    recordingUrl
+                      ? feedback.endSecond
+                      : Math.max(0, feedback.endSecond - feedback.startSecond)
+                  }
                   onToggle={onToggleAudio}
                 />
                 {feedback.description && (
@@ -405,6 +350,7 @@ const RecordDetailPanel = ({
                   <TimelineItem
                     key={feedback.id}
                     feedback={feedback}
+                    recordingUrl={record.recordingUrl}
                     isExpanded={expandedFeedbackId === feedback.id}
                     isAudioPlaying={isAudioPlaying && expandedFeedbackId === feedback.id}
                     onToggle={onToggleFeedback}

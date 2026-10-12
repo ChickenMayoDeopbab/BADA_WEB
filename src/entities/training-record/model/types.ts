@@ -2,6 +2,8 @@ export type TrainingPeriod = 'daily' | 'weekly' | 'monthly'
 
 export interface TrainingFeedback {
   id: string
+  startSecond: number
+  endSecond: number
   time: string
   title: string
   description?: string

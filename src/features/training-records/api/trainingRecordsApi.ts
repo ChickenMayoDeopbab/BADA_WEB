@@ -1,5 +1,6 @@
 import type { TrainingFeedback, TrainingRecord } from '@entities/training-record'
 import { httpClient } from '@shared/api'
+import { env } from '@shared/config'
 import type { ApiResponse } from '@shared/types'
 
 const TRAINING_RECORDS_PATH = '/api/v1/training-records'
@@ -75,17 +76,31 @@ const getSessionEmoji = (sessionType: SessionType) => {
   return '📞'
 }
 
+// 상대 경로와 절대 경로로 전달되는 음성 주소를 재생 가능한 주소로 통일합니다.
+const resolveAudioUrl = (audioUrl?: string) => {
+  const normalizedAudioUrl = audioUrl?.trim()
+  if (!normalizedAudioUrl) return undefined
+
+  try {
+    return new URL(normalizedAudioUrl, `${env.apiBaseUrl}/`).toString()
+  } catch {
+    return undefined
+  }
+}
+
 const mapPositiveFeedback = (
   feedback: PositiveFeedbackResponse,
   recordId: number,
   index: number,
 ): TrainingFeedback => ({
   id: `${recordId}-${index}`,
+  startSecond: feedback.startSecond,
+  endSecond: feedback.endSecond,
   time: formatFeedbackTime(feedback.startSecond),
   title: feedback.good_point || feedback.summary || '긍정 피드백',
   description:
     feedback.summary && feedback.summary !== feedback.good_point ? feedback.summary : undefined,
-  audioUrl: feedback.audioUrl,
+  audioUrl: resolveAudioUrl(feedback.audioUrl),
 })
 
 /** 서버 훈련 기록을 화면에서 사용하는 형식으로 변환합니다. */
@@ -112,7 +127,7 @@ export const mapTrainingRecordDetail = (record: TrainingRecordDetailResponse): T
   return {
     ...mapTrainingRecord(record),
     anxietyScore: record.anxietyScore,
-    recordingUrl: record.recordingUrl,
+    recordingUrl: resolveAudioUrl(record.recordingUrl),
     feedbackCount: feedbacks.length,
     feedbacks,
   }
