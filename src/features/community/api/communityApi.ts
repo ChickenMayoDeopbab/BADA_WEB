@@ -334,7 +334,11 @@ export const uploadCommunityImage = async (file: File) => {
   const response = await httpClient.post<SpringApiResponse<{ fileId: number }>>(
     '/api/v1/file/upload',
     formData,
-    { params: { fileType: 'COMMUNITY_IMAGE' }, headers: { 'Content-Type': 'multipart/form-data' } },
+    {
+      params: { fileType: 'COMMUNITY_IMAGE' },
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60_000,
+    },
   )
   const fileId = response.data.data?.fileId
   if (!fileId) throw new Error('파일 업로드 응답에 fileId가 없습니다.')

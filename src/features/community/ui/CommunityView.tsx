@@ -3,6 +3,7 @@ import scenarioImage from '@shared/assets/community/figma-1.png'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
 import { routePaths } from '@shared/config'
+import { getApiErrorMessage } from '@shared/api'
 import { useEffect, useRef, useState } from 'react'
 import {
   FiArrowLeft,
@@ -1141,8 +1142,10 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
     try {
       const fileId = await uploadCommunityImage(file)
       setAttachments((items) => [...items, { id: fileId, type: 'image', title: file.name }])
-    } catch {
-      setImageError('사진을 업로드하지 못했어요. 다시 시도해 주세요.')
+    } catch (error) {
+      setImageError(
+        getApiErrorMessage(error, '사진을 업로드하지 못했어요. 다시 시도해 주세요.'),
+      )
     } finally {
       setIsUploadingImage(false)
       if (imageInputRef.current) imageInputRef.current.value = ''
