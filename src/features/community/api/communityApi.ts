@@ -156,8 +156,8 @@ const mapAttachment = (item: PostAttachmentResponse): CommunityAttachment => {
   }
   return {
     id: item.ref_id,
-    type: 'file',
-    title: item.file?.title ?? '첨부 파일',
+    type: 'image',
+    title: item.file?.title ?? '첨부 사진',
     detail: '',
     url: item.file?.url,
   }
@@ -325,6 +325,10 @@ export const getAttachableScenarios = async (): Promise<SelectableAttachment[]> 
     }))
 }
 export const uploadCommunityImage = async (file: File) => {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('이미지 파일만 첨부할 수 있어요.')
+  }
+
   const formData = new FormData()
   formData.append('file', file)
   const response = await httpClient.post<SpringApiResponse<{ fileId: number }>>(

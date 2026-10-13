@@ -10,6 +10,7 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiEye,
+  FiImage,
   FiMessageCircle,
   FiMoreVertical,
   FiPaperclip,
@@ -253,6 +254,7 @@ const AttachmentCard = ({
 }) => {
   const isScenario = attachment.type === 'scenario'
   const isRecord = attachment.type === 'record'
+  const isImage = attachment.type === 'image'
   const audioRef = useRef<HTMLAudioElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -275,6 +277,23 @@ const AttachmentCard = ({
     if (audio.ended || audio.currentTime >= audio.duration) audio.currentTime = 0
     if (audio.paused) await audio.play()
     else audio.pause()
+  }
+
+  if (isImage) {
+    return attachment.url ? (
+      <figure className="mt-5 overflow-hidden rounded-component border border-line-alternative bg-fill-normal">
+        <img
+          src={attachment.url}
+          alt={attachment.title}
+          className="max-h-[640px] w-full object-contain"
+          loading="lazy"
+        />
+      </figure>
+    ) : (
+      <div className="mt-5 px-4 py-6 flex items-center justify-center rounded-component border border-line-alternative bg-fill-normal text-label text-label-alternative">
+        사진을 불러오지 못했어요.
+      </div>
+    )
   }
 
   return (
@@ -325,7 +344,6 @@ const AttachmentCard = ({
             event.stopPropagation()
             if (isScenario && !isScenarioSaved) copyScenario.mutate()
             if (isRecord) void toggleAudio()
-            if (attachment.type === 'file' && attachment.url) window.open(attachment.url, '_blank')
           }}
           disabled={
             (isScenario && (isScenarioSaved || copyScenario.isPending)) ||
@@ -341,8 +359,6 @@ const AttachmentCard = ({
             ) : (
               '저장하기 〉'
             )
-          ) : attachment.type === 'file' ? (
-            '열기 〉'
           ) : canPlayRecord ? (
             <>
               {isPlaying ? <FiPause /> : <FiPlay />}
@@ -792,7 +808,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   )
 }
 
-type Attachment = { id: number; type: 'file' | 'record' | 'scenario'; title: string }
+type Attachment = { id: number; type: 'image' | 'record' | 'scenario'; title: string }
 
 const SelectionModal = ({
   type,
@@ -1080,7 +1096,7 @@ const SelectionModal = ({
 
 const PostComposer = ({ post }: { post?: CommunityPost }) => {
   const navigate = useNavigate()
-  const fileRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
   const attachmentMenuRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [modal, setModal] = useState<'record' | 'scenario' | null>(null)
@@ -1093,10 +1109,12 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
   )
   const [title, setTitle] = useState(post?.title ?? '')
   const [content, setContent] = useState(post?.content ?? '')
+  const [imageError, setImageError] = useState<string | null>(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const createPost = useCreateCommunityPost()
   const updatePost = useUpdateCommunityPost(post?.id ?? 0)
   const isEditing = Boolean(post)
-  const isPending = createPost.isPending || updatePost.isPending
+  const isPending = createPost.isPending || updatePost.isPending || isUploadingImage
   const returnPath = post ? `/community/${post.id}` : routePaths.community
 
   useEffect(() => {
@@ -1110,10 +1128,25 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
     return () => document.removeEventListener('mousedown', closeOnOutsideClick)
   }, [menuOpen])
 
-  const handleFile = async (file?: File) => {
+  const handleImage = async (file?: File) => {
     if (!file) return
-    const fileId = await uploadCommunityImage(file)
-    setAttachments((items) => [...items, { id: fileId, type: 'file', title: file.name }])
+    setImageError(null)
+
+    if (!file.type.startsWith('image/')) {
+      setImageError('이미지 파일만 첨부할 수 있어요.')
+      return
+    }
+
+    setIsUploadingImage(true)
+    try {
+      const fileId = await uploadCommunityImage(file)
+      setAttachments((items) => [...items, { id: fileId, type: 'image', title: file.name }])
+    } catch {
+      setImageError('사진을 업로드하지 못했어요. 다시 시도해 주세요.')
+    } finally {
+      setIsUploadingImage(false)
+      if (imageInputRef.current) imageInputRef.current.value = ''
+    }
   }
 
   const submitPost = () => {
@@ -1202,7 +1235,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
             {menuOpen && (
               <div className="right-0 top-11 w-44 absolute z-10 overflow-hidden rounded-control bg-background-normal shadow-elevated-card">
                 {[
-                  { label: '파일', type: 'file' },
+                  { label: '사진', type: 'image' },
                   { label: '내 커스텀 시나리오', type: 'scenario' },
                   { label: '내 훈련기록', type: 'record' },
                 ].map((item) => (
@@ -1211,7 +1244,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
                     type="button"
                     onClick={() => {
                       setMenuOpen(false)
-                      if (item.type === 'file') fileRef.current?.click()
+                      if (item.type === 'image') imageInputRef.current?.click()
                       else setModal(item.type as 'record' | 'scenario')
                     }}
                     className="px-3 py-3 block w-full text-left text-caption whitespace-nowrap hover:bg-fill-normal"
@@ -1223,11 +1256,22 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
             )}
           </div>
           <input
-            ref={fileRef}
+            ref={imageInputRef}
             type="file"
+            accept="image/*"
             className="hidden"
-            onChange={(event) => void handleFile(event.target.files?.[0])}
+            onChange={(event) => void handleImage(event.target.files?.[0])}
           />
+          {isUploadingImage && (
+            <p className="mt-3 text-caption text-label-alternative" role="status">
+              사진을 업로드하는 중이에요.
+            </p>
+          )}
+          {imageError && (
+            <p className="mt-3 text-caption text-status-error" role="alert">
+              {imageError}
+            </p>
+          )}
           <div className="mt-3 gap-2 p-2 flex min-h-[52px] flex-col rounded-control bg-fill-normal">
             {attachments.length === 0 ? (
               <p className="py-3 text-center text-caption text-label-alternative">
@@ -1240,7 +1284,8 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
                   className="flex items-center justify-between text-caption"
                 >
                   <span className="gap-1 min-w-0 flex items-center">
-                    <FiPaperclip /> <span className="truncate">{item.title}</span>
+                    {item.type === 'image' ? <FiImage /> : <FiPaperclip />}{' '}
+                    <span className="truncate">{item.title}</span>
                   </span>
                   <button
                     type="button"

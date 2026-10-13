@@ -35,7 +35,7 @@ export interface CommunityPost {
 
 export interface CommunityAttachment {
   id: number
-  type: 'scenario' | 'record' | 'file'
+  type: 'scenario' | 'record' | 'image'
   title: string
   detail: string
   description?: string
