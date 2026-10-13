@@ -2,6 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { exchangeOAuthCode } from '../api/authApi'
 import { getAccessToken } from './authSession'
+import { getPostLoginPath } from './getPostLoginPath'
 import { useOAuthCallback } from './useOAuthLogin'
 
 const navigate = vi.fn()
@@ -20,6 +21,9 @@ vi.mock('@shared/config', () => ({
 vi.mock('../api/authApi', () => ({
   exchangeOAuthCode: vi.fn(),
   getOAuthLoginUrl: vi.fn(),
+}))
+vi.mock('./getPostLoginPath', () => ({
+  getPostLoginPath: vi.fn((fallbackPath: string) => Promise.resolve(fallbackPath)),
 }))
 
 describe('useOAuthCallback', () => {
@@ -54,6 +58,22 @@ describe('useOAuthCallback', () => {
     renderHook(() => useOAuthCallback())
 
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/welcome', { replace: true }))
+    expect(getPostLoginPath).not.toHaveBeenCalled()
+  })
+
+  it('진단 기록이 없는 기존 사용자는 자가진단으로 이동한다', async () => {
+    searchParams = new URLSearchParams('code=oauth-code')
+    vi.mocked(exchangeOAuthCode).mockResolvedValue({
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      isNewUser: false,
+    })
+    vi.mocked(getPostLoginPath).mockResolvedValueOnce('/welcome')
+
+    renderHook(() => useOAuthCallback())
+
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/welcome', { replace: true }))
+    expect(getPostLoginPath).toHaveBeenCalledWith('/dashboard')
   })
 
   it('제공자가 오류를 돌려주면 교환하지 않고 오류를 보여준다', () => {

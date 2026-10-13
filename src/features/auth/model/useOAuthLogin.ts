@@ -1,5 +1,6 @@
 import { exchangeOAuthCode, getOAuthLoginUrl } from '../api/authApi'
 import { setAuthTokens } from './authSession'
+import { getPostLoginPath } from './getPostLoginPath'
 import type { OAuthProvider } from './types'
 import { getApiErrorMessage } from '@shared/api'
 import { routePaths } from '@shared/config'
@@ -50,7 +51,10 @@ export const useOAuthCallback = () => {
         }
 
         setAuthTokens({ accessToken, refreshToken }, true)
-        navigate(isNewUser ? routePaths.welcome : routePaths.dashboard, { replace: true })
+        const nextPath = isNewUser
+          ? routePaths.welcome
+          : await getPostLoginPath(routePaths.dashboard)
+        navigate(nextPath, { replace: true })
       } catch (error) {
         setErrorMessage(getApiErrorMessage(error, DEFAULT_OAUTH_ERROR_MESSAGE))
         setStatus('error')
