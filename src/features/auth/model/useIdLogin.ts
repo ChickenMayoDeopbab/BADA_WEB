@@ -1,5 +1,6 @@
 import { login } from '../api/authApi'
 import { setAuthTokens } from './authSession'
+import { getPostLoginPath } from './getPostLoginPath'
 import { validateLoginPassword, validateLoginUsername } from './validation'
 import { getApiErrorMessage } from '@shared/api'
 import { routePaths } from '@shared/config'
@@ -32,7 +33,7 @@ export const useIdLogin = () => {
     setPasswordError('')
   }
 
-  // 로그인에 성공하면 토큰을 저장하고 원래 가려던 화면으로 이동합니다.
+  // 로그인에 성공하면 토큰을 저장하고, 진단 기록이 없으면 자가진단으로, 아니면 원래 가려던 화면으로 이동합니다.
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (isSubmitting) return
@@ -49,7 +50,7 @@ export const useIdLogin = () => {
       setAuthTokens(tokens, keepSignedIn)
 
       const from = (location.state as LoginLocationState | null)?.from
-      navigate(from ?? routePaths.dashboard, { replace: true })
+      navigate(await getPostLoginPath(from ?? routePaths.dashboard), { replace: true })
     } catch (error) {
       setPasswordError(
         getApiErrorMessage(error, '아이디 또는 비밀번호를 확인한 뒤 다시 시도해주세요.'),
