@@ -424,16 +424,16 @@ export const TrainingRecordsView = () => {
   const groupedRecords = groupRecordsByDate(paginatedRecords)
 
   return (
-    <main className="min-w-0 flex-1 overflow-hidden">
-      <div className="ml-16 mt-9 flex w-[1024px] max-w-[calc(100%-96px)] flex-col gap-[18px]">
-        <header className="gap-3 flex items-center">
+    <main className="min-w-0 px-10 pt-6 flex-1 overflow-hidden">
+      <div className="flex w-full flex-col">
+        <header className="gap-3 flex items-baseline">
           <h1 className="text-title1 font-bold text-label-normal">훈련 기록</h1>
           <p className="text-body font-medium text-neutral-60">
             훈련 정보와 피드백을 다시 확인해 보세요.
           </p>
         </header>
 
-        <div className="flex items-end justify-between">
+        <div className="mt-4 h-12 gap-6 flex items-center justify-between">
           <div
             className="pb-2 relative flex items-center gap-[15px]"
             role="tablist"
@@ -449,8 +449,8 @@ export const TrainingRecordsView = () => {
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => handleSelectPeriod(periodOption.id)}
-                  className={`ease-out w-[42px] text-center text-title2 font-medium transition-colors duration-[420ms] motion-reduce:transition-none ${
-                    isActive ? 'text-primary-normal' : 'text-neutral-70'
+                  className={`ease-out w-[42px] text-center text-title2 font-bold transition-colors duration-[420ms] motion-reduce:transition-none ${
+                    isActive ? 'text-primary-normal' : 'text-neutral-70 hover:text-label-neutral'
                   }`}
                 >
                   {periodOption.label}
@@ -464,22 +464,20 @@ export const TrainingRecordsView = () => {
             />
           </div>
 
-          <label className="h-12 px-2.5 flex w-[300px] items-center justify-between overflow-hidden rounded-component bg-fill-alternative">
+          <label className="h-12 gap-2 px-4 flex w-[300px] items-center rounded-component bg-fill-alternative text-label-alternative focus-within:outline-2 focus-within:outline-primary-normal">
             <span className="sr-only">훈련 기록 검색</span>
             <input
               type="search"
               value={searchQuery}
               onChange={(event) => handleSearchQueryChange(event.target.value)}
               placeholder="제목 또는 설명으로 검색"
-              className="min-w-0 flex-1 bg-transparent text-headline2 font-medium text-label-neutral outline-none placeholder:text-neutral-70"
+              className="min-w-0 flex-1 bg-transparent text-body text-label-normal outline-none placeholder:text-neutral-70"
             />
-            <span className="size-10 flex shrink-0 items-center justify-center">
-              <img src={searchIcon} alt="" />
-            </span>
+            <img className="size-6 shrink-0" src={searchIcon} alt="" />
           </label>
         </div>
 
-        <section className="px-7 flex h-[136px] items-center justify-between rounded-card border border-line-alternative bg-background-normal">
+        <section className="mt-4 px-7 flex h-[136px] items-center justify-between rounded-card border border-line-alternative bg-background-normal">
           <div className="gap-2 flex flex-col">
             <button
               type="button"
@@ -526,7 +524,7 @@ export const TrainingRecordsView = () => {
           </dl>
         </section>
 
-        <section className="gap-3 flex flex-col">
+        <section className="mt-[18px] gap-3 flex flex-col">
           <h2 className="text-title2 font-bold text-label-normal">최근 기록</h2>
           <div className="gap-2.5 flex flex-col">
             {isLoading && (
