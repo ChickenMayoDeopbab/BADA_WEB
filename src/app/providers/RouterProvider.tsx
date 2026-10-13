@@ -7,9 +7,11 @@ import {
   ResetPasswordPage,
   SignupPage,
 } from '@pages/auth'
+import { CommunityPage } from '@pages/community'
+import { DashboardPage } from '@pages/dashboard'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
 import { TrainingRecordsPage } from '@pages/records'
-import { CommunityPage } from '@pages/community'
+import { SelfDiagnosisPage } from '@pages/self-diagnosis'
 import { routePaths } from '@shared/config'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
@@ -25,10 +27,6 @@ const router = createBrowserRouter([
   {
     path: routePaths.signup,
     element: <SignupPage />,
-  },
-  {
-    path: routePaths.welcome,
-    element: <PlaceholderPage title="회원가입 완료 화면" />,
   },
   {
     path: routePaths.findId,
@@ -50,7 +48,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: routePaths.dashboard,
-            element: <ServicePlaceholderPage title="대시보드 화면" />,
+            element: <DashboardPage />,
           },
           {
             path: routePaths.training,
@@ -117,6 +115,10 @@ const router = createBrowserRouter([
             element: <ServicePlaceholderPage title="회원 탈퇴 화면" />,
           },
         ],
+      },
+      {
+        path: routePaths.welcome,
+        element: <SelfDiagnosisPage />,
       },
       {
         path: routePaths.trainingCall,

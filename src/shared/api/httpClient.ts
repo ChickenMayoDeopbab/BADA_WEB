@@ -19,7 +19,6 @@ export const plainHttpClient = axios.create({
   ...defaultHttpConfig,
   baseURL: env.apiBaseUrl,
 })
-
 /** AI API 요청에 사용하는 공통 HTTP 클라이언트입니다. */
 export const aiHttpClient = axios.create({
   ...defaultHttpConfig,

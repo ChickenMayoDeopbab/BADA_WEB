@@ -33,5 +33,5 @@ const readBooleanEnvironment = (value: string | undefined, defaultValue: boolean
 export const env = {
   apiBaseUrl: readUrlEnvironment('VITE_API_BASE_URL', import.meta.env.VITE_API_BASE_URL),
   aiApiBaseUrl: readUrlEnvironment('VITE_AI_API_BASE_URL', import.meta.env.VITE_AI_API_BASE_URL),
-  isAuthGuardEnabled: readBooleanEnvironment(import.meta.env.VITE_AUTH_GUARD_ENABLED, false),
+  isAuthGuardEnabled: readBooleanEnvironment(import.meta.env.VITE_AUTH_GUARD_ENABLED, true),
 } as const

@@ -26,6 +26,40 @@ test('uses the training records calendar and closes the detail panel from the ba
     selectedDate.getDate() - 6,
   )
   const formatDate = (date: Date) => `${date.getMonth() + 1}월 ${date.getDate()}일`
+  const record = {
+    recordId: 1,
+    sessionId: 'test-session',
+    trainedAt: selectedDate.toISOString(),
+    scenarioId: 1,
+    scenarioName: '상담 예약하기',
+    sessionType: 'SCENARIO',
+    aiPersonality: 'NORMAL',
+    durationSeconds: 132,
+    anxietyScore: 4,
+    positiveFeedbacks: [],
+  }
+
+  await page.route('**/api/v1/training-records?page=0&size=100', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 200,
+        message: 'OK',
+        data: {
+          totalElements: 1,
+          totalPages: 1,
+          number: 0,
+          content: [record],
+        },
+      }),
+    })
+  })
+  await page.route('**/api/v1/training-records/1', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 200, message: 'OK', data: record }),
+    })
+  })
 
   await page.goto('/records')
 
@@ -44,7 +78,7 @@ test('uses the training records calendar and closes the detail panel from the ba
     `${formatDate(weeklyStartDate)} ~ ${formatDate(selectedDate)}`,
   )
 
-  await page.getByRole('button', { name: '피자 주문하기 기록 상세 보기' }).first().click()
+  await page.getByRole('button', { name: '상담 예약하기 기록 상세 보기' }).click()
   await expect(page.locator('aside[aria-label="훈련 기록 상세"]')).toBeVisible()
   await page.locator('button[aria-label="훈련 기록 상세 닫기"]').first().click()
   await expect(page.locator('aside[aria-label="훈련 기록 상세"]')).toBeHidden()

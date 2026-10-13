@@ -6,14 +6,19 @@ import {
   getTokenUserId,
   replaceAuthTokens,
 } from '../model/authSession'
-import { httpClient } from '@shared/api'
+import { aiHttpClient, httpClient } from '@shared/api'
 import { routePaths } from '@shared/config'
-import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 
-let requestInterceptorId: number | null = null
-let responseInterceptorId: number | null = null
+interface InterceptorIds {
+  request: number
+  response: number
+}
+
+const AUTHENTICATED_CLIENTS = [httpClient, aiHttpClient]
+const interceptorIds = new Map<AxiosInstance, InterceptorIds>()
 let refreshPromise: Promise<string> | null = null
 
 const PUBLIC_AUTH_PATHS = [
@@ -34,16 +39,15 @@ const redirectToLogin = () => {
   window.location.assign(routePaths.login)
 }
 
-/** 공통 HTTP 클라이언트에 인증 헤더와 토큰 갱신 동작을 연결합니다. */
-export const configureAuthHttpClient = (onAuthenticationFailure = redirectToLogin) => {
-  if (requestInterceptorId !== null) {
-    httpClient.interceptors.request.eject(requestInterceptorId)
-  }
-  if (responseInterceptorId !== null) {
-    httpClient.interceptors.response.eject(responseInterceptorId)
+// 하나의 HTTP 클라이언트에 인증 헤더와 토큰 갱신 동작을 연결합니다.
+const attachAuthInterceptors = (client: AxiosInstance, onAuthenticationFailure: () => void) => {
+  const previousIds = interceptorIds.get(client)
+  if (previousIds) {
+    client.interceptors.request.eject(previousIds.request)
+    client.interceptors.response.eject(previousIds.response)
   }
 
-  requestInterceptorId = httpClient.interceptors.request.use((config) => {
+  const requestInterceptorId = client.interceptors.request.use((config) => {
     const accessToken = getAccessToken()
     if (accessToken && !isPublicAuthRequest(config.url)) {
       config.headers.set('Authorization', `Bearer ${accessToken}`)
@@ -52,7 +56,7 @@ export const configureAuthHttpClient = (onAuthenticationFailure = redirectToLogi
     return config
   })
 
-  responseInterceptorId = httpClient.interceptors.response.use(
+  const responseInterceptorId = client.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
       const request = error.config as RetryableRequestConfig | undefined
@@ -91,10 +95,17 @@ export const configureAuthHttpClient = (onAuthenticationFailure = redirectToLogi
 
         const accessToken = await refreshPromise
         request.headers.set('Authorization', `Bearer ${accessToken}`)
-        return httpClient(request)
+        return client(request)
       } catch (refreshError) {
         return Promise.reject(refreshError)
       }
     },
   )
+
+  interceptorIds.set(client, { request: requestInterceptorId, response: responseInterceptorId })
+}
+
+/** Spring과 AI 서버 HTTP 클라이언트에 인증 헤더와 토큰 갱신 동작을 연결합니다. */
+export const configureAuthHttpClient = (onAuthenticationFailure = redirectToLogin) => {
+  AUTHENTICATED_CLIENTS.forEach((client) => attachAuthInterceptors(client, onAuthenticationFailure))
 }

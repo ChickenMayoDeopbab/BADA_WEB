@@ -6,7 +6,7 @@ import {
   getRefreshToken,
   setAuthTokens,
 } from '../model/authSession'
-import { httpClient } from '@shared/api'
+import { aiHttpClient, httpClient } from '@shared/api'
 import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -16,6 +16,7 @@ vi.mock('./authApi', () => ({
 
 const mockedRefreshAuthTokens = vi.mocked(refreshAuthTokens)
 const originalAdapter = httpClient.defaults.adapter
+const originalAiAdapter = aiHttpClient.defaults.adapter
 
 const token = (payload: Record<string, unknown>) =>
   `header.${window.btoa(JSON.stringify(payload))}.signature`
@@ -36,6 +37,7 @@ describe('configureAuthHttpClient', () => {
 
   afterEach(() => {
     httpClient.defaults.adapter = originalAdapter
+    aiHttpClient.defaults.adapter = originalAiAdapter
     clearAuthSession()
   })
 
@@ -46,6 +48,17 @@ describe('configureAuthHttpClient', () => {
     configureAuthHttpClient(vi.fn())
 
     await httpClient.get('/api/v1/protected')
+
+    expect(adapter.mock.calls[0]?.[0].headers.get('Authorization')).toBe('Bearer access')
+  })
+
+  it('adds the current access token to AI server requests', async () => {
+    setAuthTokens({ accessToken: 'access', refreshToken: 'refresh' }, true)
+    const adapter = vi.fn<AxiosAdapter>(async (config) => response(config, { ok: true }))
+    aiHttpClient.defaults.adapter = adapter
+    configureAuthHttpClient(vi.fn())
+
+    await aiHttpClient.get('/api/v1/scenario/recommendation')
 
     expect(adapter.mock.calls[0]?.[0].headers.get('Authorization')).toBe('Bearer access')
   })

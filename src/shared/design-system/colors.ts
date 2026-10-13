@@ -116,6 +116,16 @@ export const SEMANTIC_COLORS = {
     callGradientStart: '#F5F5F5',
     callGradientEnd: '#ABEFA8',
   },
+  dashboard: {
+    recommendGradientStart: '#F5A266',
+    recommendGradientEnd: '#EC7C3D',
+    warmupBackground: '#2F6DC9',
+  },
+  metric: {
+    stability: '#62DC75',
+    conversation: '#4A86D8',
+    fluency: '#D9A94F',
+  },
 } as const
 
 /** 어두운 테마에서 역할별로 사용하는 의미 기반 색상입니다. */
@@ -156,4 +166,6 @@ export const DARK_SEMANTIC_COLORS = {
   status: SEMANTIC_COLORS.status,
   record: SEMANTIC_COLORS.record,
   train: SEMANTIC_COLORS.train,
+  dashboard: SEMANTIC_COLORS.dashboard,
+  metric: SEMANTIC_COLORS.metric,
 } as const
