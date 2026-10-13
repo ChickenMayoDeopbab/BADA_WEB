@@ -86,8 +86,8 @@ const Profile = ({
 }
 
 const CommunityHeader = () => (
-  <header className="gap-3 flex items-center">
-    <h1 className="text-title1 font-bold text-label-normal">커뮤니티</h1>
+  <header className="gap-x-3 gap-y-1 flex flex-wrap items-center">
+    <h1 className="shrink-0 text-title1 font-bold text-label-normal">커뮤니티</h1>
     <p className="text-body font-medium text-neutral-60">
       서로의 경험과 팁, 도움됐던 시나리오를 공유해요!
     </p>
@@ -151,10 +151,10 @@ const CommunityList = () => {
   const { data: posts = [], isLoading, isError } = useCommunityPosts(tab === 'mine', query.trim())
 
   return (
-    <div className="py-5 px-12 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
+    <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
       <CommunityHeader />
-      <div className="mt-5 flex items-end justify-between">
-        <div className="gap-4 flex">
+      <div className="mt-5 gap-3 flex items-end justify-between">
+        <div className="gap-4 flex shrink-0">
           {(['all', 'mine'] as const).map((value) => (
             <button
               key={value}
@@ -166,7 +166,7 @@ const CommunityList = () => {
             </button>
           ))}
         </div>
-        <div className="relative w-[300px]">
+        <div className="relative w-[300px] max-w-full">
           <label className="h-12 gap-2 px-3 flex items-center rounded-component bg-fill-alternative">
             <input
               value={query}
@@ -209,12 +209,12 @@ const CommunityList = () => {
             type="button"
             key={post.id}
             onClick={() => navigate(`/community/${post.id}`)}
-            className="py-3 hover:-translate-y-0.5 flex flex-col rounded-component bg-background-normal px-[22px] text-left shadow-surface-card transition-transform"
+            className="py-3 hover:-translate-y-0.5 max-sm:px-4 flex flex-col rounded-component bg-background-normal px-[22px] text-left shadow-surface-card transition-transform"
           >
             <Profile author={post.author} imageUrl={post.authorImage} />
             <strong className="mt-1 text-headline2 text-label-normal">{post.title}</strong>
-            <div className="mt-2 flex w-full items-center justify-between">
-              <div className="gap-3 flex items-center text-label text-label-alternative">
+            <div className="mt-2 gap-2 max-sm:flex-col max-sm:items-start flex w-full items-center justify-between">
+              <div className="gap-x-3 gap-y-1 flex flex-wrap items-center text-label text-label-alternative">
                 <span className="gap-1 flex items-center">
                   <FiEye /> {post.views}
                 </span>
@@ -231,7 +231,7 @@ const CommunityList = () => {
       <button
         type="button"
         onClick={() => navigate(routePaths.communityNew)}
-        className="right-12 bottom-7 px-7 py-3 text-white fixed rounded-control bg-green-40 text-body font-medium shadow-elevated-card"
+        className="right-12 bottom-7 px-7 py-3 max-lg:right-8 max-md:right-4 max-md:bottom-24 max-md:z-40 max-md:px-5 text-white fixed rounded-control bg-green-40 text-body font-medium shadow-elevated-card"
       >
         게시글 작성
       </button>
@@ -294,12 +294,12 @@ const AttachmentCard = ({
       {isRecord && isPlaying && (
         <span
           aria-hidden="true"
-          className="inset-y-0 left-0 absolute bg-common-0/20 transition-[width] duration-200 ease-linear animate-pulse"
+          className="inset-y-0 left-0 animate-pulse absolute bg-common-0/20 transition-[width] duration-200 ease-linear"
           style={{ width: `${playedPercent}%` }}
         />
       )}
-      <div className="px-3 py-2.5 relative flex items-center justify-between">
-        <div className="gap-3 flex min-w-0 items-center">
+      <div className="px-3 py-2.5 gap-3 max-sm:items-start relative flex items-center justify-between">
+        <div className="gap-3 min-w-0 flex items-center">
           {isRecord && (
             <span
               className={`size-12 flex shrink-0 items-center justify-center rounded-component ${isPlaying ? 'bg-common-0/90 text-status-info' : 'bg-record-icon-background text-status-info'}`}
@@ -331,7 +331,7 @@ const AttachmentCard = ({
             (isScenario && (isScenarioSaved || copyScenario.isPending)) ||
             (isRecord && !canPlayRecord)
           }
-          className={`w-28 px-3 py-1 gap-1 flex shrink-0 items-center justify-center rounded-control border text-label disabled:cursor-default ${isScenario || isPlaying ? 'border-white/40' : 'border-line-normal'}`}
+          className={`w-28 px-3 py-1 gap-1 max-sm:w-auto max-sm:px-2 flex shrink-0 items-center justify-center rounded-control border text-label disabled:cursor-default ${isScenario || isPlaying ? 'border-white/40' : 'border-line-normal'}`}
         >
           {isScenario ? (
             copyScenario.isPending ? (
@@ -439,11 +439,11 @@ const ConfirmDeleteModal = ({
   onConfirm: () => void
 }) => (
   <div
-    className="inset-0 bg-black/30 fixed z-40 flex items-center justify-center"
+    className="inset-0 p-4 bg-black/30 fixed z-40 flex items-center justify-center"
     role="presentation"
   >
     <div
-      className="p-6 w-[360px] rounded-dialog bg-background-normal shadow-elevated-card"
+      className="p-6 max-sm:p-5 w-full max-w-[360px] rounded-dialog bg-background-normal shadow-elevated-card"
       role="dialog"
       aria-modal="true"
       aria-labelledby="delete-modal-title"
@@ -498,11 +498,11 @@ const EditModal = ({
 
   return (
     <div
-      className="inset-0 bg-black/30 fixed z-40 flex items-center justify-center"
+      className="inset-0 p-4 bg-black/30 fixed z-40 flex items-center justify-center"
       role="presentation"
     >
       <div
-        className="p-6 w-[480px] rounded-dialog bg-background-normal shadow-elevated-card"
+        className="p-6 max-sm:p-5 w-full max-w-[480px] rounded-dialog bg-background-normal shadow-elevated-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-modal-title"
@@ -604,7 +604,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   }
 
   return (
-    <div className="py-5 px-12 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
+    <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
       <CommunityHeader />
       <button
         type="button"
@@ -616,8 +616,8 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
         </span>
         전체 글
       </button>
-      <div className="gap-4 mt-4 grid flex-1 grid-cols-[minmax(520px,1fr)_230px]">
-        <article className="p-5 flex min-h-[580px] flex-col rounded-component bg-background-normal shadow-surface-card">
+      <div className="gap-4 mt-4 max-lg:grid-cols-1 grid flex-1 grid-cols-[minmax(0,1fr)_230px]">
+        <article className="p-5 max-sm:p-4 max-lg:min-h-0 flex min-h-[580px] flex-col rounded-component bg-background-normal shadow-surface-card">
           <div className="flex items-start justify-between">
             <h2 className="text-title2 font-bold">{post.title}</h2>
             {post.authorId === currentUserId && (
@@ -627,9 +627,9 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
               />
             )}
           </div>
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-2 gap-2 max-sm:flex-col max-sm:items-start flex items-center justify-between">
             <Profile author={post.author} imageUrl={post.authorImage} large />
-            <div className="gap-2 flex text-label text-label-alternative">
+            <div className="gap-x-2 gap-y-1 flex flex-wrap text-label text-label-alternative">
               <FiEye /> {post.views}
               <FiMessageCircle /> {post.commentCount}
               <span>{post.createdAt}</span>
@@ -644,7 +644,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
               postId={post.id}
             />
           ))}
-          <div className="mt-8 flex justify-end">
+          <div className="mt-8 max-sm:justify-start flex justify-end overflow-x-auto">
             <Reactions post={post} interactive />
           </div>
         </article>
@@ -843,7 +843,11 @@ const SelectionModal = ({
   )
   const calendarYear = calendarMonth.getFullYear()
   const calendarMonthIndex = calendarMonth.getMonth()
-  const calendarStart = new Date(calendarYear, calendarMonthIndex, 1 - new Date(calendarYear, calendarMonthIndex, 1).getDay())
+  const calendarStart = new Date(
+    calendarYear,
+    calendarMonthIndex,
+    1 - new Date(calendarYear, calendarMonthIndex, 1).getDay(),
+  )
   const calendarDays = Array.from({ length: 42 }, (_, index) => {
     const date = new Date(calendarStart)
     date.setDate(calendarStart.getDate() + index)
@@ -870,8 +874,8 @@ const SelectionModal = ({
   }
 
   return (
-    <div className="inset-0 bg-black/30 fixed z-30 flex items-center justify-center">
-      <div className="p-5 flex h-[min(560px,calc(100vh-48px))] w-[min(680px,calc(100vw-48px))] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+    <div className="inset-0 p-4 bg-black/30 fixed z-30 flex items-center justify-center">
+      <div className="p-5 max-sm:p-4 flex h-[min(560px,calc(100vh-32px))] w-full max-w-[680px] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
         <div className="flex shrink-0 items-start justify-between">
           <div>
             <h3 className="text-headline1 font-bold">
@@ -910,7 +914,7 @@ const SelectionModal = ({
               <div
                 role="dialog"
                 aria-label="훈련기록 날짜 선택"
-                className="top-[calc(100%+8px)] right-0 p-4 absolute z-20 w-80 rounded-component border border-line-alternative bg-background-normal shadow-elevated-card"
+                className="right-0 p-4 w-80 max-sm:w-full absolute top-[calc(100%+8px)] z-20 rounded-component border border-line-alternative bg-background-normal shadow-elevated-card"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <button
@@ -944,7 +948,7 @@ const SelectionModal = ({
                     </span>
                   ))}
                 </div>
-                <div className="grid grid-cols-7 gap-y-1">
+                <div className="gap-y-1 grid grid-cols-7">
                   {calendarDays.map(({ date, dateKey }) => {
                     const isCurrentMonth = date.getMonth() === calendarMonthIndex
                     const hasRecords = availableDates.has(dateKey)
@@ -968,7 +972,7 @@ const SelectionModal = ({
                           setSelected(null)
                           setIsDatePickerOpen(false)
                         }}
-                        className={`mx-auto size-9 flex items-center justify-center rounded-pill text-label ${dateStateClass}`}
+                        className={`size-9 mx-auto flex items-center justify-center rounded-pill text-label ${dateStateClass}`}
                       >
                         {date.getDate()}
                       </button>
@@ -994,7 +998,7 @@ const SelectionModal = ({
               key={item.id}
               type="button"
               onClick={() => setSelected(item.id)}
-              className={`relative flex h-18 shrink-0 items-center overflow-hidden border px-4 text-left ${type === 'scenario' ? 'text-white rounded-component border-line-alternative bg-secondary-normal' : 'rounded-control border-line-alternative bg-background-normal shadow-subtle-card'} ${selected === item.id ? 'border-primary-normal' : ''}`}
+              className={`min-h-18 px-4 py-2 max-sm:px-3 relative flex shrink-0 items-center overflow-hidden border text-left ${type === 'scenario' ? 'text-white rounded-component border-line-alternative bg-secondary-normal' : 'rounded-control border-line-alternative bg-background-normal shadow-subtle-card'} ${selected === item.id ? 'border-primary-normal' : ''}`}
             >
               {type === 'scenario' && (
                 <img
@@ -1007,49 +1011,53 @@ const SelectionModal = ({
                   }}
                 />
               )}
-              {type === 'scenario' && <span className="inset-0 absolute bg-black/45" />}
+              {type === 'scenario' && <span className="inset-0 bg-black/45 absolute" />}
               {type === 'record' ? (
                 <>
-                  <span className="size-12 mr-3 flex shrink-0 items-center justify-center overflow-hidden rounded-control bg-primary-pale">
+                  <span className="size-12 mr-3 bg-primary-pale flex shrink-0 items-center justify-center overflow-hidden rounded-control">
                     {item.iconUrl ? (
                       <img src={item.iconUrl} alt="" className="size-8 object-contain" />
                     ) : (
                       <span className="text-title2">🍕</span>
                     )}
                   </span>
-                  <strong className="min-w-0 flex-1 truncate text-body font-bold">{item.title}</strong>
-                  <span className="w-40 shrink-0 text-label text-label-alternative">
+                  <strong className="min-w-0 flex-1 truncate text-body font-bold">
+                    {item.title}
+                  </strong>
+                  <span className="w-40 max-md:hidden shrink-0 text-label text-label-alternative">
                     {item.detail}
                     {item.feedbackCount !== undefined ? ` · 피드백 ${item.feedbackCount}개` : ''}
                   </span>
-                  <span className="w-24 shrink-0 text-label font-medium text-label-alternative">
+                  <span className="w-24 max-sm:hidden shrink-0 text-label font-medium text-label-alternative">
                     {formatTrainingTime(item.trainedAt)}
                   </span>
                 </>
               ) : (
                 <>
-                  <strong className="relative min-w-0 flex-1 truncate text-body font-medium">
+                  <strong className="min-w-0 relative flex-1 truncate text-body font-medium">
                     {item.title}
                   </strong>
-                  <span className="relative w-24 shrink-0 flex items-center gap-1 text-label">
+                  <span className="w-24 max-sm:w-auto gap-1 relative flex shrink-0 items-center text-label">
                     <FiRotateCw className="size-4" /> {item.practiceCount ?? 0}회
                   </span>
-                  <span className="relative w-36 shrink-0 text-label">커스텀 시나리오</span>
+                  <span className="w-36 max-md:hidden relative shrink-0 text-label">
+                    커스텀 시나리오
+                  </span>
                 </>
               )}
               <span
-                className={`size-8 relative ml-3 flex shrink-0 items-center justify-center rounded-pill border-2 ${selected === item.id ? 'text-white border-primary-normal bg-primary-normal' : type === 'scenario' ? 'border-white text-white bg-white/20' : 'border-line-normal text-label-alternative'}`}
+                className={`size-8 ml-3 relative flex shrink-0 items-center justify-center rounded-pill border-2 ${selected === item.id ? 'text-white border-primary-normal bg-primary-normal' : type === 'scenario' ? 'border-white text-white bg-white/20' : 'border-line-normal text-label-alternative'}`}
               >
                 <FiCheck className="size-5" />
               </span>
             </button>
           ))}
         </div>
-        <div className="gap-3 pt-4 flex shrink-0 justify-end">
+        <div className="gap-3 pt-4 max-sm:gap-2 flex shrink-0 justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="h-12 w-32 rounded-control bg-fill-normal text-label font-medium"
+            className="h-12 w-32 max-sm:flex-1 rounded-control bg-fill-normal text-label font-medium"
           >
             취소
           </button>
@@ -1060,7 +1068,7 @@ const SelectionModal = ({
               const item = records.find((record) => record.id === selected)
               if (item) onSelect({ id: item.id, type, title: item.title })
             }}
-            className="h-12 w-56 text-white rounded-control bg-primary-normal text-label font-bold disabled:opacity-30"
+            className="h-12 w-56 max-sm:flex-1 text-white rounded-control bg-primary-normal text-label font-bold disabled:opacity-30"
           >
             선택 {type === 'record' ? '훈련기록' : '시나리오'} 첨부
           </button>
@@ -1133,7 +1141,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
   }
 
   return (
-    <div className="py-5 px-12 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
+    <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
       <CommunityHeader />
       <button
         type="button"
@@ -1142,8 +1150,8 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
       >
         <FiArrowLeft /> {isEditing ? '게시글로 돌아가기' : '전체 글'}
       </button>
-      <div className="gap-4 mt-4 grid flex-1 grid-cols-[minmax(520px,1fr)_230px]">
-        <section className="p-5 flex flex-col rounded-component bg-background-normal shadow-surface-card">
+      <div className="gap-4 mt-4 max-lg:grid-cols-1 grid flex-1 grid-cols-[minmax(0,1fr)_230px]">
+        <section className="p-5 max-sm:p-4 flex flex-col rounded-component bg-background-normal shadow-surface-card">
           <h2 className="text-title2 font-bold">{isEditing ? '게시물 수정' : '새 게시물 작성'}</h2>
           <label className="mt-4 text-label font-medium">
             게시물 제목
@@ -1163,7 +1171,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
               className="mt-2 p-3 min-h-[300px] flex-1 resize-none rounded-control bg-fill-normal outline-primary-normal"
             />
           </label>
-          <div className="gap-2 mt-4 flex justify-end">
+          <div className="gap-2 mt-4 max-sm:[&>button]:flex-1 flex justify-end">
             <button
               type="button"
               onClick={() => navigate(returnPath)}
