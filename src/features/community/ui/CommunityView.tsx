@@ -244,6 +244,12 @@ const formatAudioTime = (seconds: number) => {
   return `${Math.floor(safeSeconds / 60)}:${String(safeSeconds % 60).padStart(2, '0')}`
 }
 
+const scenarioCategoryLabels: Record<string, string> = {
+  daily: '일상',
+  work: '업무',
+  other: '기타',
+}
+
 const AttachmentCard = ({
   attachment,
   postId,
@@ -311,7 +317,11 @@ const AttachmentCard = ({
           <span className="min-w-0">
             <strong className="block truncate text-body">{attachment.title}</strong>
             <span className="text-caption opacity-80">
-              {isRecord && isPlaying ? `${formatAudioTime(remaining)} 남음` : attachment.detail}
+              {isRecord && isPlaying
+                ? `${formatAudioTime(remaining)} 남음`
+                : isScenario
+                  ? (scenarioCategoryLabels[attachment.detail] ?? attachment.detail)
+                  : attachment.detail}
             </span>
           </span>
         </div>
@@ -327,7 +337,7 @@ const AttachmentCard = ({
             (isScenario && (isScenarioSaved || copyScenario.isPending)) ||
             (isRecord && !canPlayRecord)
           }
-          className={`px-3 py-1 gap-1 flex items-center rounded-control border text-label disabled:cursor-default ${isScenario || isPlaying ? 'border-white/40' : 'border-line-normal'}`}
+          className={`w-28 px-3 py-1 gap-1 flex shrink-0 items-center justify-center rounded-control border text-label disabled:cursor-default ${isScenario || isPlaying ? 'border-white/40' : 'border-line-normal'}`}
         >
           {isScenario ? (
             copyScenario.isPending ? (
