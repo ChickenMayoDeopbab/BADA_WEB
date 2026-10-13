@@ -68,9 +68,11 @@ const mapScenario = (scenario: ScenarioResponse): Scenario => ({
   practiceCount: scenario.practice_count ?? 0,
 })
 
-/** 로그인한 사용자가 이용할 수 있는 전체 시나리오를 조회합니다. */
-export const getScenarios = async () => {
-  const { data } = await aiHttpClient.get<ScenarioListResponse>('/api/v1/scenario/scenarios')
+/** 로그인한 사용자가 이용할 수 있는 시나리오를 카테고리별로 조회합니다. */
+export const getScenarios = async (category?: ScenarioCategory) => {
+  const { data } = await aiHttpClient.get<ScenarioListResponse>('/api/v1/scenario/scenarios', {
+    params: category ? { category } : undefined,
+  })
 
   return data.scenarios.map(mapScenario)
 }
@@ -130,6 +132,11 @@ export const createCustomScenario = async (request: CreateCustomScenarioRequest)
     category: data.scenario.category ?? request.category,
     is_custom: true,
   })
+}
+
+/** 로그인한 사용자가 만든 커스텀 시나리오를 삭제합니다. */
+export const deleteCustomScenario = async (scenarioId: number) => {
+  await aiHttpClient.delete(`/api/v1/scenario/custom/${scenarioId}`)
 }
 
 /** 선택한 조건으로 실제 훈련 세션을 생성합니다. */

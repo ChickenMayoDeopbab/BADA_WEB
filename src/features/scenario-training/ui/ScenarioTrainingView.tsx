@@ -9,6 +9,7 @@ import recommendationImage from '@shared/assets/scenario-training/recommendation
 import schoolImage from '@shared/assets/scenario-training/school.png'
 import workImage from '@shared/assets/scenario-training/work.png'
 import backArrow from '@shared/assets/training-records/back-arrow.svg'
+import menuDots from '@shared/assets/training-records/menu-dots.svg'
 import { routePaths } from '@shared/config'
 import {
   IoChevronForward,
@@ -75,20 +76,21 @@ const ScenarioCard = ({ scenario, onClick }: ScenarioCardProps) => (
   <button
     type="button"
     onClick={onClick}
-    className="group h-[220px] min-w-0 p-4 relative flex w-full items-end justify-between overflow-hidden rounded-control border border-line-alternative bg-fill-neutral text-left transition duration-200 hover:-translate-y-1 hover:shadow-elevated-card focus-visible:-translate-y-1 focus-visible:outline-2 focus-visible:outline-primary-normal"
+    className="group min-w-0 p-4 hover:-translate-y-1 focus-visible:-translate-y-1 relative flex h-[220px] w-full items-end justify-between overflow-hidden rounded-control border border-line-alternative bg-fill-neutral text-left transition duration-200 hover:shadow-elevated-card focus-visible:outline-2 focus-visible:outline-primary-normal"
+    aria-label={`${scenario.title} 상세 보기`}
   >
     <div className="inset-0 absolute">
       <ScenarioImage scenario={scenario} className="transition group-hover:scale-[1.02]" />
     </div>
-    <span className="inset-x-0 bottom-0 h-[106px] absolute bg-gradient-to-b from-transparent to-common-100" />
-    <div className="relative min-w-0 text-common-0">
+    <span className="inset-x-0 bottom-0 absolute h-[106px] bg-gradient-to-b from-transparent to-common-100" />
+    <div className="min-w-0 relative text-common-0">
       <h3 className="max-w-[145px] truncate text-headline1 font-bold">{scenario.title}</h3>
       <div className="mt-0.5 gap-1 flex items-center text-label font-medium">
         <IoTimeOutline size={17} aria-hidden="true" />
         <span>{scenario.practiceCount}회</span>
       </div>
     </div>
-    <span className="size-10 relative flex items-center justify-center rounded-pill border border-common-0/30 bg-common-0/10 text-common-0 backdrop-blur-sm">
+    <span className="size-10 backdrop-blur-sm relative flex items-center justify-center rounded-pill border border-common-0/30 bg-common-0/10 text-common-0">
       <IoChevronForward size={22} aria-hidden="true" />
     </span>
   </button>
@@ -174,27 +176,33 @@ const ScenarioExampleAudio = ({ audioUrl }: ScenarioExampleAudioProps) => {
 interface ScenarioDetailPanelProps {
   scenario: Scenario
   isOpen: boolean
+  isMenuOpen: boolean
   example: ReturnType<typeof useScenarioCatalog>['example']
   isExampleLoading: boolean
   exampleErrorMessage: string
   onClose: () => void
   onStart: () => void
+  onToggleMenu: () => void
+  onOpenDeleteDialog: () => void
 }
 
 /** 기록 상세 보기와 같은 우측 슬라이드 패널로 시나리오 상세를 표시합니다. */
 const ScenarioDetailPanel = ({
   scenario,
   isOpen,
+  isMenuOpen,
   example,
   isExampleLoading,
   exampleErrorMessage,
   onClose,
   onStart,
+  onToggleMenu,
+  onOpenDeleteDialog,
 }: ScenarioDetailPanelProps) => (
   <>
     <button
       type="button"
-      className={`inset-0 fixed z-40 cursor-default ${
+      className={`inset-0 fixed z-40 cursor-default bg-common-100/10 ${
         isOpen
           ? 'animate-[record-backdrop-enter_320ms_ease-out]'
           : 'animate-[record-backdrop-exit_260ms_ease-in] opacity-0'
@@ -215,7 +223,7 @@ const ScenarioDetailPanel = ({
       } motion-reduce:animate-none`}
     >
       <div className="gap-5 min-h-0 relative flex h-full flex-col">
-        <div className="h-10 flex shrink-0 items-center">
+        <div className="h-10 flex shrink-0 items-center justify-between">
           <button
             type="button"
             onClick={onClose}
@@ -224,11 +232,34 @@ const ScenarioDetailPanel = ({
           >
             <img src={backArrow} alt="" />
           </button>
+          {scenario.isCustom && !scenario.isCopied && (
+            <button
+              type="button"
+              onClick={onToggleMenu}
+              className="size-8 flex items-center justify-center rounded-control hover:bg-fill-normal"
+              aria-label="시나리오 메뉴 열기"
+              aria-expanded={isMenuOpen}
+            >
+              <img src={menuDots} alt="" />
+            </button>
+          )}
         </div>
 
-        <div className="h-[260px] relative w-full shrink-0 overflow-hidden rounded-component bg-fill-neutral shadow-subtle-card">
+        {isMenuOpen && (
+          <div className="top-7 w-44 absolute right-[14px] z-20 overflow-hidden rounded-component bg-background-normal shadow-elevated-card">
+            <button
+              type="button"
+              onClick={onOpenDeleteDialog}
+              className="p-3 flex h-[52px] w-full items-center text-left text-headline2 font-medium text-label-normal hover:bg-fill-normal"
+            >
+              시나리오 삭제하기
+            </button>
+          </div>
+        )}
+
+        <div className="relative h-[260px] w-full shrink-0 overflow-hidden rounded-component bg-fill-neutral shadow-subtle-card">
           <ScenarioImage scenario={scenario} />
-          <span className="inset-x-0 top-0 h-[104px] pointer-events-none absolute bg-gradient-to-b from-common-100/40 to-transparent" />
+          <span className="inset-x-0 top-0 pointer-events-none absolute h-[104px] bg-gradient-to-b from-common-100/40 to-transparent" />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -241,9 +272,7 @@ const ScenarioDetailPanel = ({
                     ? '커스텀 시나리오'
                     : '기본 제공 시나리오'}
               </p>
-              <h2 className="mt-0.5 text-title1 font-bold text-label-normal">
-                {scenario.title}
-              </h2>
+              <h2 className="mt-0.5 text-title1 font-bold text-label-normal">{scenario.title}</h2>
               <div className="mt-1 gap-0.5 flex items-center text-headline2 font-medium text-label-alternative">
                 <IoTimeOutline size={28} aria-hidden="true" />
                 <span>{scenario.practiceCount}회</span>
@@ -251,7 +280,7 @@ const ScenarioDetailPanel = ({
             </section>
 
             <section className="px-6">
-              <p className="leading-7 whitespace-pre-wrap text-body font-medium text-label-neutral">
+              <p className="leading-7 text-body font-medium whitespace-pre-wrap text-label-neutral">
                 {scenario.content}
               </p>
             </section>
@@ -278,7 +307,7 @@ const ScenarioDetailPanel = ({
           <button
             type="button"
             onClick={onStart}
-            className="h-[52px] flex w-full items-center justify-center rounded-component bg-primary-normal text-headline2 font-bold text-label-button-text transition hover:brightness-95"
+            className="flex h-[52px] w-full items-center justify-center rounded-component bg-primary-normal text-headline2 font-bold text-label-button-text transition hover:brightness-95"
           >
             훈련 시작하기
           </button>
@@ -286,6 +315,65 @@ const ScenarioDetailPanel = ({
       </div>
     </aside>
   </>
+)
+
+interface ScenarioDeleteDialogProps {
+  scenario: Scenario
+  isDeleting: boolean
+  errorMessage: string
+  onClose: () => void
+  onDelete: () => void
+}
+
+/** 커스텀 시나리오 삭제 전 복구 불가 안내와 확인 동작을 표시합니다. */
+const ScenarioDeleteDialog = ({
+  scenario,
+  isDeleting,
+  errorMessage,
+  onClose,
+  onDelete,
+}: ScenarioDeleteDialogProps) => (
+  <div
+    className="inset-0 px-6 fixed z-[60] flex items-center justify-center bg-common-100/30"
+    role="presentation"
+    onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose()
+    }}
+  >
+    <section
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="scenario-delete-title"
+      aria-describedby="scenario-delete-description"
+      className="p-7 w-full max-w-[420px] rounded-dialog bg-background-normal shadow-elevated-card"
+    >
+      <h2 id="scenario-delete-title" className="text-title2 font-bold text-label-normal">
+        {scenario.title} 시나리오를 삭제할까요?
+      </h2>
+      <p id="scenario-delete-description" className="mt-2 text-body text-label-alternative">
+        삭제한 커스텀 시나리오는 다시 복구할 수 없어요.
+      </p>
+      {errorMessage && <p className="mt-3 text-body text-status-error">{errorMessage}</p>}
+      <div className="mt-6 gap-3 flex">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isDeleting}
+          className="h-12 flex flex-1 items-center justify-center rounded-component bg-fill-normal text-headline2 font-bold text-label-normal disabled:cursor-not-allowed disabled:text-label-disabled"
+        >
+          취소
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={isDeleting}
+          className="h-12 flex flex-1 items-center justify-center rounded-component bg-status-error text-headline2 font-bold text-common-0 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isDeleting ? '삭제 중...' : '삭제하기'}
+        </button>
+      </div>
+    </section>
+  </div>
 )
 
 /** Figma 시나리오 훈련 목록과 상세 탐색 화면을 표시합니다. */
@@ -314,7 +402,7 @@ export const ScenarioTrainingView = () => {
 
       <div className="mt-4 h-12 gap-6 flex items-center justify-between">
         <nav
-          className="pb-2 gap-[15px] relative flex items-center"
+          className="pb-2 relative flex items-center gap-[15px]"
           aria-label="시나리오 분류"
           role="tablist"
         >
@@ -362,7 +450,7 @@ export const ScenarioTrainingView = () => {
           <button
             type="button"
             onClick={() => navigate(routePaths.trainingCustomNew)}
-            className="group mb-7 min-h-[100px] px-7 py-6 flex w-full items-center justify-between overflow-hidden rounded-component bg-gradient-to-r from-train-custom-banner-gradient-start to-train-custom-banner-gradient-end text-left transition duration-200 hover:-translate-y-1 hover:shadow-elevated-card focus-visible:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-normal"
+            className="group mb-7 px-7 py-6 hover:-translate-y-1 focus-visible:-translate-y-1 flex min-h-[100px] w-full items-center justify-between overflow-hidden rounded-component bg-gradient-to-r from-train-custom-banner-gradient-start to-train-custom-banner-gradient-end text-left transition duration-200 hover:shadow-elevated-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-normal"
           >
             <span className="gap-4 flex items-center">
               <img src={customBannerBulb} alt="" />
@@ -376,7 +464,7 @@ export const ScenarioTrainingView = () => {
             <img
               src={customBannerChevron}
               alt=""
-              className="transition-transform duration-200 group-hover:translate-x-0.5"
+              className="group-hover:translate-x-0.5 transition-transform duration-200"
             />
           </button>
         )}
@@ -390,19 +478,19 @@ export const ScenarioTrainingView = () => {
                 if (catalog.recommendedScenario)
                   catalog.handleOpenDetail(catalog.recommendedScenario)
               }}
-              className="group h-[200px] p-4 relative flex w-full items-end justify-between overflow-hidden rounded-component text-left shadow-elevated-card transition duration-200 hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:outline-2 focus-visible:outline-primary-normal"
+              className="group p-4 hover:-translate-y-1 focus-visible:-translate-y-1 relative flex h-[200px] w-full items-end justify-between overflow-hidden rounded-component text-left shadow-elevated-card transition duration-200 focus-visible:outline-2 focus-visible:outline-primary-normal"
             >
               <img
                 src={catalog.recommendedScenario.imageUrl ?? recommendationImage}
                 alt=""
                 className="inset-0 absolute size-full object-cover transition group-hover:scale-[1.01]"
               />
-              <span className="inset-x-0 bottom-0 h-[111px] absolute bg-gradient-to-b from-transparent to-common-100" />
+              <span className="inset-x-0 bottom-0 absolute h-[111px] bg-gradient-to-b from-transparent to-common-100" />
               <div className="relative text-common-0">
                 <p className="text-caption">기본 제공 시나리오</p>
                 <h2 className="text-headline1 font-bold">{catalog.recommendedScenario.title}</h2>
               </div>
-              <span className="relative gap-2 h-[30px] px-2.5 flex items-center rounded-control border border-common-0/30 bg-common-0/10 text-body font-medium text-common-0 backdrop-blur-sm">
+              <span className="gap-2 px-2.5 backdrop-blur-sm relative flex h-[30px] items-center rounded-control border border-common-0/30 bg-common-0/10 text-body font-medium text-common-0">
                 자세히 보기
                 <IoChevronForward size={18} aria-hidden="true" />
               </span>
@@ -419,7 +507,7 @@ export const ScenarioTrainingView = () => {
                   key={category.value}
                   type="button"
                   onClick={() => catalog.setSelectedCategory(category.value)}
-                  className={`h-[30px] px-3.5 rounded-control border text-body transition ${
+                  className={`px-3.5 h-[30px] rounded-control border text-body transition ${
                     catalog.selectedCategory === category.value
                       ? 'border-primary-normal bg-background-alternative font-medium text-primary-normal'
                       : 'border-transparent bg-background-alternative text-label-normal'
@@ -480,11 +568,24 @@ export const ScenarioTrainingView = () => {
         <ScenarioDetailPanel
           scenario={catalog.selectedScenario}
           isOpen={catalog.isDetailOpen}
+          isMenuOpen={catalog.isDetailMenuOpen}
           example={catalog.example}
           isExampleLoading={catalog.isExampleLoading}
           exampleErrorMessage={catalog.exampleErrorMessage}
           onClose={catalog.handleCloseDetail}
           onStart={() => handleStartScenario(catalog.selectedScenario as Scenario)}
+          onToggleMenu={catalog.handleToggleDetailMenu}
+          onOpenDeleteDialog={() => catalog.handleOpenDeleteDialog()}
+        />
+      )}
+
+      {catalog.deleteTarget && (
+        <ScenarioDeleteDialog
+          scenario={catalog.deleteTarget}
+          isDeleting={catalog.isDeleting}
+          errorMessage={catalog.deleteErrorMessage}
+          onClose={catalog.handleCloseDeleteDialog}
+          onDelete={catalog.handleDeleteScenario}
         />
       )}
     </main>

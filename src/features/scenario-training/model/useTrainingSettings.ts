@@ -25,7 +25,7 @@ export const useTrainingSettings = () => {
   const [delayTo, setDelayTo] = useState(0)
   const scenariosQuery = useQuery({
     queryKey: ['scenarios'],
-    queryFn: getScenarios,
+    queryFn: () => getScenarios(),
     enabled: !routeState?.scenario,
   })
   const scenario = useMemo<Scenario | undefined>(
