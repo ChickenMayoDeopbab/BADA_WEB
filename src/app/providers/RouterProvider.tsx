@@ -10,6 +10,7 @@ import {
 import { DashboardPage } from '@pages/dashboard'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
 import { TrainingRecordsPage } from '@pages/records'
+import { SelfDiagnosisPage } from '@pages/self-diagnosis'
 import { routePaths } from '@shared/config'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
@@ -25,10 +26,6 @@ const router = createBrowserRouter([
   {
     path: routePaths.signup,
     element: <SignupPage />,
-  },
-  {
-    path: routePaths.welcome,
-    element: <PlaceholderPage title="회원가입 완료 화면" />,
   },
   {
     path: routePaths.findId,
@@ -105,6 +102,10 @@ const router = createBrowserRouter([
             element: <ServicePlaceholderPage title="회원 탈퇴 화면" />,
           },
         ],
+      },
+      {
+        path: routePaths.welcome,
+        element: <SelfDiagnosisPage />,
       },
       {
         path: routePaths.trainingCall,
