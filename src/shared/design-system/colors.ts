@@ -115,6 +115,8 @@ export const SEMANTIC_COLORS = {
   train: {
     callGradientStart: '#F5F5F5',
     callGradientEnd: '#ABEFA8',
+    customBannerGradientStart: '#09C357',
+    customBannerGradientEnd: '#8BBA9F',
   },
 } as const
 
