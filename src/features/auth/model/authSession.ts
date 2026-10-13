@@ -21,6 +21,35 @@ export const getAccessToken = () => readToken(ACCESS_TOKEN_KEY)
 /** 저장된 리프레시 토큰을 반환합니다. */
 export const getRefreshToken = () => readToken(REFRESH_TOKEN_KEY)
 
+const decodeTokenPayload = (token: string) => {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+
+    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, '=')
+
+    return JSON.parse(window.atob(paddedPayload)) as { exp?: number; sub?: string }
+  } catch {
+    return null
+  }
+}
+
+/** JWT subject에서 토큰 갱신에 필요한 사용자 ID를 반환합니다. */
+export const getTokenUserId = (token: string) => {
+  const subject = decodeTokenPayload(token)?.sub
+  if (!subject) return null
+
+  const userId = Number(subject)
+  return Number.isSafeInteger(userId) && userId > 0 ? userId : null
+}
+
+/** 만료 시간을 확인할 수 있는 JWT가 만료되었는지 검사합니다. */
+export const isTokenExpired = (token: string) => {
+  const expiration = decodeTokenPayload(token)?.exp
+  return expiration !== undefined && expiration * 1000 <= Date.now()
+}
+
 /** 로그인 후 전달받은 액세스 토큰을 저장합니다. */
 export const setAccessToken = (accessToken: string, persist = true) => {
   window.localStorage.removeItem(ACCESS_TOKEN_KEY)
@@ -37,8 +66,21 @@ export const setAuthTokens = ({ accessToken, refreshToken }: AuthTokens, persist
   storage.setItem(REFRESH_TOKEN_KEY, refreshToken)
 }
 
+/** 갱신된 토큰을 기존 로그인 세션과 동일한 저장소에 교체합니다. */
+export const replaceAuthTokens = (tokens: AuthTokens) => {
+  const persist = window.localStorage.getItem(REFRESH_TOKEN_KEY) !== null
+  setAuthTokens(tokens, persist)
+}
+
 /** 현재 브라우저에 인증 세션이 존재하는지 확인합니다. */
-export const hasAuthSession = () => Boolean(getAccessToken())
+export const hasAuthSession = () => {
+  const accessToken = getAccessToken()
+  if (!accessToken) return false
+  if (!isTokenExpired(accessToken)) return true
+
+  const refreshToken = getRefreshToken()
+  return Boolean(refreshToken && !isTokenExpired(refreshToken))
+}
 
 /** 로그아웃 시 저장된 인증 세션을 제거합니다. */
 export const clearAuthSession = () => {

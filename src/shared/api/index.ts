@@ -1,2 +1,2 @@
 export { getApiErrorMessage } from './getApiErrorMessage'
-export { aiHttpClient, httpClient } from './httpClient'
+export { aiHttpClient, httpClient, plainHttpClient } from './httpClient'

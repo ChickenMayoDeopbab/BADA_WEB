@@ -126,6 +126,12 @@
   --color-record-summary-gradient-end: #44aab7;
   --color-train-call-gradient-start: #f5f5f5;
   --color-train-call-gradient-end: #abefa8;
+  --color-dashboard-recommend-gradient-start: #f5a266;
+  --color-dashboard-recommend-gradient-end: #ec7c3d;
+  --color-dashboard-warmup-background: #2f6dc9;
+  --color-metric-stability: #62dc75;
+  --color-metric-conversation: #4a86d8;
+  --color-metric-fluency: #d9a94f;
 }
 
 .dark {

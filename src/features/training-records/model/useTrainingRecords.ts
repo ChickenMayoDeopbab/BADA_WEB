@@ -1,28 +1,54 @@
-import { dummyTrainingRecords, type TrainingPeriod } from '@entities/training-record'
+import {
+  deleteTrainingRecord,
+  getTrainingRecord,
+  getTrainingRecords,
+} from '../api/trainingRecordsApi'
+import type { TrainingPeriod } from '@entities/training-record'
+import { getApiErrorMessage } from '@shared/api'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { TrainingRecordDateRange } from './useTrainingRecordCalendar'
 
 const RECORDS_PER_PAGE = 10
+const RECORDS_SYNC_INTERVAL_MS = 5_000
+const TRAINING_RECORDS_QUERY_KEY = ['training-records'] as const
 
-// 기록의 한글 날짜를 선택 범위와 비교할 수 있는 날짜로 변환합니다.
-const parseRecordDate = (dateLabel: string, year: number) => {
-  const match = dateLabel.match(/(\d+)월\s*(\d+)일/)
-
-  return match ? new Date(year, Number(match[1]) - 1, Number(match[2])) : null
-}
-
-// 훈련 기록 화면의 검색, 선택, 상세 패널 상태를 관리합니다.
+// 훈련 기록 화면의 조회, 검색, 선택, 상세 패널 상태를 관리합니다.
 export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
-  const [records, setRecords] = useState(dummyTrainingRecords)
+  const queryClient = useQueryClient()
   const [period, setPeriod] = useState<TrainingPeriod>('daily')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
+  const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [expandedFeedbackId, setExpandedFeedbackId] = useState<string | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
   const detailCloseTimerRef = useRef<number | null>(null)
+
+  const recordsQuery = useQuery({
+    queryKey: TRAINING_RECORDS_QUERY_KEY,
+    queryFn: getTrainingRecords,
+    refetchInterval: RECORDS_SYNC_INTERVAL_MS,
+    refetchOnMount: 'always',
+    refetchOnReconnect: 'always',
+    refetchOnWindowFocus: 'always',
+  })
+  const recordDetailQuery = useQuery({
+    queryKey: [...TRAINING_RECORDS_QUERY_KEY, selectedRecordId],
+    queryFn: () => getTrainingRecord(selectedRecordId as number),
+    enabled: selectedRecordId !== null,
+  })
+  const deleteRecordMutation = useMutation({
+    mutationFn: deleteTrainingRecord,
+    onSuccess: async (_, deletedRecordId) => {
+      queryClient.removeQueries({ queryKey: [...TRAINING_RECORDS_QUERY_KEY, deletedRecordId] })
+      setSelectedRecordId(null)
+      setIsDetailOpen(false)
+      setIsMenuOpen(false)
+      await queryClient.invalidateQueries({ queryKey: TRAINING_RECORDS_QUERY_KEY, exact: true })
+    },
+  })
 
   useEffect(
     () => () => {
@@ -33,41 +59,72 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
     [],
   )
 
+  const records = useMemo(() => recordsQuery.data ?? [], [recordsQuery.data])
   const filteredRecords = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
     const recordsInDateRange = dateRange
       ? records.filter((record) => {
-          const recordDate = parseRecordDate(record.date, dateRange.start.getFullYear())
+          const recordDate = new Date(record.trainedAt)
+          const rangeEnd = new Date(
+            dateRange.end.getFullYear(),
+            dateRange.end.getMonth(),
+            dateRange.end.getDate() + 1,
+          )
 
-          return Boolean(recordDate && recordDate >= dateRange.start && recordDate <= dateRange.end)
+          return recordDate >= dateRange.start && recordDate < rangeEnd
         })
       : records
 
-    if (!normalizedQuery) {
-      return recordsInDateRange
-    }
+    const searchedRecords = normalizedQuery
+      ? recordsInDateRange.filter((record) => record.title.toLowerCase().includes(normalizedQuery))
+      : recordsInDateRange
 
-    return recordsInDateRange.filter((record) => {
-      const searchableText = [
-        record.title,
-        ...record.feedbacks.flatMap((feedback) => [feedback.title, feedback.description ?? '']),
-      ]
-        .join(' ')
-        .toLowerCase()
-
-      return searchableText.includes(normalizedQuery)
-    })
+    return [...searchedRecords].sort(
+      (firstRecord, secondRecord) =>
+        new Date(secondRecord.trainedAt).getTime() - new Date(firstRecord.trainedAt).getTime(),
+    )
   }, [dateRange, records, searchQuery])
 
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / RECORDS_PER_PAGE))
   const safeCurrentPage = Math.min(currentPage, totalPages)
-  const paginatedRecords = useMemo(() => {
+  const paginatedListRecords = useMemo(() => {
     const startIndex = (safeCurrentPage - 1) * RECORDS_PER_PAGE
 
     return filteredRecords.slice(startIndex, startIndex + RECORDS_PER_PAGE)
   }, [filteredRecords, safeCurrentPage])
-
-  const selectedRecord = records.find((record) => record.id === selectedRecordId) ?? null
+  const filteredRecordDetailQueries = useQueries({
+    queries: filteredRecords.map((record) => ({
+      queryKey: [...TRAINING_RECORDS_QUERY_KEY, record.id],
+      queryFn: () => getTrainingRecord(record.id),
+      staleTime: 60_000,
+    })),
+  })
+  const detailedRecordsById = useMemo(
+    () =>
+      new Map(
+        filteredRecordDetailQueries.flatMap((query) =>
+          query.data ? ([[query.data.id, query.data]] as const) : [],
+        ),
+      ),
+    [filteredRecordDetailQueries],
+  )
+  const paginatedRecords = useMemo(
+    () => paginatedListRecords.map((record) => detailedRecordsById.get(record.id) ?? record),
+    [detailedRecordsById, paginatedListRecords],
+  )
+  const selectedListRecord = records.find((record) => record.id === selectedRecordId) ?? null
+  const selectedRecord = recordDetailQuery.data ?? selectedListRecord
+  const totalDurationSeconds = filteredRecords.reduce(
+    (total, record) => total + record.durationSeconds,
+    0,
+  )
+  const isFeedbackCountReady = filteredRecordDetailQueries.every((query) => query.isSuccess)
+  const totalFeedbackCount = isFeedbackCountReady
+    ? filteredRecordDetailQueries.reduce(
+        (total, query) => total + (query.data?.feedbackCount ?? 0),
+        0,
+      )
+    : null
 
   // 기간을 변경하고 기록 목록을 첫 페이지로 이동합니다.
   const handlePeriodChange = (nextPeriod: TrainingPeriod) => {
@@ -86,8 +143,8 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
     setCurrentPage(Math.min(Math.max(nextPage, 1), totalPages))
   }
 
-  // 선택한 기록의 상세 패널을 엽니다.
-  const handleOpenRecord = (recordId: string) => {
+  // 선택한 기록의 상세 패널을 열고 상세 API 조회를 시작합니다.
+  const handleOpenRecord = (recordId: number) => {
     if (detailCloseTimerRef.current) {
       window.clearTimeout(detailCloseTimerRef.current)
       detailCloseTimerRef.current = null
@@ -98,6 +155,7 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
     setExpandedFeedbackId(null)
     setIsMenuOpen(false)
     setIsAudioPlaying(false)
+    deleteRecordMutation.reset()
   }
 
   // 상세 패널을 닫고 패널 내부 상태를 초기화합니다.
@@ -124,17 +182,13 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
     setIsMenuOpen((isOpen) => !isOpen)
   }
 
-  // 현재 선택한 기록을 목록에서 삭제합니다.
+  // 현재 선택한 기록을 서버에서 삭제합니다.
   const handleDeleteRecord = () => {
-    if (!selectedRecordId) {
+    if (selectedRecordId === null || deleteRecordMutation.isPending) {
       return
     }
 
-    setRecords((currentRecords) =>
-      currentRecords.filter((record) => record.id !== selectedRecordId),
-    )
-    setSelectedRecordId(null)
-    setIsDetailOpen(false)
+    deleteRecordMutation.mutate(selectedRecordId)
   }
 
   // 오디오 미리보기의 재생 상태를 전환합니다.
@@ -155,6 +209,20 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
     expandedFeedbackId,
     isMenuOpen,
     isAudioPlaying,
+    isLoading: recordsQuery.isPending,
+    recordsErrorMessage: recordsQuery.isError
+      ? getApiErrorMessage(recordsQuery.error, '훈련 기록을 불러오지 못했습니다.')
+      : '',
+    isDetailLoading: recordDetailQuery.isPending && selectedRecordId !== null,
+    detailErrorMessage: recordDetailQuery.isError
+      ? getApiErrorMessage(recordDetailQuery.error, '훈련 기록 상세를 불러오지 못했습니다.')
+      : '',
+    isDeleting: deleteRecordMutation.isPending,
+    deleteErrorMessage: deleteRecordMutation.isError
+      ? getApiErrorMessage(deleteRecordMutation.error, '훈련 기록을 삭제하지 못했습니다.')
+      : '',
+    totalDurationSeconds,
+    totalFeedbackCount,
     handlePeriodChange,
     handleSearchQueryChange,
     handlePageChange,
