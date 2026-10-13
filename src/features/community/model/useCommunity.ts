@@ -96,7 +96,10 @@ export const useCommunityReaction = (postId: number) => {
   return useMutation({
     mutationFn: (kind: Parameters<typeof setCommunityReaction>[1]) =>
       setCommunityReaction(postId, kind),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: communityKeys.post(postId) }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: communityKeys.post(postId) })
+      void queryClient.invalidateQueries({ queryKey: ['community', 'posts'] })
+    },
   })
 }
 
