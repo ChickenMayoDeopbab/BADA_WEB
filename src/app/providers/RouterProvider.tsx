@@ -7,6 +7,7 @@ import {
   ResetPasswordPage,
   SignupPage,
 } from '@pages/auth'
+import { CommunityPage } from '@pages/community'
 import { DashboardPage } from '@pages/dashboard'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
 import {
@@ -75,7 +76,19 @@ const router = createBrowserRouter([
           },
           {
             path: routePaths.community,
-            element: <ServicePlaceholderPage title="커뮤니티 화면" />,
+            element: <CommunityPage />,
+          },
+          {
+            path: routePaths.communityPost,
+            element: <CommunityPage />,
+          },
+          {
+            path: routePaths.communityPostEdit,
+            element: <CommunityPage />,
+          },
+          {
+            path: routePaths.communityNew,
+            element: <CommunityPage />,
           },
           {
             path: routePaths.notifications,

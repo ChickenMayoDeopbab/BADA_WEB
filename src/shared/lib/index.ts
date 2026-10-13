@@ -1,3 +1,4 @@
+export { getCurrentUserId } from './authToken'
 export {
   WEEKDAY_LABELS,
   addDays,

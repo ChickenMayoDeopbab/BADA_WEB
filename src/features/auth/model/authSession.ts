@@ -1,7 +1,7 @@
 import type { AuthTokens } from './types'
+import { authStorageKeys } from '@shared/config'
 
-const ACCESS_TOKEN_KEY = 'bada.accessToken'
-const REFRESH_TOKEN_KEY = 'bada.refreshToken'
+const { accessToken: ACCESS_TOKEN_KEY, refreshToken: REFRESH_TOKEN_KEY } = authStorageKeys
 
 const getStorages = () => [window.localStorage, window.sessionStorage]
 
