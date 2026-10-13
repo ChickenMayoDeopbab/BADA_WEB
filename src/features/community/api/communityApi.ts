@@ -35,6 +35,7 @@ interface PostAttachmentResponse {
   ref_id: number
   scenario?: {
     title: string
+    content?: string | null
     category: string
     scenario_image?: string | null
     is_mine?: boolean
@@ -137,6 +138,7 @@ const mapAttachment = (item: PostAttachmentResponse): CommunityAttachment => {
       type: 'scenario',
       title: item.scenario?.title ?? '시나리오',
       detail: item.scenario?.category ?? '',
+      description: item.scenario?.content ?? '',
       imageUrl: item.scenario?.scenario_image,
       isMine: item.scenario?.is_mine ?? false,
     }

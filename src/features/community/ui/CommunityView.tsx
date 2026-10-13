@@ -244,12 +244,6 @@ const formatAudioTime = (seconds: number) => {
   return `${Math.floor(safeSeconds / 60)}:${String(safeSeconds % 60).padStart(2, '0')}`
 }
 
-const scenarioCategoryLabels: Record<string, string> = {
-  daily: '일상',
-  work: '업무',
-  other: '기타',
-}
-
 const AttachmentCard = ({
   attachment,
   postId,
@@ -316,11 +310,11 @@ const AttachmentCard = ({
           )}
           <span className="min-w-0">
             <strong className="block truncate text-body">{attachment.title}</strong>
-            <span className="text-caption opacity-80">
+            <span className="block truncate text-caption opacity-80">
               {isRecord && isPlaying
                 ? `${formatAudioTime(remaining)} 남음`
                 : isScenario
-                  ? (scenarioCategoryLabels[attachment.detail] ?? attachment.detail)
+                  ? attachment.description || attachment.detail
                   : attachment.detail}
             </span>
           </span>

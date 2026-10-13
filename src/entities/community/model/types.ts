@@ -38,6 +38,7 @@ export interface CommunityAttachment {
   type: 'scenario' | 'record' | 'file'
   title: string
   detail: string
+  description?: string
   imageUrl?: string | null
   url?: string | null
   isMine?: boolean
