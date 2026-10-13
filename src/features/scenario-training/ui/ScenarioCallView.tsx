@@ -18,19 +18,16 @@ const formatTimer = (seconds: number) => {
 
 interface ContactProps {
   title: string
-  compact?: boolean
 }
 
-const Contact = ({ title, compact = false }: ContactProps) => (
+const Contact = ({ title }: ContactProps) => (
   <div className="flex flex-col items-center text-center">
-    <h1 className="text-display1 font-bold text-label-normal">
-      {title}
-    </h1>
+    <h1 className="text-display1 font-bold text-label-normal">{title}</h1>
     <p className="mt-2 text-body font-medium text-label-alternative">바다 AI</p>
     <img
       src={callAvatar}
       alt="AI 통화 상대"
-      className={`${compact ? 'mt-8' : 'mt-8'} size-[140px] rounded-pill object-cover`}
+      className="mt-8 size-[140px] rounded-pill object-cover"
     />
   </div>
 )
@@ -39,19 +36,42 @@ interface CallControlProps {
   icon: string
   label: string
   active?: boolean
+  disabled?: boolean
   onClick?: () => void
 }
 
-const CallControl = ({ icon, label, active = false, onClick }: CallControlProps) => (
-  <button type="button" onClick={onClick} className="w-24 flex flex-col items-center">
+const CallControl = ({
+  icon,
+  label,
+  active = false,
+  disabled = false,
+  onClick,
+}: CallControlProps) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    aria-pressed={disabled ? undefined : active}
+    className="w-24 flex flex-col items-center disabled:cursor-not-allowed"
+  >
     <span
-      className={`size-16 flex items-center justify-center rounded-pill ${
+      className={`flex size-[72px] items-center justify-center rounded-dialog transition-colors ${
         active ? 'bg-primary-alternative' : 'bg-background-normal/70'
       }`}
     >
-      <img src={icon} alt="" className="size-7 object-contain" />
+      <img
+        src={icon}
+        alt=""
+        className={`size-8 object-contain transition-opacity ${disabled ? 'opacity-40' : ''}`}
+      />
     </span>
-    <span className="mt-2 text-label font-medium text-label-neutral">{label}</span>
+    <span
+      className={`mt-2 text-label font-medium text-label-neutral transition-opacity ${
+        disabled ? 'opacity-40' : ''
+      }`}
+    >
+      {label}
+    </span>
   </button>
 )
 
@@ -158,59 +178,47 @@ export const ScenarioCallView = () => {
   const isEnded = call.stage === 'ended'
 
   return (
-    <main className="gap-12 min-h-screen px-12 pb-14 pt-12 flex bg-gradient-to-b from-background-normal to-train-call-gradient-end">
-      <section className="min-w-0 flex flex-1 flex-col items-center justify-between">
+    <main
+      className={`px-12 pb-14 pt-12 ease-out grid min-h-screen bg-gradient-to-b from-background-normal to-train-call-gradient-end transition-[grid-template-columns,gap] duration-300 motion-reduce:transition-none ${
+        call.isScriptOpen
+          ? 'gap-6 grid-cols-[minmax(360px,1fr)_minmax(320px,min(42vw,620px))]'
+          : 'gap-0 grid-cols-[minmax(0,1fr)_0px]'
+      }`}
+    >
+      <section className="min-w-0 ease-out flex flex-col items-center justify-between transition-transform duration-300 motion-reduce:transition-none">
         <div
           className={`gap-2 flex items-center text-label font-bold tabular-nums ${
             isEnded ? 'text-status-error' : 'text-label-normal'
           }`}
         >
           <IoCall size={16} className={isEnded ? 'rotate-[135deg]' : ''} aria-hidden="true" />
-          <span>{formatTimer(call.elapsedSeconds)}</span>
+          <span className={isEnded ? 'animate-pulse motion-reduce:animate-none' : undefined}>
+            {formatTimer(call.elapsedSeconds)}
+          </span>
           {isEnded && <span>훈련을 종료했습니다.</span>}
         </div>
 
         <div className="gap-8 flex flex-col items-center">
-          <Contact title={title} compact={call.isScriptOpen} />
-          {!isEnded && !call.isScriptOpen && (
-          <div className="gap-x-10 gap-y-6 grid grid-cols-3">
-            <CallControl
-              icon={callScript}
-              label="스크립트 보기"
-              active={call.isScriptOpen}
-              onClick={() => call.setIsScriptOpen(true)}
-            />
-            <CallControl
-              icon={callMicOff}
-              label="음소거"
-              active={call.isMuted}
-              onClick={() => call.setIsMuted(!call.isMuted)}
-            />
-            <CallControl
-              icon={callRecord}
-              label="녹음"
-              active={call.isRecording}
-              onClick={() => call.setIsRecording(!call.isRecording)}
-            />
-            <CallControl
-              icon={callSpeaker}
-              label="스피커"
-              active={call.isSpeakerOn}
-              onClick={() => call.setIsSpeakerOn(!call.isSpeakerOn)}
-            />
-            <CallControl icon={callVideo} label="영상통화" />
-            <CallControl icon={callKeypad} label="키패드" />
-          </div>
-          )}
-
-          {!isEnded && call.isScriptOpen && (
-          <button
-            type="button"
-            onClick={() => call.setIsScriptOpen(false)}
-            className="h-11 w-[178px] rounded-component bg-background-normal text-body font-medium text-label-neutral"
-          >
-            스크립트 가리기
-          </button>
+          <Contact title={title} />
+          {!isEnded && (
+            <div className="gap-x-2 gap-y-5 grid grid-cols-3">
+              <CallControl
+                icon={callScript}
+                label="스크립트 보기"
+                active={call.isScriptOpen}
+                onClick={call.handleToggleScript}
+              />
+              <CallControl
+                icon={callMicOff}
+                label="음소거"
+                active={call.isMuted}
+                onClick={call.handleToggleMute}
+              />
+              <CallControl icon={callRecord} label="녹음" active={call.isRecording} disabled />
+              <CallControl icon={callSpeaker} label="스피커" active={call.isSpeakerOn} disabled />
+              <CallControl icon={callVideo} label="영상통화" disabled />
+              <CallControl icon={callKeypad} label="키패드" disabled />
+            </div>
           )}
         </div>
 
@@ -227,19 +235,54 @@ export const ScenarioCallView = () => {
         </button>
       </section>
 
-      {call.isScriptOpen && !isEnded && (
-        <aside className="h-[calc(100vh-104px)] w-[620px] shrink-0 p-8 rounded-dialog bg-background-normal">
-          <h2 className="text-headline1 font-bold text-label-normal">스크립트</h2>
-          <div className="mt-7">
-            <p className="text-caption font-bold text-label-alternative">통화 목표</p>
-            <div className="mt-2 p-4 rounded-component bg-primary-alternative">
-              <p className="leading-6 whitespace-pre-wrap text-label text-label-normal">
-                {call.scenario?.content}
+      <aside
+        aria-hidden={!call.isScriptOpen || isEnded}
+        className={`min-w-0 ease-out h-[calc(100vh-104px)] overflow-hidden rounded-dialog bg-background-normal transition-[opacity,transform] duration-300 motion-reduce:transition-none ${
+          call.isScriptOpen && !isEnded
+            ? 'translate-x-0 opacity-100'
+            : 'translate-x-6 pointer-events-none opacity-0'
+        }`}
+      >
+        <div className="p-8 min-w-0 h-full flex flex-col">
+          <h2 className="text-headline1 font-bold text-label-normal">예시 스크립트</h2>
+          <div className="mt-7 min-h-0 flex-1 overflow-y-auto pr-3">
+            {call.isScriptLoading && (
+              <p className="py-8 text-center text-body text-label-alternative">
+                스크립트를 불러오는 중입니다.
               </p>
-            </div>
+            )}
+            {!call.isScriptLoading && call.scriptErrorMessage && (
+              <p className="py-8 text-center text-body text-status-error">
+                {call.scriptErrorMessage}
+              </p>
+            )}
+            {!call.isScriptLoading && !call.scriptErrorMessage && call.script.length > 0 && (
+              <ol className="gap-6 flex flex-col">
+                {call.script.map((turn, index) => (
+                  <li
+                    key={`${turn.speaker}-${index}`}
+                    className={`leading-7 text-body font-medium whitespace-pre-wrap ${
+                      turn.speaker === 'user' ? 'text-label-normal' : 'text-label-alternative'
+                    }`}
+                  >
+                    <strong className="font-bold">
+                      {turn.speaker === 'user' ? '나' : '상대방'} :{' '}
+                    </strong>
+                    {turn.text}
+                  </li>
+                ))}
+              </ol>
+            )}
+            {!call.isScriptLoading && !call.scriptErrorMessage && call.script.length === 0 && (
+              <div className="p-4 rounded-component bg-primary-alternative">
+                <p className="leading-6 text-label whitespace-pre-wrap text-label-normal">
+                  {call.scenario?.content ?? '표시할 예시 스크립트가 없습니다.'}
+                </p>
+              </div>
+            )}
           </div>
-        </aside>
-      )}
+        </div>
+      </aside>
     </main>
   )
 }

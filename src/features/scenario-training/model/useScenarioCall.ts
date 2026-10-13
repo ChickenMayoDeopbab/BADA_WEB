@@ -1,4 +1,7 @@
+import { getScenarioExample } from '../api/scenarioTrainingApi'
 import type { ScenarioRouteState } from '@entities/scenario'
+import { getApiErrorMessage } from '@shared/api'
+import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
@@ -21,9 +24,15 @@ export const useScenarioCall = () => {
   const [stage, setStage] = useState<ScenarioCallStage>(initialDelay > 0 ? 'scheduled' : 'incoming')
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
-  const [isSpeakerOn, setIsSpeakerOn] = useState(true)
-  const [isRecording, setIsRecording] = useState(false)
+  const [isSpeakerOn] = useState(false)
+  const [isRecording] = useState(false)
   const [isScriptOpen, setIsScriptOpen] = useState(false)
+  const numericScenarioId = Number(scenarioId)
+  const scriptQuery = useQuery({
+    queryKey: ['scenario-example', numericScenarioId],
+    queryFn: () => getScenarioExample(numericScenarioId),
+    enabled: isScriptOpen && Number.isSafeInteger(numericScenarioId) && numericScenarioId > 0,
+  })
 
   useEffect(() => {
     if (stage !== 'scheduled') return
@@ -66,8 +75,17 @@ export const useScenarioCall = () => {
   /** 준비 안내를 닫고 실제 통화 화면을 시작합니다. */
   const handleStartCall = () => setStage('active')
 
+  /** 통화 중 마이크 음소거 상태를 전환합니다. */
+  const handleToggleMute = () => setIsMuted((currentMuted) => !currentMuted)
+
+  /** 통화 화면을 유지한 채 스크립트 패널을 열거나 닫습니다. */
+  const handleToggleScript = () => setIsScriptOpen((currentOpen) => !currentOpen)
+
   /** 통화를 종료하고 불안 점수 입력 화면으로 이동합니다. */
-  const handleEndCall = () => setStage('ended')
+  const handleEndCall = () => {
+    setIsScriptOpen(false)
+    setStage('ended')
+  }
 
   /** 수신 전화를 거절하고 시나리오 목록으로 돌아갑니다. */
   const handleDecline = () => navigate('/training')
@@ -81,10 +99,13 @@ export const useScenarioCall = () => {
     isSpeakerOn,
     isRecording,
     isScriptOpen,
-    setIsMuted,
-    setIsSpeakerOn,
-    setIsRecording,
-    setIsScriptOpen,
+    script: scriptQuery.data?.dialogue ?? [],
+    isScriptLoading: scriptQuery.isPending && isScriptOpen,
+    scriptErrorMessage: scriptQuery.isError
+      ? getApiErrorMessage(scriptQuery.error, '예시 스크립트를 불러오지 못했습니다.')
+      : '',
+    handleToggleMute,
+    handleToggleScript,
     handleAnswer,
     handleMeditate,
     handleStartCall,
