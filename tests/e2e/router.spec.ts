@@ -70,7 +70,7 @@ test('uses the training records calendar and closes the detail panel from the ba
   await expect(page.getByRole('dialog', { name: '훈련 기록 날짜 범위 선택' })).toBeVisible()
   await page
     .locator(
-      `button[aria-label="${selectedDate.getFullYear()}년 ${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일"]`,
+      `button[aria-label^="${selectedDate.getFullYear()}년 ${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일"]`,
     )
     .click()
   await page.getByRole('button', { name: '적용', exact: true }).click()

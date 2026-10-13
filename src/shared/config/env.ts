@@ -30,8 +30,16 @@ const readBooleanEnvironment = (value: string | undefined, defaultValue: boolean
   throw new Error('[환경변수 오류] VITE_AUTH_GUARD_ENABLED는 true 또는 false여야 합니다.')
 }
 
+/** 배포 서버에 맞는 음성 인증 모드를 검증합니다. */
+const readVoiceAuthMode = (value: string | undefined): 'frame' | 'query' => {
+  if (value === undefined || value === 'frame') return 'frame'
+  if (value === 'query') return 'query'
+  throw new Error('[환경변수 오류] VITE_VOICE_AUTH_MODE는 frame 또는 query여야 합니다.')
+}
+
 export const env = {
   apiBaseUrl: readUrlEnvironment('VITE_API_BASE_URL', import.meta.env.VITE_API_BASE_URL),
   aiApiBaseUrl: readUrlEnvironment('VITE_AI_API_BASE_URL', import.meta.env.VITE_AI_API_BASE_URL),
   isAuthGuardEnabled: readBooleanEnvironment(import.meta.env.VITE_AUTH_GUARD_ENABLED, true),
+  voiceAuthMode: readVoiceAuthMode(import.meta.env.VITE_VOICE_AUTH_MODE),
 } as const

@@ -6,7 +6,7 @@ import {
   getRefreshToken,
   setAuthTokens,
 } from '../model/authSession'
-import { httpClient } from '@shared/api'
+import { aiHttpClient, httpClient } from '@shared/api'
 import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -16,6 +16,7 @@ vi.mock('./authApi', () => ({
 
 const mockedRefreshAuthTokens = vi.mocked(refreshAuthTokens)
 const originalAdapter = httpClient.defaults.adapter
+const originalAiAdapter = aiHttpClient.defaults.adapter
 
 const token = (payload: Record<string, unknown>) =>
   `header.${window.btoa(JSON.stringify(payload))}.signature`
@@ -36,6 +37,7 @@ describe('configureAuthHttpClient', () => {
 
   afterEach(() => {
     httpClient.defaults.adapter = originalAdapter
+    aiHttpClient.defaults.adapter = originalAiAdapter
     clearAuthSession()
   })
 
@@ -59,6 +61,19 @@ describe('configureAuthHttpClient', () => {
     await httpClient.post('/api/v1/auth/login')
 
     expect(adapter.mock.calls[0]?.[0].headers.has('Authorization')).toBe(false)
+  })
+
+  it('authenticates AI requests but never exposes the token to third-party audio URLs', async () => {
+    setAuthTokens({ accessToken: 'access', refreshToken: 'refresh' }, true)
+    const adapter = vi.fn<AxiosAdapter>(async (config) => response(config, {}))
+    aiHttpClient.defaults.adapter = adapter
+    configureAuthHttpClient(vi.fn())
+
+    await aiHttpClient.get('/api/v1/scenario/scenarios')
+    await aiHttpClient.get('https://audio.example.com/example.wav')
+
+    expect(adapter.mock.calls[0]?.[0].headers.get('Authorization')).toBe('Bearer access')
+    expect(adapter.mock.calls[1]?.[0].headers.has('Authorization')).toBe(false)
   })
 
   it('refreshes once and retries concurrent unauthorized requests with the new token', async () => {

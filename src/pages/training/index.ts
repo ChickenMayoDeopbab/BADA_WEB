@@ -1,0 +1,4 @@
+export { ScenarioTrainingPage } from './ScenarioTrainingPage'
+export { ScenarioSettingsPage } from './ScenarioSettingsPage'
+export { ScenarioCallPage } from './ScenarioCallPage'
+export { ScenarioResultPage } from './ScenarioResultPage'
