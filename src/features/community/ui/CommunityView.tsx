@@ -318,7 +318,7 @@ const AttachmentCard = ({
           style={{ width: `${playedPercent}%` }}
         />
       )}
-      <div className="px-3 py-2.5 gap-3 max-sm:items-start relative flex items-center justify-between">
+      <div className="px-3 py-2.5 gap-3 min-h-17 max-sm:items-start relative flex items-center justify-between">
         <div className="gap-3 min-w-0 flex items-center">
           {isRecord && (
             <span
