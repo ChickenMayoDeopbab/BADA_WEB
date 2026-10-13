@@ -9,6 +9,13 @@ import {
 } from '@pages/auth'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
 import { TrainingRecordsPage } from '@pages/records'
+import {
+  CustomScenarioPage,
+  ScenarioCallPage,
+  ScenarioResultPage,
+  ScenarioSettingsPage,
+  ScenarioTrainingPage,
+} from '@pages/training'
 import { routePaths } from '@shared/config'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
@@ -53,15 +60,15 @@ const router = createBrowserRouter([
           },
           {
             path: routePaths.training,
-            element: <ServicePlaceholderPage title="시나리오 훈련 목록 화면" />,
+            element: <ScenarioTrainingPage />,
           },
           {
             path: routePaths.trainingCustomNew,
-            element: <ServicePlaceholderPage title="커스텀 시나리오 생성 화면" />,
+            element: <CustomScenarioPage />,
           },
           {
             path: routePaths.trainingSettings,
-            element: <ServicePlaceholderPage title="훈련 설정 화면" />,
+            element: <ScenarioSettingsPage />,
           },
           {
             path: routePaths.records,
@@ -107,11 +114,11 @@ const router = createBrowserRouter([
       },
       {
         path: routePaths.trainingCall,
-        element: <PlaceholderPage title="시나리오 통화 화면" />,
+        element: <ScenarioCallPage />,
       },
       {
         path: routePaths.trainingResult,
-        element: <PlaceholderPage title="통화 후 피드백 화면" />,
+        element: <ScenarioResultPage />,
       },
     ],
   },
