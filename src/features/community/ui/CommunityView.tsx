@@ -21,6 +21,7 @@ import {
   FiTrash2,
   FiX,
 } from 'react-icons/fi'
+import { HiChatBubbleLeftRight } from 'react-icons/hi2'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   getAttachableScenarios,
@@ -263,7 +264,7 @@ const AttachmentCard = ({
     attachment.isMine || savedScenarioKeys.includes(scenarioKey) || copyScenario.isSuccess,
   )
   const remaining = Math.max(0, audioDuration - currentTime)
-  const remainingPercent = audioDuration > 0 ? (remaining / audioDuration) * 100 : 100
+  const playedPercent = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0
   const canPlayRecord = Boolean(
     attachment.audioUrl && attachment.audioStatus?.toLowerCase() === 'ready',
   )
@@ -294,14 +295,24 @@ const AttachmentCard = ({
         <span
           aria-hidden="true"
           className="inset-y-0 left-0 absolute bg-common-0/20 transition-[width] duration-200 ease-linear animate-pulse"
-          style={{ width: `${remainingPercent}%` }}
+          style={{ width: `${playedPercent}%` }}
         />
       )}
       <div className="px-3 py-2.5 relative flex items-center justify-between">
-        <div>
-          <strong className="block text-body">{attachment.title}</strong>
-          <span className="text-caption opacity-80">
-            {isRecord && isPlaying ? `${formatAudioTime(remaining)} 남음` : attachment.detail}
+        <div className="gap-3 flex min-w-0 items-center">
+          {isRecord && (
+            <span
+              className={`size-12 flex shrink-0 items-center justify-center rounded-component ${isPlaying ? 'bg-common-0/90 text-status-info' : 'bg-record-icon-background text-status-info'}`}
+              aria-hidden="true"
+            >
+              <HiChatBubbleLeftRight className="size-7" />
+            </span>
+          )}
+          <span className="min-w-0">
+            <strong className="block truncate text-body">{attachment.title}</strong>
+            <span className="text-caption opacity-80">
+              {isRecord && isPlaying ? `${formatAudioTime(remaining)} 남음` : attachment.detail}
+            </span>
           </span>
         </div>
         <button
