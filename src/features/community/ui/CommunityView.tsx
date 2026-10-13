@@ -282,11 +282,11 @@ const AttachmentCard = ({
 
   if (isImage) {
     return attachment.url ? (
-      <figure className="mt-5 mx-auto flex w-full max-w-[720px] justify-center overflow-hidden rounded-component border border-line-alternative bg-fill-normal">
+      <figure className="mt-5 mr-auto flex w-1/2 justify-start overflow-hidden rounded-component border border-line-alternative bg-fill-normal max-lg:w-2/3 max-sm:w-full">
         <img
           src={attachment.url}
           alt={attachment.title}
-          className="max-h-[420px] max-w-full object-contain"
+          className="max-h-[40vh] max-w-full object-contain object-left"
           loading="lazy"
         />
       </figure>
