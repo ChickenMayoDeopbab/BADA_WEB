@@ -1,4 +1,5 @@
 import { useScenarioCall, type ScenarioCallOptions } from '../model/useScenarioCall'
+import { ScriptHintBar } from './ScriptHintBar'
 import callAnswer from '@shared/assets/scenario-training/call-answer.svg'
 import callAvatar from '@shared/assets/scenario-training/call-avatar.png'
 import callDecline from '@shared/assets/scenario-training/call-decline.svg'
@@ -336,11 +337,6 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
         <div className="p-8 min-w-0 flex h-full flex-col">
           <h2 className="text-headline1 font-bold text-label-normal">실시간 대화 스크립트</h2>
           <div className="mt-7 min-h-0 pr-3 flex-1 overflow-y-auto">
-            {call.scriptHint && (
-              <p className="mb-5 p-4 rounded-component bg-primary-alternative text-body text-label-normal">
-                {call.scriptHint}
-              </p>
-            )}
             {call.script.length > 0 && (
               <ol className="gap-6 flex flex-col">
                 {call.script.map((turn, index) => (
@@ -366,6 +362,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
               </div>
             )}
           </div>
+          <ScriptHintBar hint={call.scriptHint} />
         </div>
       </aside>
     </main>

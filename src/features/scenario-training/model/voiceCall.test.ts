@@ -163,4 +163,32 @@ describe('voice call coordination', () => {
     expect(vi.getTimerCount()).toBe(0)
     call.dispose()
   })
+
+  it('retains the server hint level until the next hint and resets hints for a new call', async () => {
+    const { call, states } = createCall()
+    await call.start()
+    mocks.transportOptions!.onMessage({ type: 'scenario_info', aiRole: '', scriptLevel: 1 })
+    expect(states.at(-1)?.scriptHint).toBeNull()
+    mocks.transportOptions!.onMessage({
+      type: 'script_hint',
+      level: 1,
+      text: '  내일 두 명 예약하고 싶어요.  ',
+    })
+    expect(states.at(-1)?.scriptHint).toEqual({ level: 1, text: '내일 두 명 예약하고 싶어요.' })
+    mocks.transportOptions!.onMessage({ type: 'transcript', role: 'ai', text: '어느 시간인가요?' })
+    expect(states.at(-1)?.scriptHint?.level).toBe(1)
+    mocks.transportOptions!.onMessage({
+      type: 'script_hint',
+      level: 2,
+      text: '원하는 시간을 말해보세요.',
+    })
+    expect(states.at(-1)?.scriptHint).toEqual({ level: 2, text: '원하는 시간을 말해보세요.' })
+    mocks.transportOptions!.onMessage({ type: 'script_hint', level: 3, text: '' })
+    expect(states.at(-1)?.scriptHint).toEqual({ level: 3, text: '' })
+    call.dispose()
+    const next = createCall()
+    await next.call.start()
+    expect(next.states.at(-1)?.scriptHint).toBeNull()
+    next.call.dispose()
+  })
 })

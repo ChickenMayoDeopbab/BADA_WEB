@@ -477,3 +477,73 @@ test('does not post an anxiety score for server NO_AUDIO termination', async ({ 
   await expect(page).toHaveURL(/\/records$/)
   expect(scoreRequests).toBe(0)
 })
+
+test('uses server hint levels for a fixed recommendation/advice footer and hides no-hint levels', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  const audit = await prepareCall(page)
+  await startCall(page)
+  await expect(page.getByRole('heading', { name: '상담 직원' })).toBeVisible()
+  await page.getByRole('button', { name: '스크립트 보기', exact: true }).click()
+  audit
+    .getSocket()
+    .send(
+      JSON.stringify({ type: 'script_hint', level: 1, text: '내일 오후 두 명 예약하고 싶어요.' }),
+    )
+  await expect(page.getByRole('status', { name: '추천 문장', exact: true })).toHaveText(
+    '추천 : 내일 오후 두 명 예약하고 싶어요.',
+  )
+  for (let index = 0; index < 40; index += 1) {
+    audit
+      .getSocket()
+      .send(
+        JSON.stringify({
+          type: 'transcript',
+          role: index % 2 ? 'user' : 'ai',
+          text: `예약 대화 ${index + 1}`,
+        }),
+      )
+  }
+  await expect(page.getByText('예약 대화 40', { exact: false })).toHaveCount(1)
+  const hintBottom = await page
+    .getByRole('status', { name: '추천 문장', exact: true })
+    .evaluate((element) => element.getBoundingClientRect().bottom)
+  const transcriptScroll = page.locator('aside .overflow-y-auto')
+  await transcriptScroll.evaluate((element) => {
+    element.scrollTop = element.scrollHeight
+  })
+  await expect(page.getByRole('status', { name: '추천 문장', exact: true })).toBeVisible()
+  expect(
+    await page
+      .getByRole('status', { name: '추천 문장', exact: true })
+      .evaluate((element) => element.getBoundingClientRect().bottom),
+  ).toBe(hintBottom)
+  await page.screenshot({
+    path: test.info().outputPath('script-recommendation.png'),
+    fullPage: true,
+  })
+  audit
+    .getSocket()
+    .send(JSON.stringify({ type: 'script_hint', level: 2, text: '원하는 예약 시간을 말해보세요.' }))
+  await expect(page.getByRole('status', { name: '대답 조언', exact: true })).toHaveText(
+    '원하는 예약 시간을 말해보세요.',
+  )
+  await expect(page.getByRole('status', { name: '추천 문장', exact: true })).toHaveCount(0)
+  await page.screenshot({ path: test.info().outputPath('script-advice.png'), fullPage: true })
+  await page.getByRole('button', { name: '스크립트 보기', exact: true }).click()
+  await page.getByRole('button', { name: '스크립트 보기', exact: true }).click()
+  await expect(page.getByRole('status', { name: '대답 조언', exact: true })).toBeVisible()
+  audit
+    .getSocket()
+    .send(
+      JSON.stringify({ type: 'script_hint', level: 3, text: '이 문장이 있어도 숨겨야 합니다.' }),
+    )
+  await expect(page.getByRole('status', { name: '대답 조언', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('status', { name: '추천 문장', exact: true })).toHaveCount(0)
+  audit.getSocket().send(JSON.stringify({ type: 'script_hint', level: 1, text: '  ' }))
+  await expect(page.getByRole('status', { name: '추천 문장', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: '통화 종료', exact: true }).click()
+  await expect(page).toHaveURL(/\/training\/1\/result/)
+  expect(audit.errors).toEqual([])
+})

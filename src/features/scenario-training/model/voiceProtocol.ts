@@ -1,12 +1,18 @@
 import { env } from '@shared/config'
 
+/** 같은 시나리오의 훈련 횟수를 기준으로 서버가 결정하는 대답 안내입니다. */
+export interface ScriptHint {
+  level: number
+  text: string
+}
+
 export type VoiceServerMessage =
   | { type: 'scenario_info'; aiRole: string; scriptLevel?: number }
   | { type: 'emotion'; value: string }
   | { type: 'speaking_end'; turn_id?: number }
   | { type: 'interrupt' | 'pong' }
   | { type: 'transcript'; role: 'ai' | 'user'; text: string }
-  | { type: 'script_hint'; level: number; text: string }
+  | ({ type: 'script_hint' } & ScriptHint)
   | { type: 'notice'; code: string; text: string }
   | { type: 'end'; reason: string }
   | { type: 'error'; code: string }
@@ -56,8 +62,12 @@ export const parseVoiceMessage = (text: string): VoiceServerMessage | null => {
         return { type: 'transcript', role: message.role, text: message.text }
       break
     case 'script_hint':
-      if (typeof message.level === 'number' && typeof message.text === 'string')
-        return { type: 'script_hint', level: message.level, text: message.text }
+      if (typeof message.level === 'number' && Number.isFinite(message.level))
+        return {
+          type: 'script_hint',
+          level: message.level,
+          text: typeof message.text === 'string' ? message.text.trim() : '',
+        }
       break
     case 'notice':
       if (typeof message.code === 'string' && typeof message.text === 'string')

@@ -1,7 +1,7 @@
 import { getCallErrorMessage } from './callErrors'
 import { VoiceAudio } from './voiceAudio'
 import { VoiceTransport } from './voiceTransport'
-import type { VoiceServerMessage } from './voiceProtocol'
+import type { ScriptHint, VoiceServerMessage } from './voiceProtocol'
 import { reportVoiceDiagnostic } from './voiceDiagnostics'
 
 export interface VoiceCallState {
@@ -14,7 +14,7 @@ export interface VoiceCallState {
   isAudioSuspended: boolean
   displayName: string
   transcript: Array<{ role: 'ai' | 'user'; text: string }>
-  scriptHint: string
+  scriptHint: ScriptHint | null
   notice: string
   endReason: string
   errorMessage: string
@@ -49,7 +49,7 @@ export class VoiceCall {
     isAudioSuspended: false,
     displayName: '',
     transcript: [],
-    scriptHint: '',
+    scriptHint: null,
     notice: '',
     endReason: '',
     errorMessage: '',
@@ -184,7 +184,7 @@ export class VoiceCall {
           })
         break
       case 'script_hint':
-        this.update({ scriptHint: message.text })
+        this.update({ scriptHint: { level: message.level, text: message.text.trim() } })
         break
       case 'notice':
         this.update({ notice: message.text })

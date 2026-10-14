@@ -278,7 +278,7 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
     isRecording: false,
     isScriptOpen,
     script: voiceState?.transcript.map((turn) => ({ speaker: turn.role, text: turn.text })) ?? [],
-    scriptHint: voiceState?.scriptHint ?? '',
+    scriptHint: voiceState?.scriptHint ?? null,
     displayName: voiceState?.displayName ?? '',
     connection: voiceState?.connection ?? 'idle',
     isPlaybackBlocked: voiceState?.isPlaybackBlocked ?? false,

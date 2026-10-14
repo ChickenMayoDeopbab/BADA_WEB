@@ -146,4 +146,31 @@ describe('voice transport', () => {
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'WS_TIMEOUT' }))
     expect(vi.getTimerCount()).toBe(0)
   })
+
+  it('preserves recommendation/advice levels and accepts an empty no-hint frame like app PR #186', async () => {
+    const { transport, onMessage, onError } = createTransport()
+    await transport.connect()
+    const socket = FakeSocket.instances[0]
+    socket.onmessage?.({ data: JSON.stringify({ type: 'scenario_info', aiRole: '' }) })
+    socket.onmessage?.({
+      data: JSON.stringify({ type: 'script_hint', level: 1, text: ' 예약하고 싶어요. ' }),
+    })
+    expect(onMessage).toHaveBeenLastCalledWith({
+      type: 'script_hint',
+      level: 1,
+      text: '예약하고 싶어요.',
+    })
+    socket.onmessage?.({
+      data: JSON.stringify({ type: 'script_hint', level: 2, text: '인원수를 알려주세요.' }),
+    })
+    expect(onMessage).toHaveBeenLastCalledWith({
+      type: 'script_hint',
+      level: 2,
+      text: '인원수를 알려주세요.',
+    })
+    socket.onmessage?.({ data: JSON.stringify({ type: 'script_hint', level: 3 }) })
+    expect(onMessage).toHaveBeenLastCalledWith({ type: 'script_hint', level: 3, text: '' })
+    expect(onError).not.toHaveBeenCalled()
+    transport.dispose()
+  })
 })
