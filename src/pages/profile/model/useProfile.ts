@@ -57,6 +57,7 @@ export const useUpdateMyPage = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: updateMyPage,
+    meta: { successMessage: '프로필을 저장했어요.' },
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: profileKeys.all }),
@@ -92,6 +93,7 @@ export const useUpdateNotificationSettings = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: updateNotificationSettings,
+    meta: { successMessage: '알림 설정을 저장했어요.' },
     onSuccess: (settings) => queryClient.setQueryData(profileKeys.notifications, settings),
   })
 }

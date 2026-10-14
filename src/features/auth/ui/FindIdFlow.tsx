@@ -79,7 +79,7 @@ export const FindIdFlow = () => {
             <AuthButton
               type="submit"
               label="아이디 찾기"
-              disabled={findId.isSearching || findId.emailVerification.isVerifying}
+              isLoading={findId.isSearching || findId.emailVerification.isVerifying}
             />
             <AuthButton variant="secondary" label="로그인 하러가기" onClick={findId.goToLogin} />
           </div>

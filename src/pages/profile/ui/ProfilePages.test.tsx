@@ -2,35 +2,36 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const { profileImageQueryMock, profileQueryMock, withdrawAccountMock, updateProfileMock } = vi.hoisted(() => ({
-  updateProfileMock: vi.fn().mockResolvedValue(undefined),
-  withdrawAccountMock: vi.fn(),
-  profileImageQueryMock: { data: undefined as string | undefined },
-  profileQueryMock: {
-    data: {
-      name: '변성우',
-      username: 'b2ong222',
-      email: 'bongchock45@gmail.com',
-      s3Key: undefined as string | undefined,
-      level: 'LEVEL_2',
-      levelName: '초급',
-      trainCount: 7,
-      attendance: 3,
-    } as
-      | {
-          name: string
-          username: string
-          email: string
-          s3Key?: string
-          level: string
-          levelName: string
-          trainCount: number
-          attendance: number
-        }
-      | undefined,
-    isError: false,
-  },
-}))
+const { profileImageQueryMock, profileQueryMock, withdrawAccountMock, updateProfileMock } =
+  vi.hoisted(() => ({
+    updateProfileMock: vi.fn().mockResolvedValue(undefined),
+    withdrawAccountMock: vi.fn(),
+    profileImageQueryMock: { data: undefined as string | undefined },
+    profileQueryMock: {
+      data: {
+        name: '변성우',
+        username: 'b2ong222',
+        email: 'bongchock45@gmail.com',
+        s3Key: undefined as string | undefined,
+        level: 'LEVEL_2',
+        levelName: '초급',
+        trainCount: 7,
+        attendance: 3,
+      } as
+        | {
+            name: string
+            username: string
+            email: string
+            s3Key?: string
+            level: string
+            levelName: string
+            trainCount: number
+            attendance: number
+          }
+        | undefined,
+      isError: false,
+    },
+  }))
 
 vi.mock('../model/useProfile', () => ({
   useMyPage: () => profileQueryMock,
@@ -60,7 +61,11 @@ vi.mock('../model/useProfile', () => ({
 
 vi.mock('@features/auth', () => ({ clearAuthSession: vi.fn() }))
 vi.mock('../model/useProfileImageConsent', () => ({
-  useProfileImageConsent: () => ({ ensureConsent: vi.fn().mockResolvedValue(true), isChecking: false, isDialogOpen: false }),
+  useProfileImageConsent: () => ({
+    ensureConsent: vi.fn().mockResolvedValue(true),
+    isChecking: false,
+    isDialogOpen: false,
+  }),
 }))
 
 afterEach(() => {
@@ -87,9 +92,13 @@ describe('Profile pages', () => {
     expect(screen.queryByRole('link', { name: '프로필 사진 변경' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '기본 이미지로 변경' }))
     fireEvent.click(screen.getByRole('button', { name: '변경사항 저장' }))
-    await waitFor(() => expect(updateProfileMock).toHaveBeenCalledWith({
-      name: '변성우', username: 'b2ong222', s3Key: '',
-    }))
+    await waitFor(() =>
+      expect(updateProfileMock).toHaveBeenCalledWith({
+        name: '변성우',
+        username: 'b2ong222',
+        s3Key: '',
+      }),
+    )
   })
 
   it('uses the same horizontal header layout as training records', () => {
@@ -140,7 +149,7 @@ describe('Profile pages', () => {
     expect(screen.getByRole('heading', { name: '프로필', level: 1 })).toBeInTheDocument()
     expect(document.body.style.overflow).toBe('hidden')
     expect(document.documentElement.style.overflow).toBe('hidden')
-    expect(document.body.style.touchAction).toBe('none')
+    expect(document.body.style.touchAction).not.toBe('none')
 
     fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
 
@@ -180,7 +189,10 @@ describe('Profile pages', () => {
     )
 
     const recordLink = screen.getByRole('link', { name: '피자 배달 기록 보기' })
-    expect(recordLink).toHaveAttribute('href', '/records?recordId=37&trainedAt=2026-09-03T12%3A00%3A00')
+    expect(recordLink).toHaveAttribute(
+      'href',
+      '/records?recordId=37&trainedAt=2026-09-03T12%3A00%3A00',
+    )
 
     fireEvent.click(recordLink)
     expect(screen.getByRole('heading', { name: '훈련 기록' })).toBeInTheDocument()
@@ -227,8 +239,11 @@ describe('Profile pages', () => {
     fireEvent.click(calmWave)
     expect(calmWave).toHaveClass('bg-primary-alternative')
 
-    fireEvent.click(screen.getAllByText('미리듣기')[0])
-    expect(screen.getByText('정지')).toBeInTheDocument()
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()
+    fireEvent.click(screen.getByRole('button', { name: '기본 벨소리 미리듣기' }))
+    return waitFor(() =>
+      expect(screen.getByRole('button', { name: '기본 벨소리 정지' })).toBeInTheDocument(),
+    )
   })
 
   it('changes the selected display language', () => {
@@ -241,6 +256,6 @@ describe('Profile pages', () => {
     const english = screen.getByRole('button', { name: /English/ })
     fireEvent.click(english)
 
-    expect(within(english).getByText('사용 중')).toBeInTheDocument()
+    expect(within(english).getByText('선택됨')).toBeInTheDocument()
   })
 })

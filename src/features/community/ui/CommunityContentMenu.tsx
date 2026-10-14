@@ -1,6 +1,6 @@
 import { useBlockUser } from '@entities/user-block'
-import { ConfirmDialog } from '@shared/ui'
-import { useEffect, useRef, useState } from 'react'
+import { ActionDropdown, ConfirmDialog } from '@shared/ui'
+import { useState } from 'react'
 import { FiMoreVertical } from 'react-icons/fi'
 
 /** 다른 사람의 게시글·댓글 메뉴에서 콘텐츠 신고와 사용자 차단을 제공합니다. */
@@ -17,67 +17,23 @@ export const CommunityContentMenu = ({
   onReport?: () => void
   reportTarget?: '게시글' | '댓글' | '답글'
 }) => {
-  const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
-  useEffect(() => {
-    if (!open) return
-    const outside = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) setOpen(false)
-    }
-    const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', outside)
-    document.addEventListener('keydown', escape)
-    return () => {
-      document.removeEventListener('mousedown', outside)
-      document.removeEventListener('keydown', escape)
-    }
-  }, [open])
   const block = useBlockUser()
   return (
-    <div ref={menuRef} className="relative">
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-label={onReport ? `${name} ${reportTarget} 메뉴` : `${name} 사용자 메뉴`}
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-        className="p-1 rounded-pill text-label-alternative hover:bg-fill-normal"
-      >
-        <FiMoreVertical className="size-5" />
-      </button>
-      {open && (
-        <div className="right-0 top-8 w-40 absolute z-20 overflow-hidden rounded-control border border-line-alternative bg-background-normal shadow-elevated-card">
-          {onReport && (
-            <button
-              type="button"
-              className="px-3 py-2 block w-full text-left text-label hover:bg-fill-normal"
-              onClick={() => {
-                setOpen(false)
-                triggerRef.current?.focus()
-                onReport()
-              }}
-            >
-              {reportTarget} 신고하기
-            </button>
-          )}
-          <button
-            type="button"
-            disabled={block.isPending}
-            className="px-3 py-2 block w-full text-left text-label text-status-error hover:bg-fill-normal"
-            onClick={() => {
-              setOpen(false)
-              triggerRef.current?.focus()
-              setConfirming(true)
-            }}
-          >
-            {block.isPending ? '차단 중' : '사용자 차단하기'}
-          </button>
-        </div>
-      )}
+    <div>
+      <ActionDropdown
+        label={onReport ? `${name} ${reportTarget} 메뉴` : `${name} 사용자 메뉴`}
+        icon={<FiMoreVertical className="size-5" />}
+        items={[
+          ...(onReport ? [{ label: `${reportTarget} 신고하기`, onSelect: onReport }] : []),
+          {
+            label: block.isPending ? '차단 중' : '사용자 차단하기',
+            onSelect: () => setConfirming(true),
+            isDisabled: block.isPending,
+            isDanger: true,
+          },
+        ]}
+      />
       {block.isError && (
         <p role="alert" className="text-caption text-status-error">
           차단하지 못했습니다. 다시 시도해 주세요.

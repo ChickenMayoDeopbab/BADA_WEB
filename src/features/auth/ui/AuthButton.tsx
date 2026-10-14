@@ -1,7 +1,9 @@
+import { LoadingSpinner } from '@shared/ui'
 import type { ButtonHTMLAttributes } from 'react'
 
 type AuthButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   label: string
+  isLoading?: boolean
   variant?: 'primary' | 'secondary'
   /** large: 전체 너비 액션 버튼, small: 입력 필드 옆 보조 버튼 */
   size?: 'large' | 'small'
@@ -26,17 +28,22 @@ const labelClassName = {
 // 인증 화면의 주요/보조 액션 버튼입니다.
 export const AuthButton = ({
   label,
+  isLoading = false,
   variant = 'primary',
   size = 'large',
   type = 'button',
   className = '',
+  disabled,
   ...props
 }: AuthButtonProps) => (
   <button
     type={type}
-    className={`px-3.5 flex items-center justify-center rounded-component font-bold transition-opacity disabled:cursor-not-allowed disabled:opacity-60 ${variantClassName[variant]} ${sizeClassName[size]} ${className}`}
+    disabled={disabled || isLoading}
+    aria-busy={isLoading}
+    className={`gap-2 px-3.5 flex items-center justify-center rounded-component font-bold transition-opacity disabled:cursor-not-allowed disabled:opacity-60 ${variantClassName[variant]} ${sizeClassName[size]} ${className}`}
     {...props}
   >
+    {isLoading && <LoadingSpinner />}
     <span className={labelClassName[size]}>{label}</span>
   </button>
 )

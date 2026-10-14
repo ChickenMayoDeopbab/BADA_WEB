@@ -1,7 +1,7 @@
 import { ProfileBackLink } from './ProfileBackLink'
 import { FiChevronDown } from 'react-icons/fi'
 import { useId, useState, type ReactNode } from 'react'
-import { ConfirmDialog, ServicePageContent } from '@shared/ui'
+import { LoadingRegion, Skeleton, ConfirmDialog, ServicePageContent } from '@shared/ui'
 import { getApiErrorMessage } from '@shared/api'
 import { PRIVACY_POLICY_TEXT } from '../model/privacyPolicy'
 import {
@@ -50,7 +50,7 @@ const DocumentAccordion = ({
           {title}
           <FiChevronDown
             aria-hidden="true"
-            className={`size-6 ease-out shrink-0 text-label-alternative transition-transform duration-400 motion-reduce:transition-none ${expanded ? 'rotate-180' : ''}`}
+            className={`size-6 ease-out ux-accordion shrink-0 text-label-alternative transition-transform motion-reduce:transition-none ${expanded ? 'rotate-180' : ''}`}
           />
         </button>
       </h2>
@@ -60,7 +60,7 @@ const DocumentAccordion = ({
         aria-labelledby={`${id}-button`}
         aria-hidden={!expanded}
         inert={!expanded}
-        className={`ease-out grid transition-[grid-template-rows,opacity] duration-400 motion-reduce:transition-none ${expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+        className={`ease-out ux-accordion grid transition-[grid-template-rows,opacity] motion-reduce:transition-none ${expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
       >
         <div className="min-h-0 overflow-hidden">
           <div className="mb-5 p-6 max-sm:p-4 rounded-component bg-fill-normal">{children}</div>
@@ -140,13 +140,17 @@ export const ProfilePrivacyPage = () => {
             className="p-6 max-sm:p-4 rounded-card border border-line-alternative bg-background-normal shadow-subtle-card"
           >
             <h2 className="text-headline1 font-bold text-label-normal">{title}</h2>
-            <p className="mt-3 text-label text-label-alternative" role="status">
-              {status.isPending
-                ? '동의 상태를 확인하고 있습니다.'
-                : status.isError
-                  ? '동의 상태를 불러오지 못했습니다.'
-                  : description}
-            </p>
+            <div className="mt-3 text-label text-label-alternative">
+              {status.isPending ? (
+                <LoadingRegion label="동의 상태를 확인하는 중">
+                  <Skeleton className="h-4 w-2/3" />
+                </LoadingRegion>
+              ) : status.isError ? (
+                '동의 상태를 불러오지 못했습니다.'
+              ) : (
+                description
+              )}
+            </div>
             {status.isError && (
               <button
                 className="mt-3 text-label text-primary-normal"

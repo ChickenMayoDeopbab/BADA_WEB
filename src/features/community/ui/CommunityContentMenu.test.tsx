@@ -17,11 +17,11 @@ it('취소하면 차단하지 않고 확인하면 대상 ID를 차단한다', ()
   HTMLDialogElement.prototype.close = vi.fn()
   render(<CommunityContentMenu id={23} name="사용자" />)
   fireEvent.click(screen.getByRole('button', { name: '사용자 사용자 메뉴' }))
-  fireEvent.click(screen.getByRole('button', { name: '사용자 차단하기' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: '사용자 차단하기' }))
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
   expect(mutate).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: '사용자 사용자 메뉴' }))
-  fireEvent.click(screen.getByRole('button', { name: '사용자 차단하기' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: '사용자 차단하기' }))
   fireEvent.click(screen.getByRole('button', { name: '차단하기' }))
   expect(mutate).toHaveBeenCalledWith(
     23,

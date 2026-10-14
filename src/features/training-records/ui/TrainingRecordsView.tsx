@@ -1,3 +1,5 @@
+import { OverlayPortal } from '@shared/ui'
+import { useDialogFocus } from '@shared/lib'
 import {
   trainingPeriodOptions,
   type TrainingFeedback,
@@ -17,7 +19,16 @@ import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
 import { AudioPreview } from './AudioPreview'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
-import { BackIcon, ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
+import {
+  ListSkeleton,
+  LoadingRegion,
+  Skeleton,
+  StatusState,
+  BackIcon,
+  ServicePageContent,
+  ServiceSearchField,
+  ServiceTabs,
+} from '@shared/ui'
 import { useSearchParams } from 'react-router-dom'
 
 const periodTabs = trainingPeriodOptions.map(({ id, label }) => ({ value: id, label }))
@@ -170,7 +181,7 @@ const TimelineItem = ({
           </span>
           <span className="h-3 w-6 flex shrink-0 items-center justify-center">
             <img
-              className={`ease-out transition-transform duration-300 ${isExpanded ? 'rotate-90' : '-rotate-90'}`}
+              className={`ease-out ux-accordion transition-transform ${isExpanded ? 'rotate-90' : '-rotate-90'}`}
               src={isExpanded ? feedbackArrowOpen : feedbackArrow}
               alt=""
             />
@@ -178,10 +189,11 @@ const TimelineItem = ({
         </button>
         {(feedback.description || feedback.audioUrl || recordingUrl) && (
           <div
-            className={`ease-out grid transition-[grid-template-rows,opacity,margin] duration-300 motion-reduce:transition-none ${
+            className={`ease-out ux-accordion grid transition-[grid-template-rows,opacity,margin] motion-reduce:transition-none ${
               isExpanded ? 'mt-2 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0'
             }`}
             aria-hidden={!isExpanded}
+            inert={!isExpanded}
           >
             <div className="min-h-0 overflow-hidden">
               <div className="space-y-2">
@@ -211,6 +223,8 @@ const TimelineItem = ({
 )
 
 interface RecordDetailPanelProps {
+  onRetry: () => void
+  isRetrying: boolean
   record: TrainingRecord
   isOpen: boolean
   isLoading: boolean
@@ -243,28 +257,34 @@ const RecordDetailPanel = ({
   onToggleMenu,
   onDelete,
   onToggleAudio,
+  onRetry,
+  isRetrying,
 }: RecordDetailPanelProps) => {
   const { scrollRef, isDragging, dragScrollHandlers } = useDragScroll()
 
+  const dialogRef = useDialogFocus(isOpen, onClose)
+
   return (
-    <>
+    <OverlayPortal>
       <button
         type="button"
-        className={`inset-0 fixed z-20 cursor-default bg-common-100/10 ${
-          isOpen
-            ? 'animate-[record-backdrop-enter_320ms_ease-out]'
-            : 'animate-[record-backdrop-exit_260ms_ease-in] opacity-0'
-        } motion-reduce:animate-none`}
+        className="inset-0 fixed z-20 cursor-default bg-transparent"
+        tabIndex={-1}
         aria-label="훈련 기록 상세 닫기"
         onClick={onClose}
         disabled={!isOpen}
       />
       <aside
-        className={`bottom-4 right-4 top-4 fixed z-30 w-[540px] max-w-[calc(100%-32px)] overflow-hidden rounded-dialog bg-background-normal p-[30px] shadow-elevated-card ${
+        ref={dialogRef}
+        tabIndex={-1}
+        inert={!isOpen}
+        className={`ux-drawer bottom-4 right-4 top-4 fixed z-30 w-[540px] max-w-[calc(100%-32px)] overflow-hidden rounded-dialog bg-background-normal p-[30px] shadow-elevated-card ${
           isOpen
             ? 'animate-[record-detail-enter_320ms_cubic-bezier(0.22,1,0.36,1)]'
             : 'pointer-events-none animate-[record-detail-exit_260ms_cubic-bezier(0.4,0,1,1)]'
         } motion-reduce:animate-none`}
+        role="dialog"
+        aria-modal="true"
         aria-label="훈련 기록 상세"
         aria-hidden={!isOpen}
       >
@@ -332,12 +352,18 @@ const RecordDetailPanel = ({
               {...dragScrollHandlers}
             >
               {isLoading && (
-                <p className="py-8 text-center text-body text-label-alternative">
-                  상세 기록을 불러오는 중입니다.
-                </p>
+                <LoadingRegion label="상세 기록을 불러오는 중">
+                  <Skeleton className="h-24" />
+                  <Skeleton className="mt-3 h-24" />
+                </LoadingRegion>
               )}
               {!isLoading && errorMessage && (
-                <p className="py-8 text-center text-body text-status-error">{errorMessage}</p>
+                <StatusState
+                  isError
+                  title={errorMessage}
+                  onRetry={onRetry}
+                  isRetrying={isRetrying}
+                />
               )}
               {!isLoading && !errorMessage && record.feedbacks.length === 0 && (
                 <p className="py-8 text-center text-body text-label-alternative">
@@ -362,7 +388,7 @@ const RecordDetailPanel = ({
           </section>
         </div>
       </aside>
-    </>
+    </OverlayPortal>
   )
 }
 
@@ -383,7 +409,9 @@ export const TrainingRecordsView = () => {
     handleApplyPeriodRange,
     handlePreviousMonth,
     handleNextMonth,
-  } = useTrainingRecordCalendar(initialRecordId ? searchParams.get('trainedAt') ?? undefined : undefined)
+  } = useTrainingRecordCalendar(
+    initialRecordId ? (searchParams.get('trainedAt') ?? undefined) : undefined,
+  )
   const {
     records,
     filteredRecords,
@@ -398,8 +426,12 @@ export const TrainingRecordsView = () => {
     isMenuOpen,
     isAudioPlaying,
     isLoading,
+    isRefreshing,
+    retryRecords,
     recordsErrorMessage,
     isDetailLoading,
+    isDetailRefreshing,
+    retryDetail,
     detailErrorMessage,
     isDeleting,
     deleteErrorMessage,
@@ -427,7 +459,7 @@ export const TrainingRecordsView = () => {
   return (
     <ServicePageContent className="overflow-hidden">
       <div className="gap-4 flex w-full flex-col">
-        <header className="gap-3 flex items-center">
+        <header className="gap-x-3 gap-y-1 flex flex-wrap items-center">
           <h1 className="text-title1 font-bold text-label-normal">훈련 기록</h1>
           <p className="text-body font-medium text-neutral-60">
             훈련 정보와 피드백을 다시 확인해 보세요.
@@ -449,7 +481,7 @@ export const TrainingRecordsView = () => {
           />
         </div>
 
-        <section className="px-7 flex h-[136px] items-center justify-between rounded-dialog bg-background-normal">
+        <section className="px-7 max-sm:p-5 max-sm:gap-5 max-sm:h-auto max-sm:flex-col max-sm:items-start flex h-[136px] items-center justify-between rounded-dialog bg-background-normal">
           <div className="gap-2 flex flex-col">
             <button
               type="button"
@@ -467,29 +499,53 @@ export const TrainingRecordsView = () => {
               <img className="rotate-180" src={summaryArrow} alt="" />
             </button>
             <strong className="text-title1 font-bold text-primary-normal">
-              {formatSummaryDuration(totalDurationSeconds)}
+              {isLoading ? (
+                <Skeleton className="h-9 w-32" />
+              ) : recordsErrorMessage ? (
+                '-'
+              ) : (
+                formatSummaryDuration(totalDurationSeconds)
+              )}
             </strong>
           </div>
-          <dl className="gap-14 flex whitespace-nowrap">
+          <dl className="gap-14 max-sm:gap-8 flex whitespace-nowrap">
             <div className="space-y-1.5">
               <dt className="text-label text-label-alternative">훈련</dt>
               <dd className="text-title2 font-bold text-label-normal">
-                {filteredRecords.length}회
+                {isLoading ? (
+                  <Skeleton className="h-7 w-14" />
+                ) : recordsErrorMessage ? (
+                  '-'
+                ) : (
+                  `${filteredRecords.length}회`
+                )}
               </dd>
             </div>
             <div className="space-y-1.5">
               <dt className="text-label text-label-alternative">피드백</dt>
               <dd className="text-title2 font-bold text-label-normal">
-                {totalFeedbackCount === null ? '-' : `${totalFeedbackCount}개`}
+                {isLoading ? (
+                  <Skeleton className="h-7 w-14" />
+                ) : totalFeedbackCount === null ? (
+                  '-'
+                ) : (
+                  `${totalFeedbackCount}개`
+                )}
               </dd>
             </div>
             <div className="space-y-1.5">
               <dt className="text-label text-label-alternative">평균 시간</dt>
               <dd className="text-title2 font-bold text-label-normal">
-                {formatSummaryDuration(
-                  filteredRecords.length > 0
-                    ? Math.floor(totalDurationSeconds / filteredRecords.length)
-                    : 0,
+                {isLoading ? (
+                  <Skeleton className="h-7 w-16" />
+                ) : recordsErrorMessage ? (
+                  '-'
+                ) : (
+                  formatSummaryDuration(
+                    filteredRecords.length > 0
+                      ? Math.floor(totalDurationSeconds / filteredRecords.length)
+                      : 0,
+                  )
                 )}
               </dd>
             </div>
@@ -499,15 +555,14 @@ export const TrainingRecordsView = () => {
         <section className="gap-3 flex flex-col">
           <h2 className="text-title2 font-bold text-label-normal">최근 기록</h2>
           <div className="gap-2.5 flex flex-col">
-            {isLoading && (
-              <div className="flex h-[88px] items-center justify-center rounded-component border border-line-alternative bg-background-normal text-body text-neutral-60">
-                훈련 기록을 불러오는 중입니다.
-              </div>
-            )}
+            {isLoading && <ListSkeleton count={4} label="훈련 기록을 불러오는 중" />}
             {!isLoading && recordsErrorMessage && (
-              <div className="flex h-[88px] items-center justify-center rounded-component border border-line-alternative bg-background-normal text-body text-status-error">
-                {recordsErrorMessage}
-              </div>
+              <StatusState
+                isError
+                title={recordsErrorMessage}
+                onRetry={() => void retryRecords()}
+                isRetrying={isRefreshing}
+              />
             )}
             {groupedRecords.map((group) => (
               <section key={group.date} className="gap-2.5 flex flex-col">
@@ -547,6 +602,8 @@ export const TrainingRecordsView = () => {
 
       {selectedRecord && (
         <RecordDetailPanel
+          onRetry={() => void retryDetail()}
+          isRetrying={isDetailRefreshing}
           record={selectedRecord}
           isOpen={isDetailOpen}
           isLoading={isDetailLoading}

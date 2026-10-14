@@ -1,3 +1,4 @@
+import { useDialogFocus } from '@shared/lib'
 import { useScenarioCall, type ScenarioCallOptions } from '../model/useScenarioCall'
 import { useCallScriptScroll } from '../model/useCallScriptScroll'
 import { ScriptHintBar } from './ScriptHintBar'
@@ -81,6 +82,7 @@ const CallControl = ({
 /** Figma 수신·명상·통화·종료 화면을 표시합니다. */
 export const ScenarioCallView = (options: ScenarioCallOptions) => {
   const call = useScenarioCall(options)
+  const meditationRef = useDialogFocus(call.stage === 'meditationPrompt', call.handleStartCall)
   const scriptScrollRef = useCallScriptScroll(call.isScriptOpen, call.script)
   const title = call.scenario?.title ?? '시나리오 훈련'
 
@@ -118,7 +120,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
           type="button"
           onClick={call.handleStartCall}
           aria-label="명상을 마치고 통화 시작"
-          className="flex h-[540px] w-[960px] items-center justify-center rounded-dialog bg-fill-normal text-headline1 font-bold text-neutral-70"
+          className="flex h-[540px] w-[960px] max-w-full items-center justify-center rounded-dialog bg-fill-normal text-headline1 font-bold text-neutral-70"
         >
           (명상영상)
         </button>
@@ -132,8 +134,8 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
     call.stage === 'meditationPrompt'
   ) {
     return (
-      <main className="px-12 pt-12 pb-14 relative min-h-screen overflow-hidden bg-gradient-to-b from-background-normal to-train-call-gradient-end">
-        <div className="flex h-[calc(100vh-104px)] flex-col items-center justify-between">
+      <main className="px-12 pt-12 pb-14 max-sm:px-5 max-sm:pt-6 max-sm:pb-6 relative min-h-screen overflow-hidden bg-gradient-to-b from-background-normal to-train-call-gradient-end">
+        <div className="flex min-h-[calc(100dvh-104px)] flex-col items-center justify-between">
           <p className="text-body font-medium text-label-alternative">바다 시나리오 훈련</p>
           <Contact title={title} />
           {call.stage === 'scheduled' ? (
@@ -199,9 +201,12 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
         {call.stage === 'meditationPrompt' && (
           <div className="inset-0 fixed z-10 flex items-center justify-center bg-common-100/30">
             <section
+              ref={meditationRef}
+              tabIndex={-1}
+              aria-label="훈련 전 명상"
               role="dialog"
               aria-modal="true"
-              className="p-8 w-[460px] rounded-dialog bg-background-normal shadow-elevated-card"
+              className="ux-overlay p-8 w-[460px] max-w-[calc(100%-32px)] rounded-dialog bg-background-normal shadow-elevated-card"
             >
               <h2 className="text-headline2 font-bold text-label-normal">훈련 전 명상을 할까요?</h2>
               <p className="mt-2 text-body text-label-alternative">
@@ -251,13 +256,13 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
   return (
     <main
       aria-busy={isWaitingForResult}
-      className={`px-12 pb-14 pt-12 ease-out grid min-h-screen ${
+      className={`px-12 pb-14 pt-12 max-sm:px-5 max-sm:pt-6 max-sm:pb-6 ease-out grid min-h-screen ${
         isWaitingForResult
           ? 'bg-background-normal'
           : 'bg-gradient-to-b from-background-normal to-train-call-gradient-end transition-[grid-template-columns,gap] duration-300 motion-reduce:transition-none'
       } ${
         isScriptVisible
-          ? 'gap-6 grid-cols-[minmax(360px,1fr)_minmax(320px,min(42vw,620px))]'
+          ? 'gap-6 max-lg:grid-cols-1 grid-cols-[minmax(360px,1fr)_minmax(320px,min(42vw,620px))]'
           : 'gap-0 grid-cols-[minmax(0,1fr)_0px]'
       }`}
     >
@@ -346,7 +351,8 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
 
       <aside
         aria-hidden={!isScriptVisible}
-        className={`min-w-0 ease-out h-[calc(100vh-104px)] overflow-hidden rounded-dialog bg-background-normal transition-[opacity,transform] duration-300 motion-reduce:transition-none ${
+        inert={!isScriptVisible}
+        className={`min-w-0 ease-out max-lg:h-[360px] h-[calc(100dvh-104px)] overflow-hidden rounded-dialog bg-background-normal transition-[opacity,transform] duration-300 motion-reduce:transition-none ${
           isWaitingForResult
             ? 'hidden'
             : isScriptVisible

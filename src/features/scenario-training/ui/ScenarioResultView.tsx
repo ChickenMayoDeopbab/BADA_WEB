@@ -49,7 +49,7 @@ export const ScenarioResultView = () => {
   return (
     <main className="relative min-h-screen overflow-hidden bg-background-normal">
       <section
-        className={`absolute left-1/2 flex w-[760px] -translate-x-1/2 flex-col items-center text-center transition-[top,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+        className={`absolute left-1/2 flex w-[760px] max-w-[calc(100%-32px)] -translate-x-1/2 flex-col items-center text-center transition-[top,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
           result.isScoreVisible ? 'top-[72px]' : 'top-1/2 -translate-y-1/2'
         }`}
       >
@@ -59,7 +59,7 @@ export const ScenarioResultView = () => {
         >
           <img src={faceImages[result.message.face]} alt="" className="size-full" />
         </div>
-        <h1 className="mt-5 min-h-[94px] text-display1 font-bold whitespace-pre-line text-label-normal">
+        <h1 className="mt-5 max-sm:text-title1 min-h-[94px] text-display1 font-bold whitespace-pre-line text-label-normal">
           {result.typedText}
         </h1>
       </section>
@@ -79,6 +79,7 @@ export const ScenarioResultView = () => {
                     type="button"
                     onClick={() => result.setScore(score)}
                     aria-label={`불안 점수 ${score}`}
+                    aria-pressed={isSelected}
                     className="min-w-0 relative h-[129px] flex-1"
                   >
                     {isSelected && (
@@ -108,6 +109,7 @@ export const ScenarioResultView = () => {
             type="button"
             onClick={() => void result.handleSubmit()}
             disabled={result.isSubmitting}
+            aria-busy={result.isSubmitting}
             className="h-14 mt-[82px] w-full rounded-component bg-primary-normal text-headline2 font-bold text-common-0 disabled:bg-fill-alternative disabled:text-label-alternative"
           >
             {result.isSubmitting ? '기록 중...' : '훈련 마치기'}

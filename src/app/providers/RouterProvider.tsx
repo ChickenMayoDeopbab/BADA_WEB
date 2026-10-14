@@ -1,3 +1,4 @@
+import { RouteErrorPage } from './RouteErrorPage'
 import { ServiceLayout } from '../layouts/ServiceLayout'
 import { RequireAuth } from '@features/auth'
 import {
@@ -31,7 +32,7 @@ import { SelfDiagnosisPage } from '@pages/self-diagnosis'
 import { routePaths } from '@shared/config'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 
-const router = createBrowserRouter([
+const routes = [
   {
     path: routePaths.landing,
     element: <PlaceholderPage title="랜딩 페이지" />,
@@ -154,6 +155,10 @@ const router = createBrowserRouter([
     path: '*',
     element: <PlaceholderPage title="페이지를 찾을 수 없습니다." />,
   },
-])
+]
+
+const router = createBrowserRouter(
+  routes.map((route) => ({ ...route, errorElement: <RouteErrorPage /> })),
+)
 
 export const AppRouter = () => <RouterProvider router={router} />

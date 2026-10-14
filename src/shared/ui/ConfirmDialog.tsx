@@ -1,3 +1,4 @@
+import { lockPageScroll } from '@shared/lib'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 
 interface Props {
@@ -31,12 +32,11 @@ export const ConfirmDialog = ({
     const dialog = ref.current
     const focused = document.activeElement as HTMLElement | null
     dialog?.showModal()
-    const overflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const releaseScroll = lockPageScroll()
     return () => {
       dialog?.close()
-      document.body.style.overflow = overflow
-      focused?.focus()
+      releaseScroll()
+      if (focused?.isConnected) focused.focus({ preventScroll: true })
     }
   }, [])
   return (

@@ -18,7 +18,9 @@ export const ServiceLayout = () => {
         ref={contentRef}
         className="max-md:pb-24 min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
       >
-        <Outlet />
+        <div key={pathname} className="ux-page min-w-0 flex min-h-full flex-col">
+          <Outlet />
+        </div>
       </div>
     </div>
   )

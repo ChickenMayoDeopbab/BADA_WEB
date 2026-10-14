@@ -52,14 +52,30 @@ test('only deletes owned custom copies after confirmation and retains the dialog
   await page.getByRole('button', { name: '시나리오 메뉴 열기', exact: true }).click()
   await page.getByRole('button', { name: '시나리오 삭제하기', exact: true }).click()
   expect(attempts).toBe(0)
-  await page.getByRole('alertdialog').getByRole('button', { name: '삭제하기', exact: true }).click()
-  await expect(page.getByRole('alertdialog')).toContainText('삭제에 실패했어요.')
-  await page.getByRole('alertdialog').getByRole('button', { name: '삭제하기', exact: true }).click()
-  await expect(page.getByRole('alertdialog')).toHaveCount(0)
+  await page
+    .getByRole('dialog', { name: '가져온 예약 시나리오를 삭제할까요?' })
+    .getByRole('button', { name: '삭제하기', exact: true })
+    .click()
+  await expect(
+    page.getByRole('dialog', { name: '가져온 예약 시나리오를 삭제할까요?' }),
+  ).toContainText('삭제에 실패했어요.')
+  await page
+    .getByRole('dialog', { name: '가져온 예약 시나리오를 삭제할까요?' })
+    .getByRole('button', { name: '삭제하기', exact: true })
+    .click()
+  await expect(
+    page.getByRole('dialog', { name: '가져온 예약 시나리오를 삭제할까요?' }),
+  ).toHaveCount(0)
   await expect(
     page.getByRole('button', { name: '가져온 예약 상세 보기', exact: true }),
   ).toHaveCount(0)
   expect(attempts).toBe(2)
+  expect(
+    await page.evaluate(() => [
+      document.body.style.overflow,
+      document.documentElement.style.overflow,
+    ]),
+  ).toEqual(['', ''])
 })
 
 test('retries custom creation, retains inputs and starts a CUSTOM training session', async ({
@@ -137,7 +153,7 @@ test('retries custom creation, retains inputs and starts a CUSTOM training sessi
   await page.getByRole('tab', { name: '커스텀', exact: true }).click()
   await page.getByRole('button', { name: /나만의 시나리오 만들기/ }).click()
   await page.getByRole('button', { name: '카테고리', exact: true }).click()
-  await page.getByRole('button', { name: '일상', exact: true }).click()
+  await page.getByRole('menuitem', { name: '일상', exact: true }).click()
   await page.getByRole('textbox', { name: '시나리오 제목' }).fill('내 예약 변경')
   await page.getByRole('button', { name: '다음으로', exact: true }).click()
   await page.getByRole('textbox', { name: '전화 상대' }).fill('식당 예약 직원')
@@ -153,4 +169,10 @@ test('retries custom creation, retains inputs and starts a CUSTOM training sessi
   await page.getByRole('button', { name: '설정 완료하기', exact: true }).click()
   await expect(page.getByRole('button', { name: '전화 받기', exact: true })).toBeVisible()
   expect(attempts).toBe(2)
+  expect(
+    await page.evaluate(() => [
+      document.body.style.overflow,
+      document.documentElement.style.overflow,
+    ]),
+  ).toEqual(['', ''])
 })

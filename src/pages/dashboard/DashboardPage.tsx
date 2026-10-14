@@ -10,10 +10,10 @@ export default function DashboardPage() {
   return (
     <ServicePageContent className="gap-5 flex flex-col">
       <DashboardHeader />
-      <div className="gap-4 px-8 py-7 flex flex-col rounded-dialog bg-background-normal">
+      <div className="gap-4 px-8 py-7 max-lg:p-4 flex flex-col rounded-dialog bg-background-normal">
         <DashboardPromoCards />
         <WeeklyReport />
-        <div className="gap-4 flex">
+        <div className="gap-4 max-xl:flex-col flex">
           <AttendanceCalendar />
           <RecentTrainingRecords />
         </div>

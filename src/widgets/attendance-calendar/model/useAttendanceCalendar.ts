@@ -30,8 +30,9 @@ export const useAttendanceCalendar = () => {
   const [visibleMonth, setVisibleMonth] = useState(currentMonth)
   const year = visibleMonth.getFullYear()
   const monthIndex = visibleMonth.getMonth()
-  const { data: attendedDates } = useMonthlyAttendance(year, monthIndex + 1)
+  const query = useMonthlyAttendance(year, monthIndex + 1)
 
+  const attendedDates = query.data
   const weeks = getCalendarWeeks(year, monthIndex).map((week) =>
     week.map((date): CalendarDay | null => {
       if (!date) {
@@ -45,6 +46,10 @@ export const useAttendanceCalendar = () => {
   )
 
   return {
+    isPending: query.isPending,
+    isError: query.isError,
+    isFetching: query.isFetching,
+    refetch: query.refetch,
     title: year === today.getFullYear() ? `${monthIndex + 1}월` : `${year}년 ${monthIndex + 1}월`,
     weeks,
     canGoNext: visibleMonth < currentMonth,

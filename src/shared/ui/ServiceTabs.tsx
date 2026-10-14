@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+
 interface ServiceTabItem<Value extends string> {
   value: Value
   label: string
@@ -21,6 +23,7 @@ export const ServiceTabs = <Value extends string>({
   label,
   onChange,
 }: ServiceTabsProps<Value>) => {
+  const buttons = useRef<(HTMLButtonElement | null)[]>([])
   const activeIndex = items.findIndex((item) => item.value === value)
   const activeItem = items[activeIndex]
   const activeOffset = items
@@ -34,14 +37,34 @@ export const ServiceTabs = <Value extends string>({
       aria-label={label}
       role="tablist"
     >
-      {items.map((item) => (
+      {items.map((item, index) => (
         <button
           key={item.value}
+          ref={(element) => {
+            buttons.current[index] = element
+          }}
+          tabIndex={value === item.value ? 0 : -1}
+          onKeyDown={(event) => {
+            const target =
+              event.key === 'Home'
+                ? 0
+                : event.key === 'End'
+                  ? items.length - 1
+                  : event.key === 'ArrowRight'
+                    ? (index + 1) % items.length
+                    : event.key === 'ArrowLeft'
+                      ? (index - 1 + items.length) % items.length
+                      : null
+            if (target === null) return
+            event.preventDefault()
+            onChange(items[target].value)
+            buttons.current[target]?.focus()
+          }}
           type="button"
           role="tab"
           aria-selected={value === item.value}
           onClick={() => onChange(item.value)}
-          className={`ease-out text-center text-title2 font-bold transition-colors duration-[420ms] motion-reduce:transition-none ${
+          className={`ease-out ux-tab text-center text-title2 font-bold transition-colors motion-reduce:transition-none ${
             value === item.value
               ? 'text-primary-normal'
               : 'text-neutral-70 hover:text-label-neutral'
@@ -53,7 +76,7 @@ export const ServiceTabs = <Value extends string>({
       ))}
       {activeItem && (
         <span
-          className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute bg-primary-normal transition-[transform,width] duration-[420ms] motion-reduce:transition-none"
+          className="bottom-0 left-0 h-0.5 ease-out ux-tab pointer-events-none absolute bg-primary-normal transition-[transform,width] motion-reduce:transition-none"
           style={{
             width: activeItem.width ?? defaultTabWidth,
             transform: `translateX(${activeOffset}px)`,

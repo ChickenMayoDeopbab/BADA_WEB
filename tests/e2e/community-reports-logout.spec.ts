@@ -139,7 +139,7 @@ const prepareCommunity = async (page: Page) => {
 /** 대상별 메뉴에서 신고 사유 입력 창을 엽니다. */
 const openReport = async (page: Page, name: string, target: '게시글' | '댓글' | '답글') => {
   await page.getByRole('button', { name: `@${name} ${target} 메뉴`, exact: true }).click()
-  await page.getByRole('button', { name: `${target} 신고하기`, exact: true }).click()
+  await page.getByRole('menuitem', { name: `${target} 신고하기`, exact: true }).click()
   return page.getByRole('dialog', { name: `${target} 신고하기`, exact: true })
 }
 
@@ -218,7 +218,7 @@ test('keeps the report dialog and reason on server failure and allows an explici
 test('preserves user blocking alongside the report menu', async ({ page }) => {
   const api = await prepareCommunity(page)
   await page.getByRole('button', { name: '@작성자 게시글 메뉴', exact: true }).click()
-  await page.getByRole('button', { name: '사용자 차단하기', exact: true }).click()
+  await page.getByRole('menuitem', { name: '사용자 차단하기', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: '차단하기', exact: true }).click()
   await expect(page).toHaveURL(/\/community$/)
   expect(api.blocks).toEqual(['/api/v1/community/users/42/block'])

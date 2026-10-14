@@ -14,6 +14,7 @@ export const usePrivacySettings = () => {
   const queryClient = useQueryClient()
   const status = useQuery({ queryKey: consentKey, queryFn: getLegalConsentStatus })
   const update = useMutation({
+    meta: { successMessage: '동의 설정을 변경했어요.' },
     mutationFn: async ({ type, agreed }: { type: OptionalConsent; agreed: boolean }) => {
       if (!agreed) {
         if (type === 'profileImage') return withdrawProfileImageConsent()

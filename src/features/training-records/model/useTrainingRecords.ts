@@ -1,3 +1,4 @@
+import { getDrawerCloseDelay } from '@shared/lib'
 import {
   deleteTrainingRecord,
   getTrainingRecord,
@@ -14,7 +15,10 @@ const RECORDS_SYNC_INTERVAL_MS = 5_000
 const TRAINING_RECORDS_QUERY_KEY = ['training-records'] as const
 
 // 훈련 기록 화면의 조회, 검색, 선택, 상세 패널 상태를 관리합니다.
-export const useTrainingRecords = (dateRange?: TrainingRecordDateRange, initialRecordId?: number) => {
+export const useTrainingRecords = (
+  dateRange?: TrainingRecordDateRange,
+  initialRecordId?: number,
+) => {
   const queryClient = useQueryClient()
   const [period, setPeriod] = useState<TrainingPeriod>('daily')
   const [searchQuery, setSearchQuery] = useState('')
@@ -118,15 +122,21 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange, initialR
     [filteredRecordDetailQueries],
   )
   const paginatedRecords = useMemo(
-    () => paginatedListRecords.map((record) => {
-      const detail = detailedRecordsById.get(record.id)
-      return detail ? { ...record, ...detail, thumbnailUrl: detail.thumbnailUrl ?? record.thumbnailUrl } : record
-    }),
+    () =>
+      paginatedListRecords.map((record) => {
+        const detail = detailedRecordsById.get(record.id)
+        return detail
+          ? { ...record, ...detail, thumbnailUrl: detail.thumbnailUrl ?? record.thumbnailUrl }
+          : record
+      }),
     [detailedRecordsById, paginatedListRecords],
   )
   const selectedListRecord = records.find((record) => record.id === selectedRecordId) ?? null
   const selectedRecord = recordDetailQuery.data
-    ? { ...recordDetailQuery.data, thumbnailUrl: recordDetailQuery.data.thumbnailUrl ?? selectedListRecord?.thumbnailUrl }
+    ? {
+        ...recordDetailQuery.data,
+        thumbnailUrl: recordDetailQuery.data.thumbnailUrl ?? selectedListRecord?.thumbnailUrl,
+      }
     : selectedListRecord
   const totalDurationSeconds = filteredRecords.reduce(
     (total, record) => total + record.durationSeconds,
@@ -182,7 +192,7 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange, initialR
     detailCloseTimerRef.current = window.setTimeout(() => {
       setSelectedRecordId(null)
       detailCloseTimerRef.current = null
-    }, 260)
+    }, getDrawerCloseDelay())
   }
 
   // 피드백 상세 내용을 펼치거나 접습니다.
@@ -224,6 +234,10 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange, initialR
     isMenuOpen,
     isAudioPlaying,
     isLoading: recordsQuery.isPending,
+    isRefreshing: recordsQuery.isFetching,
+    retryRecords: recordsQuery.refetch,
+    retryDetail: recordDetailQuery.refetch,
+    isDetailRefreshing: recordDetailQuery.isFetching,
     recordsErrorMessage: recordsQuery.isError
       ? getApiErrorMessage(recordsQuery.error, '훈련 기록을 불러오지 못했습니다.')
       : '',
