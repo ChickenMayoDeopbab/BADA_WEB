@@ -7,6 +7,7 @@ test.use({
 declare global {
   interface Window {
     badaAudioAudit: { contexts: AudioContext[]; streams: MediaStream[] }
+    badaGrantMicrophone: () => Promise<void>
   }
 }
 
@@ -792,20 +793,28 @@ test('shows one changing next-sentence hint from the voice stream beside the lat
   await expect(page).toHaveURL(/\/training\/1\/result$/)
 })
 
-test('renders only spoken WebSocket transcripts and never loads scenario example dialogue during a call', async ({ page }) => {
+test('renders only spoken WebSocket transcripts and never loads scenario example dialogue during a call', async ({
+  page,
+}) => {
   const audit = await prepareCall(page)
   let exampleRequests = 0
   await page.route('**/api/v1/scenario/1/example', async (route) => {
     exampleRequests += 1
-    await route.fulfill({ json: { dialogue: [
-      { speaker: 'ai', text: '표시되면 안 되는 미리 작성된 대화' },
-      { speaker: 'user', text: '실제로 말하지 않은 예시 문장' },
-    ] } })
+    await route.fulfill({
+      json: {
+        dialogue: [
+          { speaker: 'ai', text: '표시되면 안 되는 미리 작성된 대화' },
+          { speaker: 'user', text: '실제로 말하지 않은 예시 문장' },
+        ],
+      },
+    })
   })
   await startCall(page)
   await expect(page.getByRole('heading', { name: '상담 직원', exact: true })).toBeVisible()
   await page.getByRole('button', { name: '스크립트 보기', exact: true }).click()
-  await expect(page.getByRole('heading', { name: '실시간 대화 스크립트', exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '실시간 대화 스크립트', exact: true }),
+  ).toBeVisible()
   await expect(page.locator('aside li')).toHaveCount(0)
   await expect(page.getByText('표시되면 안 되는 미리 작성된 대화', { exact: false })).toHaveCount(0)
   await expect.poll(() => audit.binaryFrames.length).toBeGreaterThan(0)
@@ -819,4 +828,81 @@ test('renders only spoken WebSocket transcripts and never loads scenario example
   expect(audit.errors).toEqual([])
   await page.getByRole('button', { name: '통화 종료', exact: true }).click()
   await expect(page).toHaveURL(/\/training\/1\/result$/)
+})
+
+test('can grant microphone permission after thirty seconds and still start the voice call', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  await page.addInitScript(() => {
+    const getUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices)
+    navigator.mediaDevices.getUserMedia = (constraints) =>
+      new Promise<MediaStream>((resolve, reject) => {
+        window.badaGrantMicrophone = async () => {
+          try {
+            resolve(await getUserMedia(constraints))
+          } catch (error) {
+            reject(error)
+          }
+        }
+      })
+  })
+  await page.clock.install()
+  await startCall(page)
+  await expect(
+    page.getByRole('status').filter({ hasText: '브라우저에서 마이크 사용을 허용해 주세요.' }),
+  ).toBeVisible()
+  await page.clock.fastForward(31000)
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  expect(audit.messages).toEqual([])
+  await page.evaluate(() => window.badaGrantMicrophone())
+  await expect(page.getByRole('heading', { name: '상담 직원', exact: true })).toBeVisible()
+  await expect.poll(() => audit.binaryFrames.length).toBeGreaterThan(0)
+  await page.getByRole('button', { name: '통화 종료', exact: true }).click()
+  await expect(page.getByText('훈련을 종료했습니다.', { exact: true })).toBeVisible()
+  await page.clock.fastForward(2000)
+  await expect(page).toHaveURL(/\/training\/1\/result$/)
+  expect(audit.errors).toEqual([])
+})
+
+test('waits for server end persistence without sending audio or failing after fifteen seconds', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  let socket!: WebSocketRoute
+  let hasReceivedEnd = false
+  await page.routeWebSocket('**/ws/voice/*', (route) => {
+    socket = route
+    route.onMessage((message) => {
+      if (typeof message !== 'string') return
+      const frame = JSON.parse(message)
+      if (frame.type === 'auth')
+        route.send(JSON.stringify({ type: 'scenario_info', aiRole: '저장 검증 직원' }))
+      if (frame.type === 'end') hasReceivedEnd = true
+    })
+  })
+  await page.clock.install()
+  await startCall(page)
+  await expect(page.getByRole('heading', { name: '저장 검증 직원', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '통화 종료', exact: true }).click()
+  await expect.poll(() => hasReceivedEnd).toBe(true)
+  await page.clock.fastForward(70000)
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(
+    page.getByRole('status').filter({ hasText: '훈련 기록과 피드백을 저장하고 있어요.' }),
+  ).toBeVisible()
+  expect(
+    await page.evaluate(
+      () =>
+        window.badaAudioAudit.contexts.every((context) => context.state === 'closed') &&
+        window.badaAudioAudit.streams.every((stream) =>
+          stream.getTracks().every((track) => track.readyState === 'ended'),
+        ),
+    ),
+  ).toBe(true)
+  socket.send(JSON.stringify({ type: 'end', reason: 'USER_END' }))
+  await expect(page.getByText('훈련을 종료했습니다.', { exact: true })).toBeVisible()
+  await page.clock.fastForward(2000)
+  await expect(page).toHaveURL(/\/training\/1\/result$/)
+  expect(audit.errors).toEqual([])
 })

@@ -23,6 +23,11 @@ export default defineConfig(({ mode }) => {
       // 다른 체크아웃이 같은 포트를 쓰면 자동으로 다른 포트에 뜨지 않도록 합니다.
       port: 5173,
       strictPort: true,
+      // 개발 통화 진단은 토큰·음성·스크립트를 제외한 info 수치만 전달합니다.
+      forwardConsole:
+        environment.VITE_VOICE_DIAGNOSTICS_FORWARD === 'true'
+          ? { unhandledErrors: false, logLevels: ['info'] }
+          : undefined,
       proxy: aiApiTarget
         ? {
             '/__bada_ai': {

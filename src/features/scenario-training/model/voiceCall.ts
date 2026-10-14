@@ -12,6 +12,7 @@ export interface VoiceCallState {
   isMuted: boolean
   isPlaybackBlocked: boolean
   isAudioSuspended: boolean
+  isMicrophonePending: boolean
   displayName: string
   transcript: Array<{ role: 'ai' | 'user'; text: string }>
   scriptHint: ScriptHint | null
@@ -48,6 +49,7 @@ export class VoiceCall {
     isMuted: false,
     isPlaybackBlocked: false,
     isAudioSuspended: false,
+    isMicrophonePending: true,
     displayName: '',
     transcript: [],
     scriptHint: null,
@@ -99,6 +101,12 @@ export class VoiceCall {
         })
       },
       onError: this.fail,
+      onMicrophoneReady: () => {
+        if (this.isDisposed || ['error', 'ended'].includes(this.state.stage)) return
+        // 권한 팝업에 답하는 시간은 오디오 초기화 제한 시간에 포함하지 않습니다.
+        this.prepareTimer = setTimeout(() => this.fail(new Error('AUDIO_PREPARE_TIMEOUT')), 30000)
+        this.update({ isMicrophonePending: false })
+      },
       onSuspended: (isAudioSuspended) => {
         if (this.state.isAudioSuspended === isAudioSuspended) return
         this.update({ isAudioSuspended })
@@ -112,14 +120,13 @@ export class VoiceCall {
     if (this.hasStarted || this.isDisposed) return
     this.hasStarted = true
     this.update({ stage: 'preparing' })
-    this.prepareTimer = setTimeout(() => this.fail(new Error('AUDIO_PREPARE_TIMEOUT')), 30000)
     try {
       await this.audio.prepare()
       if (this.isDisposed || this.state.stage === 'error' || this.state.stage === 'ended') return
       if (this.prepareTimer) clearTimeout(this.prepareTimer)
       this.prepareTimer = null
       this.isAudioReady = true
-      this.update({ stage: 'connecting', connection: 'connecting' })
+      this.update({ stage: 'connecting', connection: 'connecting', isMicrophonePending: false })
       await this.transport.connect()
     } catch (error) {
       this.fail(error)
@@ -150,7 +157,8 @@ export class VoiceCall {
     }
     // 앱의 boolean 상태 변경처럼 실제 게이트 전환마다 한 번만 서버에 알립니다.
     if (this.state.connection === 'authenticated' && this.isServerMuted !== isBlocked) {
-      if (this.transport.sendJson({ type: 'mute', muted: isBlocked })) this.isServerMuted = isBlocked
+      if (this.transport.sendJson({ type: 'mute', muted: isBlocked }))
+        this.isServerMuted = isBlocked
     }
   }
 
@@ -237,7 +245,8 @@ export class VoiceCall {
       this.finish('USER_END')
       return
     }
-    this.endTimer = setTimeout(() => this.fail(new Error('WS_END_TIMEOUT')), 15000)
+    // 서버는 녹음 업로드·음성 분석·피드백 저장 및 Spring 커밋 후 end를 보냅니다.
+    this.endTimer = setTimeout(() => this.fail(new Error('WS_END_TIMEOUT')), 90000)
     if (!this.transport.sendJson({ type: 'end' })) this.fail(new Error('WS_SEND_FAILED'))
   }
 
@@ -270,6 +279,9 @@ export class VoiceCall {
       errorMessage: getCallErrorMessage(error),
     })
     this.cleanup()
+    const code =
+      error instanceof Error && /^[A-Z_]{1,64}$/.test(error.message) ? error.message : 'UNKNOWN'
+    reportVoiceDiagnostic('call_failed', { code })
   }
 
   /** 새 스냅샷을 발행해 UI와 입력 게이트가 동일한 상태를 사용하게 합니다. */

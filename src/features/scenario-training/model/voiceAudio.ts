@@ -8,6 +8,7 @@ interface VoiceAudioOptions {
   onStats: (stats: PlaybackStats) => void
   onError: (error: unknown) => void
   onSuspended: (isSuspended: boolean) => void
+  onMicrophoneReady: () => void
 }
 
 /** 하나의 오디오 그래프로 마이크 입력과 순서가 보장되는 AI 출력을 관리합니다. */
@@ -74,6 +75,7 @@ export class VoiceAudio {
         stream.getAudioTracks().forEach((track) => {
           track.onended = () => this.options.onError(new Error('MICROPHONE_ENDED'))
         })
+        this.options.onMicrophoneReady()
       })
     await Promise.all([resume, microphone])
     if (this.isDisposed) return

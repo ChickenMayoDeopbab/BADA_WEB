@@ -236,11 +236,13 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
   const isActive = call.stage === 'active'
   const statusMessage =
     call.stage === 'preparing'
-      ? '마이크를 준비하고 있어요.'
+      ? call.isMicrophonePending
+        ? '브라우저에서 마이크 사용을 허용해 주세요.'
+        : '마이크를 준비하고 있어요.'
       : call.stage === 'connecting'
         ? '통화 서버에 연결하고 있어요.'
         : call.stage === 'ending'
-          ? '통화 종료를 확인하고 있어요.'
+          ? '통화는 종료됐어요. 훈련 기록과 피드백을 저장하고 있어요.'
           : call.isAudioSuspended
             ? '음성 활성화 버튼을 눌러 주세요.'
             : call.isMuted

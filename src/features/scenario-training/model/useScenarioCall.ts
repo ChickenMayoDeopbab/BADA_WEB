@@ -367,6 +367,7 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
     connection: voiceState?.connection ?? 'idle',
     isPlaybackBlocked: voiceState?.isPlaybackBlocked ?? false,
     isAudioSuspended: voiceState?.isAudioSuspended ?? false,
+    isMicrophonePending: voiceState?.isMicrophonePending ?? false,
     notice: voiceState?.notice ?? '',
     errorMessage:
       sessionErrorMessage ||

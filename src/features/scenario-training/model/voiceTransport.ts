@@ -102,6 +102,8 @@ export class VoiceTransport {
     if (this.isDisposed || this.socket?.readyState !== WebSocket.OPEN) return false
     try {
       this.socket.send(JSON.stringify(payload))
+      // 기록을 저장하는 서버의 drain 단계는 ping에 응답하지 않습니다.
+      if ('type' in payload && payload.type === 'end') this.clearTimers()
       return true
     } catch {
       this.fail(new Error('WS_SEND_FAILED'))

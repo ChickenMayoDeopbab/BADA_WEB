@@ -6,7 +6,8 @@ export const reportVoiceDiagnostic = (
     | 'capture_gate'
     | 'microphone_sent'
     | 'playback_stats'
-    | 'call_ended',
+    | 'call_ended'
+    | 'call_failed',
   metrics: Record<string, number | boolean | string>,
 ) => {
   if (import.meta.env.DEV) console.info('[BADA voice]', event, JSON.stringify(metrics))

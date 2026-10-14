@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
     onPcm: (data: ArrayBuffer) => void
     onBlocked: (blocked: boolean) => void
     onSuspended: (suspended: boolean) => void
+    onMicrophoneReady: () => void
   },
   transportOptions: null as null | {
     onMessage: (message: VoiceServerMessage) => void
@@ -156,6 +157,76 @@ describe('voice call coordination', () => {
     expect(mocks.audioDispose).toHaveBeenCalled()
     mocks.transportOptions!.onMessage({ type: 'end', reason: 'USER_END' })
     expect(states.at(-1)?.stage).toBe('ended')
+    expect(vi.getTimerCount()).toBe(0)
+    call.dispose()
+  })
+
+  it('allows a delayed microphone permission response without timing out the call', async () => {
+    let resolve!: () => void
+    mocks.prepare.mockReturnValue(
+      new Promise<void>((done) => {
+        resolve = done
+      }),
+    )
+    const { call, states } = createCall()
+    const starting = call.start()
+    vi.advanceTimersByTime(60000)
+    expect(states.at(-1)?.stage).toBe('preparing')
+    expect(states.at(-1)?.isMicrophonePending).toBe(true)
+    expect(mocks.connect).not.toHaveBeenCalled()
+    mocks.audioOptions!.onMicrophoneReady()
+    expect(states.at(-1)?.isMicrophonePending).toBe(false)
+    resolve()
+    await starting
+    expect(states.at(-1)?.stage).toBe('connecting')
+    expect(vi.getTimerCount()).toBe(0)
+    call.dispose()
+  })
+
+  it('still times out audio initialization after permission is granted', async () => {
+    let resolve!: () => void
+    mocks.prepare.mockReturnValue(
+      new Promise<void>((done) => {
+        resolve = done
+      }),
+    )
+    const { call, states } = createCall()
+    const starting = call.start()
+    mocks.audioOptions!.onMicrophoneReady()
+    vi.advanceTimersByTime(30001)
+    expect(states.at(-1)?.stage).toBe('error')
+    expect(mocks.audioDispose).toHaveBeenCalled()
+    resolve()
+    await starting
+    expect(mocks.connect).not.toHaveBeenCalled()
+    expect(vi.getTimerCount()).toBe(0)
+    call.dispose()
+  })
+
+  it('waits for delayed server recording and feedback persistence after stopping all audio', async () => {
+    const { call, states } = createCall()
+    await call.start()
+    mocks.transportOptions!.onMessage({ type: 'scenario_info', aiRole: '직원' })
+    call.end()
+    vi.advanceTimersByTime(20000)
+    expect(states.at(-1)?.stage).toBe('ending')
+    expect(mocks.audioDispose).toHaveBeenCalled()
+    mocks.audioOptions!.onPcm(new ArrayBuffer(640))
+    expect(mocks.sendBinary).not.toHaveBeenCalled()
+    mocks.transportOptions!.onMessage({ type: 'end', reason: 'USER_END' })
+    expect(states.at(-1)?.stage).toBe('ended')
+    expect(vi.getTimerCount()).toBe(0)
+    call.dispose()
+  })
+
+  it('reports an unconfirmed result separately from an active call connection failure', async () => {
+    const { call, states } = createCall()
+    await call.start()
+    mocks.transportOptions!.onMessage({ type: 'scenario_info', aiRole: '직원' })
+    call.end()
+    vi.advanceTimersByTime(90001)
+    expect(states.at(-1)?.stage).toBe('error')
+    expect(states.at(-1)?.errorMessage).toContain('훈련 결과 확인이 지연')
     expect(vi.getTimerCount()).toBe(0)
     call.dispose()
   })

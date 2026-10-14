@@ -23,6 +23,8 @@ export const getCallErrorMessage = (error: unknown): string => {
     return '브라우저가 음성 재생을 일시정지했어요. 음성 활성화 버튼을 눌러 주세요.'
   if (code === 'WS_TIMEOUT')
     return '통화 서버 연결 시간이 초과되었어요. 네트워크를 확인한 뒤 다시 시도해 주세요.'
+  if (code === 'WS_END_TIMEOUT')
+    return '통화는 종료됐지만 훈련 결과 확인이 지연되고 있어요. 훈련 기록에서 저장 여부를 확인해 주세요.'
   if (code.startsWith('WS_'))
     return '통화 서버와 연결이 끊어졌어요. 네트워크를 확인한 뒤 새 훈련을 시작해 주세요.'
   if (code.includes('PCM') || code === 'AUDIO_PLAYBACK_FAILED')

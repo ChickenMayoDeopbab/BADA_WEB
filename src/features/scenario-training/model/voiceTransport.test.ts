@@ -172,6 +172,21 @@ describe('voice transport', () => {
     expect(vi.getTimerCount()).toBe(0)
   })
 
+  it('does not mistake server end finalization for a heartbeat failure', async () => {
+    const { transport, onError, onMessage } = createTransport()
+    await transport.connect()
+    const socket = FakeSocket.instances[0]
+    socket.onopen?.()
+    socket.onmessage?.({ data: JSON.stringify({ type: 'scenario_info', aiRole: '직원' }) })
+    transport.sendJson({ type: 'end' })
+    vi.advanceTimersByTime(70000)
+    expect(onError).not.toHaveBeenCalled()
+    expect(vi.getTimerCount()).toBe(0)
+    socket.onmessage?.({ data: JSON.stringify({ type: 'end', reason: 'USER_END' }) })
+    expect(onMessage).toHaveBeenLastCalledWith({ type: 'end', reason: 'USER_END' })
+    transport.dispose()
+  })
+
   it('preserves recommendation/advice levels and accepts an empty no-hint frame like app PR #186', async () => {
     const { transport, onMessage, onError } = createTransport()
     await transport.connect()
