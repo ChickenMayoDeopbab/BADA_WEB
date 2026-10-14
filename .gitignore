@@ -24,3 +24,13 @@ dist-ssr
 *.sw?
 
 AGENTS.md
+# env
+.env
+
+# test output
+coverage
+playwright-report
+test-results
+
+docs/
+.agents
