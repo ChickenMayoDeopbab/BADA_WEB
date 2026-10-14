@@ -20,6 +20,7 @@ import {
   IoTimeOutline,
 } from 'react-icons/io5'
 import type { CSSProperties } from 'react'
+import { ServicePageContent } from '@shared/ui'
 
 const tabGap = 15
 
@@ -423,7 +424,7 @@ export const ScenarioTrainingView = () => {
     .reduce((offset, tab) => offset + tab.width + tabGap, 0)
 
   return (
-    <main className="min-w-0 px-10 pt-6 flex-1">
+    <ServicePageContent>
       <header className="gap-3 flex items-baseline">
         <h1 className="text-title1 font-bold text-label-neutral">시나리오 훈련</h1>
         <p className="text-body font-medium text-neutral-60">
@@ -647,6 +648,6 @@ export const ScenarioTrainingView = () => {
           onDelete={catalog.handleDeleteScenario}
         />
       )}
-    </main>
+    </ServicePageContent>
   )
 }

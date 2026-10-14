@@ -19,6 +19,7 @@ import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
 import { AudioPreview } from './AudioPreview'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
+import { ServicePageContent } from '@shared/ui'
 
 const formatSummaryDuration = (durationSeconds: number) => {
   const hours = Math.floor(durationSeconds / 3600)
@@ -424,8 +425,8 @@ export const TrainingRecordsView = () => {
   const groupedRecords = groupRecordsByDate(paginatedRecords)
 
   return (
-    <main className="min-w-0 flex-1 overflow-hidden">
-      <div className="ml-16 mt-9 flex w-[1024px] max-w-[calc(100%-96px)] flex-col gap-[18px]">
+    <ServicePageContent className="overflow-hidden">
+      <div className="flex w-full flex-col gap-[18px]">
         <header className="gap-3 flex items-center">
           <h1 className="text-title1 font-bold text-label-normal">훈련 기록</h1>
           <p className="text-body font-medium text-neutral-60">
@@ -593,6 +594,6 @@ export const TrainingRecordsView = () => {
           onToggleAudio={handleToggleAudio}
         />
       )}
-    </main>
+    </ServicePageContent>
   )
 }
