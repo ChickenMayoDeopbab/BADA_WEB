@@ -10,10 +10,19 @@ import {
 import { CommunityPage } from '@pages/community'
 import { DashboardPage } from '@pages/dashboard'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
+import {
+  ProfileEditPage,
+  ProfileLanguagePage,
+  ProfileNotificationsPage,
+  ProfileOverviewPage,
+  ProfilePrivacyPage,
+  ProfileBlockedUsersPage,
+  ProfileRingtonePage,
+} from '@pages/profile'
 import { TrainingRecordsPage } from '@pages/records'
 import { SelfDiagnosisPage } from '@pages/self-diagnosis'
 import { routePaths } from '@shared/config'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 
 const router = createBrowserRouter([
   {
@@ -88,31 +97,35 @@ const router = createBrowserRouter([
           },
           {
             path: routePaths.profile,
-            element: <ServicePlaceholderPage title="마이페이지 화면" />,
+            element: <ProfileOverviewPage />,
+          },
+          {
+            path: routePaths.profilePrivacy,
+            element: <ProfilePrivacyPage />,
+          },
+          {
+            path: routePaths.profileBlockedUsers,
+            element: <ProfileBlockedUsersPage />,
           },
           {
             path: routePaths.profileEdit,
-            element: <ServicePlaceholderPage title="프로필 수정 화면" />,
+            element: <ProfileEditPage />,
           },
           {
             path: routePaths.profilePhoto,
-            element: <ServicePlaceholderPage title="프로필 사진 변경 화면" />,
+            element: <Navigate to={routePaths.profileEdit} replace />,
           },
           {
             path: routePaths.profileRingtone,
-            element: <ServicePlaceholderPage title="벨소리 설정 화면" />,
+            element: <ProfileRingtonePage />,
           },
           {
             path: routePaths.profileNotifications,
-            element: <ServicePlaceholderPage title="알림 설정 화면" />,
+            element: <ProfileNotificationsPage />,
           },
           {
             path: routePaths.profileLanguage,
-            element: <ServicePlaceholderPage title="언어 설정 화면" />,
-          },
-          {
-            path: routePaths.profileDeleteAccount,
-            element: <ServicePlaceholderPage title="회원 탈퇴 화면" />,
+            element: <ProfileLanguagePage />,
           },
         ],
       },

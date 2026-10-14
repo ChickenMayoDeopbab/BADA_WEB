@@ -71,6 +71,24 @@ describe('useTrainingRecords', () => {
     expect(result.current.totalPages).toBe(2)
   })
 
+  it('목록에 없는 기록도 전달받은 ID로 상세를 연다', async () => {
+    const { result } = renderHook(() => useTrainingRecords(undefined, 37), { wrapper: createWrapper() })
+
+    await waitFor(() => expect(result.current.selectedRecord?.id).toBe(37))
+    expect(result.current.isDetailOpen).toBe(true)
+    expect(getTrainingRecord).toHaveBeenCalledWith(37)
+  })
+
+  it('상세 응답에 이미지가 없어도 목록의 서버 아이콘을 유지한다', async () => {
+    vi.mocked(getTrainingRecords).mockResolvedValue([{ ...createRecord(1), thumbnailUrl: 'https://example.com/category.png' }])
+    const { result } = renderHook(() => useTrainingRecords(), { wrapper: createWrapper() })
+    await waitFor(() => expect(result.current.paginatedRecords[0]?.feedbackCount).toBe(1))
+    expect(result.current.paginatedRecords[0]?.thumbnailUrl).toBe('https://example.com/category.png')
+    act(() => result.current.handleOpenRecord(1))
+    await waitFor(() => expect(result.current.selectedRecord?.feedbackCount).toBe(1))
+    expect(result.current.selectedRecord?.thumbnailUrl).toBe('https://example.com/category.png')
+  })
+
   it('다음 페이지를 표시하고 검색할 때 첫 페이지로 돌아간다', async () => {
     const { result } = renderHook(() => useTrainingRecords(), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.isLoading).toBe(false))

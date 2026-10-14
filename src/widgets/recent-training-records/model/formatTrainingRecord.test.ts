@@ -12,6 +12,6 @@ describe('formatTrainingRecord', () => {
         sessionType: 'SCENARIO',
         durationSeconds: 37,
       }),
-    ).toEqual({ id: 1, title: '음식점 예약', meta: '시나리오 · 37초', date: '9/3' })
+    ).toEqual({ id: 1, trainedAt: '2026-09-03T14:20:00', title: '음식점 예약', meta: '시나리오 · 37초', date: '9/3' })
   })
 })

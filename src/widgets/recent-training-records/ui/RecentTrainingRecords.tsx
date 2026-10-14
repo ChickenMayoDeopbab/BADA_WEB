@@ -27,7 +27,8 @@ export const RecentTrainingRecords = () => {
       {records.length > 0 ? (
         <ul className="pt-2 flex flex-col divide-y divide-line-alternative">
           {records.map((record) => (
-            <li key={record.id} className="py-4 gap-4 flex items-center justify-between">
+            <li key={record.id}>
+              <Link to={`${routePaths.records}?recordId=${record.id}&trainedAt=${encodeURIComponent(record.trainedAt)}`} aria-label={`${record.title} 기록 보기`} className="py-4 gap-4 flex items-center justify-between rounded-control hover:bg-fill-pressed">
               <div className="min-w-0 gap-0.5 flex flex-col">
                 <p className="truncate text-body font-bold text-label-normal">{record.title}</p>
                 <p className="text-label text-neutral-60">{record.meta}</p>
@@ -35,6 +36,7 @@ export const RecentTrainingRecords = () => {
               <span className="shrink-0 text-label font-medium text-label-alternative">
                 {record.date}
               </span>
+              </Link>
             </li>
           ))}
         </ul>

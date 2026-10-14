@@ -1,4 +1,5 @@
 import type { CommunityAttachment, CommunityPost, ReactionKind } from '@entities/community'
+import { BlockUserButton } from './BlockUserButton'
 import scenarioImage from '@shared/assets/community/figma-1.png'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
@@ -637,6 +638,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
         <article className="p-5 max-sm:p-4 max-lg:min-h-0 flex min-h-[580px] flex-col rounded-component bg-background-normal shadow-surface-card">
           <div className="flex items-start justify-between">
             <h2 className="text-title2 font-bold">{post.title}</h2>
+            {post.authorId !== currentUserId && <BlockUserButton id={post.authorId} name={post.author} onBlocked={() => navigate(routePaths.community)} />}
             {post.authorId === currentUserId && (
               <ActionMenu
                 onEdit={() => navigate(`/community/${post.id}/edit`)}
@@ -691,6 +693,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                 <div key={item.id} className="py-3">
                   <div className="flex items-center justify-between">
                     <Profile author={item.author} />
+                    {item.authorId !== currentUserId && <BlockUserButton id={item.authorId} name={item.author} />}
                     {item.authorId === currentUserId && (
                       <ActionMenu
                         onEdit={() => setEditingComment({ id: item.id, content: item.content })}
@@ -723,6 +726,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                       <div key={reply.id} className="mt-2 pl-5">
                         <div className="flex items-center justify-between">
                           <Profile author={reply.author} />
+                          {reply.authorId !== currentUserId && <BlockUserButton id={reply.authorId} name={reply.author} />}
                           {reply.authorId === currentUserId && (
                             <ActionMenu
                               onEdit={() =>
