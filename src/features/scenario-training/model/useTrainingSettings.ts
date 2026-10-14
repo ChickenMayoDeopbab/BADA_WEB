@@ -3,6 +3,7 @@ import {
   createTrainingCallSchedule,
   getScenarios,
 } from '../api/scenarioTrainingApi'
+import { useRouteLifetime } from './useRouteLifetime'
 import type { CreateTrainingCallScheduleRequest } from './types'
 import type {
   Scenario,
@@ -24,6 +25,9 @@ export const useTrainingSettings = () => {
   const location = useLocation()
   const { scenarioId = '' } = useParams()
   const routeState = location.state as ScenarioRouteState | null
+  const isCurrent = useRouteLifetime()
+  const routeScenario =
+    String(routeState?.scenario?.scenarioId) === scenarioId ? routeState?.scenario : undefined
   const [step, setStep] = useState<TrainingSettingStep>('level')
   const [difficulty, setDifficulty] = useState<ScenarioDifficulty>('low')
   const [personality, setPersonality] = useState<ScenarioPersonality>('KIND')
@@ -33,21 +37,21 @@ export const useTrainingSettings = () => {
   const scenariosQuery = useQuery({
     queryKey: ['scenarios'],
     queryFn: () => getScenarios(),
-    enabled: !routeState?.scenario,
+    enabled: !routeScenario,
   })
   const scenario = useMemo<Scenario | undefined>(
     () =>
-      routeState?.scenario ??
-      scenariosQuery.data?.find((item) => String(item.scenarioId) === scenarioId),
-    [routeState?.scenario, scenarioId, scenariosQuery.data],
+      routeScenario ?? scenariosQuery.data?.find((item) => String(item.scenarioId) === scenarioId),
+    [routeScenario, scenarioId, scenariosQuery.data],
   )
 
   const sessionMutation = useMutation({
     mutationFn: (request: TrainingSessionConfiguration) => createTrainingSession(request),
     onSuccess: (session) => {
-      if (!scenario) return
+      if (!scenario || !isCurrent()) return
       navigate(`/training/${scenario.scenarioId}/call`, {
         state: {
+          callId: crypto.randomUUID(),
           scenario,
           session,
           callDelaySeconds: 0,
@@ -60,9 +64,9 @@ export const useTrainingSettings = () => {
   const scheduleMutation = useMutation({
     mutationFn: (request: CreateTrainingCallScheduleRequest) => createTrainingCallSchedule(request),
     onSuccess: (schedule) => {
-      if (!scenario) return
+      if (!scenario || !isCurrent()) return
       navigate(`/training/${scenario.scenarioId}/call`, {
-        state: { scenario, schedule } satisfies ScenarioRouteState,
+        state: { callId: crypto.randomUUID(), scenario, schedule } satisfies ScenarioRouteState,
       })
     },
   })
@@ -76,7 +80,7 @@ export const useTrainingSettings = () => {
       setStep('level')
       return
     }
-    navigate(-1)
+    navigate('/training')
   }
 
   /** 선택한 조건으로 서버 훈련 세션을 생성합니다. */
@@ -104,7 +108,13 @@ export const useTrainingSettings = () => {
     const callDelaySeconds = Math.round(delayMinutes * 60)
     if (callDelaySeconds > 0) {
       navigate(`/training/${scenario.scenarioId}/call`, {
-        state: { scenario, sessionConfiguration, callDelaySeconds } satisfies ScenarioRouteState,
+        state: {
+          callId: crypto.randomUUID(),
+          scenario,
+          sessionConfiguration,
+          callDelaySeconds,
+          callScheduledAt: Date.now() + callDelaySeconds * 1000,
+        } satisfies ScenarioRouteState,
       })
       return
     }
@@ -118,7 +128,7 @@ export const useTrainingSettings = () => {
     personality,
     delayFrom,
     delayTo,
-    isLoading: scenariosQuery.isPending && !routeState?.scenario,
+    isLoading: scenariosQuery.isPending && !routeScenario,
     shouldKeepSchedule,
     setShouldKeepSchedule,
     isCreatingSession: sessionMutation.isPending || scheduleMutation.isPending,

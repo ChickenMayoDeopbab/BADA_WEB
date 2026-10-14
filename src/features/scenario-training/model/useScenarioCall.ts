@@ -1,4 +1,11 @@
 import { VoiceCall, type VoiceCallState } from './voiceCall'
+import {
+  getScenarioCallRouteKey,
+  hasMatchingCallScenario,
+  isCallUnavailable,
+  markCallUnavailable,
+} from './callRouting'
+import { useRouteLifetime } from './useRouteLifetime'
 import { useIncomingRingtone } from './useIncomingRingtone'
 import {
   createTrainingSession,
@@ -23,26 +30,37 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
   const queryClient = useQueryClient()
   const { scenarioId = '' } = useParams()
   const routeState = location.state as ScenarioRouteState | null
+  const isCurrent = useRouteLifetime()
+  const [callId] = useState(() => getScenarioCallRouteKey(routeState, location.key))
+  const [routeError] = useState(() =>
+    !hasMatchingCallScenario(scenarioId, routeState)
+      ? '통화 경로와 시나리오 정보가 일치하지 않아요. 새 훈련을 시작해 주세요.'
+      : isCallUnavailable(callId, routeState?.session?.sessionId)
+        ? '종료된 통화는 다시 연결할 수 없어요. 새 훈련을 시작해 주세요.'
+        : '',
+  )
   const serverSchedule = routeState?.schedule
-  const [initialDelay] = useState(() => {
-    const delay = serverSchedule?.scheduledAt
-      ? Math.ceil((Date.parse(serverSchedule.scheduledAt) - Date.now()) / 1000)
-      : (routeState?.callDelaySeconds ?? 0)
-    return Number.isFinite(delay) ? Math.max(0, delay) : 0
+  const [scheduledAt] = useState(() => {
+    const deadline = serverSchedule?.scheduledAt
+      ? Date.parse(serverSchedule.scheduledAt)
+      : (routeState?.callScheduledAt ?? Date.now() + (routeState?.callDelaySeconds ?? 0) * 1000)
+    return Number.isFinite(deadline) ? deadline : Date.now()
   })
+  const [initialDelay] = useState(() => Math.max(0, Math.ceil((scheduledAt - Date.now()) / 1000)))
   const [remainingDelay, setRemainingDelay] = useState(initialDelay)
   const [preparationStage, setPreparationStage] = useState<
     'scheduled' | 'incoming' | 'meditationPrompt' | 'meditationVideo'
   >(
     routeState?.isAnswered && routeState.session?.sessionId
       ? 'meditationPrompt'
-      : serverSchedule?.status === 'SCHEDULED' || initialDelay > 0
+      : !routeState?.session &&
+          (serverSchedule?.status === 'SCHEDULED' || Boolean(routeState?.sessionConfiguration))
         ? 'scheduled'
         : 'incoming',
   )
   const [voiceState, setVoiceState] = useState<VoiceCallState | null>(null)
   const [session, setSession] = useState(routeState?.session)
-  const [sessionErrorMessage, setSessionErrorMessage] = useState('')
+  const [sessionErrorMessage, setSessionErrorMessage] = useState(routeError)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [isScriptOpen, setIsScriptOpen] = useState(false)
   const callRef = useRef<VoiceCall | null>(null)
@@ -51,7 +69,7 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
   const ringingQuery = useQuery({
     queryKey: ['training-call-ringing'],
     queryFn: ({ signal }) => getRingingTrainingCallSchedule(signal),
-    enabled: Boolean(serverSchedule && preparationStage === 'scheduled'),
+    enabled: Boolean(!routeError && serverSchedule && preparationStage === 'scheduled'),
     refetchInterval: 2000,
     retry: false,
     refetchOnMount: 'always',
@@ -59,6 +77,7 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
   const acceptMutation = useMutation({
     mutationFn: acceptTrainingCallSchedule,
     onSuccess: (accepted) => {
+      if (!isCurrent()) return
       if (accepted.status !== 'ACCEPTED' || !accepted.sessionId || !accepted.wsUrl) {
         setSessionErrorMessage('통화 세션을 받지 못했어요. 새 훈련을 시작해 주세요.')
         return
@@ -68,12 +87,20 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
       setPreparationStage('meditationPrompt')
       navigate(location.pathname, {
         replace: true,
-        state: { ...routeState, schedule: accepted, session: nextSession, isAnswered: true },
+        state: {
+          ...routeState,
+          callId,
+          schedule: accepted,
+          session: nextSession,
+          isAnswered: true,
+        },
       })
       void queryClient.invalidateQueries({ queryKey: ['training-call-ringing'] })
     },
-    onError: (error) =>
-      setSessionErrorMessage(getApiErrorMessage(error, '예약 전화를 수락하지 못했어요.')),
+    onError: (error) => {
+      if (isCurrent())
+        setSessionErrorMessage(getApiErrorMessage(error, '예약 전화를 수락하지 못했어요.'))
+    },
   })
   const cancelMutation = useMutation({ mutationFn: cancelTrainingCallSchedule })
   const stage =
@@ -88,8 +115,15 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
   )
 
   useEffect(() => {
-    if (preparationStage !== 'scheduled') return
-    const scheduledAt = Date.now() + initialDelay * 1000
+    if (!isCurrent() || routeError || !routeState || routeState.callId) return
+    navigate(location.pathname, {
+      replace: true,
+      state: { ...routeState, callId, callScheduledAt: scheduledAt },
+    })
+  }, [callId, isCurrent, location.pathname, navigate, routeError, routeState, scheduledAt])
+
+  useEffect(() => {
+    if (routeError || preparationStage !== 'scheduled') return
     const controller = new AbortController()
     /** 앱과 동일하게 발신 직전에 세션을 만들어 예약 중 만료를 방지합니다. */
     const prepareScheduledSession = async () => {
@@ -103,9 +137,13 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
           routeState.sessionConfiguration,
           controller.signal,
         )
-        if (controller.signal.aborted) return
+        if (controller.signal.aborted || !isCurrent()) return
         setSession(nextSession)
         setPreparationStage('incoming')
+        navigate(location.pathname, {
+          replace: true,
+          state: { ...routeState, callId, callScheduledAt: scheduledAt, session: nextSession },
+        })
       } catch (error) {
         if (!controller.signal.aborted)
           setSessionErrorMessage(
@@ -125,7 +163,18 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
       window.clearInterval(timer)
       controller.abort()
     }
-  }, [initialDelay, preparationStage, routeState?.sessionConfiguration, sessionId, serverSchedule])
+  }, [
+    callId,
+    isCurrent,
+    location.pathname,
+    navigate,
+    preparationStage,
+    routeError,
+    routeState,
+    scheduledAt,
+    sessionId,
+    serverSchedule,
+  ])
 
   useEffect(() => {
     if (stage !== 'active' || voiceState?.startedAt == null) return
@@ -140,6 +189,7 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
   useEffect(() => {
     if (stage !== 'ended') return
     const timer = window.setTimeout(() => {
+      if (!isCurrent()) return
       if (voiceState?.startedAt == null) {
         navigate('/training', { replace: true })
         return
@@ -157,6 +207,7 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
     }, 2000)
     return () => window.clearTimeout(timer)
   }, [
+    isCurrent,
     navigate,
     queryClient,
     routeState,
@@ -194,16 +245,33 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
 
   /** 수신 화면에서 기존 명상 안내를 엽니다. */
   const handleAnswer = () => {
-    if (acceptMutation.isPending) return
+    if (acceptMutation.isPending || sessionErrorMessage) return
     if (serverSchedule && !sessionId) acceptMutation.mutate(serverSchedule.scheduleId)
-    else setPreparationStage('meditationPrompt')
+    else {
+      setPreparationStage('meditationPrompt')
+      navigate(location.pathname, {
+        replace: true,
+        state: { ...routeState, callId, session, isAnswered: true },
+      })
+    }
   }
   /** 명상 화면을 표시합니다. */
   const handleMeditate = () => setPreparationStage('meditationVideo')
   /** 사용자 제스처 안에서 통화 제어기를 한 번만 생성합니다. */
   const handleStartCall = () => {
-    if (callRef.current || !sessionId) return
-    const call = new VoiceCall({ sessionId, getToken, onState: setVoiceState })
+    if (callRef.current || !sessionId || sessionErrorMessage) return
+    if (isCallUnavailable(callId, sessionId)) {
+      setSessionErrorMessage('종료된 통화는 다시 연결할 수 없어요. 새 훈련을 시작해 주세요.')
+      return
+    }
+    markCallUnavailable(callId, sessionId)
+    const call = new VoiceCall({
+      sessionId,
+      getToken,
+      onState: (nextState) => {
+        if (isCurrent()) setVoiceState(nextState)
+      },
+    })
     callRef.current = call
     void call.start()
   }
@@ -225,13 +293,16 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
         await cancelMutation.mutateAsync(serverSchedule.scheduleId)
         await queryClient.invalidateQueries({ queryKey: ['training-call-ringing'] })
       } catch (error) {
+        if (!isCurrent()) return
         setSessionErrorMessage(
           getApiErrorMessage(error, '예약을 취소하지 못했어요. 다시 시도해 주세요.'),
         )
         return
       }
     }
-    navigate('/training')
+    if (!isCurrent()) return
+    markCallUnavailable(callId, sessionId)
+    navigate('/training', { replace: true })
   }
   /** 실패한 세션을 재사용하지 않고 설정 화면에서 새 세션을 만들도록 안내합니다. */
   const handleRetry = async () => {
@@ -242,18 +313,26 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
         await cancelMutation.mutateAsync(serverSchedule.scheduleId)
         await queryClient.invalidateQueries({ queryKey: ['training-call-ringing'] })
       } catch (error) {
+        if (!isCurrent()) return
         setSessionErrorMessage(
           getApiErrorMessage(error, '이전 예약을 취소하지 못했어요. 다시 시도해 주세요.'),
         )
         return
       }
     }
-    if (!Number.isSafeInteger(Number(scenarioId))) {
+    if (!isCurrent()) return
+    markCallUnavailable(callId, sessionId)
+    if (!Number.isSafeInteger(Number(scenarioId)) || Number(scenarioId) <= 0) {
       navigate('/training', { replace: true })
       return
     }
     navigate(`/training/${scenarioId}/settings`, {
-      state: { scenario: routeState?.scenario },
+      state: {
+        scenario:
+          String(routeState?.scenario?.scenarioId) === scenarioId
+            ? routeState?.scenario
+            : undefined,
+      },
       replace: true,
     })
   }

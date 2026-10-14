@@ -71,6 +71,8 @@ export interface TrainingAnxietyScore {
 }
 
 export interface ScenarioRouteState {
+  callId?: string
+  callScheduledAt?: number
   scenario?: Scenario
   session?: TrainingSession
   sessionConfiguration?: TrainingSessionConfiguration

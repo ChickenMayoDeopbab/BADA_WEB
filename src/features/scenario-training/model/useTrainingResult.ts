@@ -1,9 +1,11 @@
+import { hasMatchingCallScenario } from './callRouting'
+import { useRouteLifetime } from './useRouteLifetime'
 import { postTrainingAnxietyScore } from '../api/scenarioTrainingApi'
 import { getApiErrorMessage } from '@shared/api'
 import type { ScenarioRouteState } from '@entities/scenario'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 export const trainingResultMessages = [
   { face: 'thinking', text: '이번 전화는 어땠나요?' },
@@ -21,11 +23,18 @@ const lastMessageIndex = trainingResultMessages.length - 1
 /** 통화 종료 안내와 불안 점수 기록 상태를 관리합니다. */
 export const useTrainingResult = () => {
   const navigate = useNavigate()
+  const isCurrent = useRouteLifetime()
   const queryClient = useQueryClient()
   const location = useLocation()
   const routeState = location.state as ScenarioRouteState | null
+  const { scenarioId = '' } = useParams()
+  const hasResult =
+    Boolean(routeState?.session?.sessionId) && hasMatchingCallScenario(scenarioId, routeState)
+  useEffect(() => {
+    if (!hasResult) navigate('/training', { replace: true })
+  }, [hasResult, navigate])
   const canRecordScore =
-    Boolean(routeState?.session?.sessionId) &&
+    hasResult &&
     (!routeState?.endReason ||
       ['SCENARIO_DONE', 'USER_END', 'END_CALL', 'TIMEOUT'].includes(routeState.endReason))
   const [isScoreVisible, setIsScoreVisible] = useState(false)
@@ -70,7 +79,7 @@ export const useTrainingResult = () => {
 
   /** 기록이 준비되지 않았거나 저장에 실패하면 재시도할 수 있도록 화면을 유지합니다. */
   const handleSubmit = async () => {
-    if (mutation.isPending) return
+    if (!hasResult || mutation.isPending) return
     const sessionId = canRecordScore ? routeState?.session?.sessionId : undefined
     if (sessionId) {
       try {
@@ -85,7 +94,7 @@ export const useTrainingResult = () => {
       queryClient.invalidateQueries({ queryKey: ['scenario-recommendation'] }),
       queryClient.invalidateQueries({ queryKey: ['scenario-feedback'] }),
     ])
-    navigate('/records', { replace: true })
+    if (isCurrent()) navigate('/records', { replace: true })
   }
 
   return {

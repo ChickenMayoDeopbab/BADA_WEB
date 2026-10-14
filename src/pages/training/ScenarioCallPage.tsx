@@ -1,4 +1,4 @@
-import { ScenarioCallView } from '@features/scenario-training'
+import { ScenarioCallView, getScenarioCallRouteKey } from '@features/scenario-training'
 import { getValidAccessToken } from '@features/auth'
 import { useLocation, useParams } from 'react-router-dom'
 import type { ScenarioRouteState } from '@entities/scenario'
@@ -7,8 +7,6 @@ import type { ScenarioRouteState } from '@entities/scenario'
 export const ScenarioCallPage = () => {
   const { scenarioId } = useParams()
   const { state, key } = useLocation()
-  const sessionId = (state as ScenarioRouteState | null)?.session?.sessionId
-  return (
-    <ScenarioCallView key={`${key}-${scenarioId}-${sessionId}`} getToken={getValidAccessToken} />
-  )
+  const callKey = getScenarioCallRouteKey(state as ScenarioRouteState | null, key)
+  return <ScenarioCallView key={`${scenarioId}-${callKey}`} getToken={getValidAccessToken} />
 }

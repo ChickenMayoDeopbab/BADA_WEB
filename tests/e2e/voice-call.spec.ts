@@ -547,3 +547,184 @@ test('uses server hint levels for a fixed recommendation/advice footer and hides
   await expect(page).toHaveURL(/\/training\/1\/result/)
   expect(audit.errors).toEqual([])
 })
+
+test('does not reconnect a disposed session after browser back and forward', async ({ page }) => {
+  const audit = await prepareCall(page)
+  await startCall(page)
+  await expect.poll(() => audit.binaryFrames.length).toBeGreaterThan(0)
+  await page.goBack()
+  await expect(page).toHaveURL(/\/training\/1\/settings$/)
+  await page.goForward()
+  await expect(page.getByRole('alert')).toContainText('종료된 통화')
+  await expect(page.getByRole('button', { name: '전화 받기', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: '새 훈련 시작', exact: true }).click()
+  await startCall(page, false)
+  await expect(page.getByRole('heading', { name: '상담 직원' })).toBeVisible()
+  expect(audit.getSessionCount()).toBe(2)
+  expect(audit.messages.filter((message) => message.type === 'auth')).toHaveLength(2)
+})
+
+test('does not reuse a live session after reloading the call route', async ({ page }) => {
+  const audit = await prepareCall(page)
+  await startCall(page)
+  await expect.poll(() => audit.binaryFrames.length).toBeGreaterThan(0)
+  await page.reload()
+  await expect(page.getByRole('alert')).toContainText('종료된 통화')
+  expect(await page.evaluate(() => window.badaAudioAudit.streams.length)).toBe(0)
+  expect(audit.messages.filter((message) => message.type === 'auth')).toHaveLength(1)
+})
+
+test('keeps a due local reservation session when its incoming route is reloaded', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  await page.addInitScript(() => {
+    if (history.state?.usr) return
+    history.replaceState(
+      {
+        ...history.state,
+        usr: {
+          scenario: { scenarioId: 1, title: '상담 예약하기', category: 'daily' },
+          sessionConfiguration: {
+            scenarioId: 1,
+            type: 'SCENARIO',
+            aiPersonality: 'KIND',
+            difficulty: 'low',
+          },
+          callDelaySeconds: 1,
+        },
+      },
+      '',
+    )
+  })
+  await page.goto('/training/1/call')
+  await expect(page.getByRole('button', { name: '전화 받기', exact: true })).toBeVisible()
+  expect(audit.getSessionCount()).toBe(1)
+  await page.reload()
+  await expect(page.getByRole('button', { name: '전화 받기', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '전화 받기', exact: true }).click()
+  await page.getByRole('button', { name: '건너뛰기', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '상담 직원' })).toBeVisible()
+  expect(audit.getSessionCount()).toBe(1)
+})
+
+test('preserves an active call when history state is replaced for the same call', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  await startCall(page)
+  await expect.poll(() => audit.binaryFrames.length).toBeGreaterThan(0)
+  await page.getByRole('button', { name: '스크립트 보기', exact: true }).click()
+  audit
+    .getSocket()
+    .send(JSON.stringify({ type: 'transcript', role: 'user', text: '연결 유지 확인' }))
+  await expect(page.getByText('연결 유지 확인', { exact: false })).toBeVisible()
+  const frameCount = audit.binaryFrames.length
+  await page.evaluate(() => {
+    history.replaceState({ ...history.state, key: 'updated-call-state' }, '')
+    dispatchEvent(new PopStateEvent('popstate', { state: history.state }))
+  })
+  await expect(page.getByRole('heading', { name: '상담 직원' })).toBeVisible()
+  await expect(page.getByText('연결 유지 확인', { exact: false })).toBeVisible()
+  await expect.poll(() => audit.binaryFrames.length).toBeGreaterThan(frameCount)
+  expect(audit.getClosed()).toBe(0)
+  expect(await page.evaluate(() => window.badaAudioAudit.contexts.length)).toBe(1)
+  await page.getByRole('button', { name: '통화 종료', exact: true }).click()
+  await expect(page).toHaveURL(/\/training\/1\/result$/)
+})
+
+test('does not redirect from the catalog when a session request from abandoned settings finishes', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  let releaseResponse!: () => void
+  const responseGate = new Promise<void>((resolve) => {
+    releaseResponse = resolve
+  })
+  let hasRequested = false
+  await page.route('**/api/v1/session', async (route) => {
+    hasRequested = true
+    await responseGate
+    await route.fulfill({ json: { data: { sessionId: 'late-session', wsUrl: 'ws://unused' } } })
+  })
+  await page.goto('/training/1/settings')
+  await page.getByRole('button', { name: '다음으로', exact: true }).click()
+  await page.getByRole('button', { name: '설정 완료하기', exact: true }).click()
+  await expect.poll(() => hasRequested).toBe(true)
+  await page.getByRole('link', { name: '시나리오 훈련', exact: true }).click()
+  await expect(page).toHaveURL(/\/training$/)
+  const response = page.waitForResponse('**/api/v1/session')
+  releaseResponse()
+  await response
+  await page.waitForTimeout(250) // 완료 콜백이 떠난 화면으로 이동시키지 않는지 확인합니다.
+  await expect(page).toHaveURL(/\/training$/)
+  expect(audit.messages).toEqual([])
+})
+
+test('rejects call state for a different scenario without connecting or creating a session', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  await page.addInitScript(() => {
+    history.replaceState(
+      {
+        ...history.state,
+        usr: {
+          scenario: { scenarioId: 2, title: '다른 시나리오', category: 'daily' },
+          session: { sessionId: 'wrong-scenario-session', wsUrl: 'ws://unused' },
+        },
+      },
+      '',
+    )
+  })
+  await page.goto('/training/1/call')
+  await expect(page.getByRole('alert')).toContainText('일치하지 않아요')
+  await page.getByRole('button', { name: '새 훈련 시작', exact: true }).click()
+  await expect(page).toHaveURL(/\/training\/1\/settings$/)
+  expect(audit.messages).toEqual([])
+  expect(audit.getSessionCount()).toBe(0)
+})
+
+test('keeps the absolute local reservation deadline after a reload while waiting', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  await page.addInitScript(() => {
+    if (history.state?.usr) return
+    history.replaceState(
+      {
+        ...history.state,
+        usr: {
+          scenario: { scenarioId: 1, title: '상담 예약하기', category: 'daily' },
+          sessionConfiguration: {
+            scenarioId: 1,
+            type: 'SCENARIO',
+            aiPersonality: 'KIND',
+            difficulty: 'low',
+          },
+          callDelaySeconds: 60,
+          callScheduledAt: Date.now() + 2000,
+        },
+      },
+      '',
+    )
+  })
+  await page.goto('/training/1/call')
+  await expect(page.getByText('전화가 걸려오기까지')).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('button', { name: '전화 받기', exact: true })).toBeVisible({
+    timeout: 3500,
+  })
+  expect(audit.getSessionCount()).toBe(1)
+  expect(await page.evaluate(() => window.badaAudioAudit.streams.length)).toBe(0)
+})
+
+test('returns to training when opening a result URL without a completed session', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  await page.goto('/training/1/result')
+  await expect(page).toHaveURL(/\/training$/)
+  await expect(page.getByRole('heading', { name: '시나리오 훈련', exact: true })).toBeVisible()
+  expect(audit.messages).toEqual([])
+})
