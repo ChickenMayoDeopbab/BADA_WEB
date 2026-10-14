@@ -940,7 +940,7 @@ const SelectionModal = ({
                     }
                     className="size-8 flex items-center justify-center rounded-pill hover:bg-fill-normal"
                   >
-                    <BackIcon className="size-5" />
+                    <BackIcon />
                   </button>
                   <strong className="text-label font-bold">
                     {calendarYear}년 {calendarMonthIndex + 1}월
