@@ -212,7 +212,7 @@ export const ProfileOverviewPage = () => {
   const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false)
 
   const mobileLogout = (
-    <div className="md:hidden ml-auto">
+    <div className="hidden max-md:ml-auto max-md:block">
       <LogoutButton />
     </div>
   )
