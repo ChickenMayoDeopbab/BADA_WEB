@@ -1,9 +1,16 @@
-import { createTrainingSession, getScenarios } from '../api/scenarioTrainingApi'
+import {
+  createTrainingSession,
+  createTrainingCallSchedule,
+  getScenarios,
+} from '../api/scenarioTrainingApi'
+import { useRouteLifetime } from './useRouteLifetime'
+import type { CreateTrainingCallScheduleRequest } from './types'
 import type {
   Scenario,
   ScenarioDifficulty,
   ScenarioPersonality,
   ScenarioRouteState,
+  TrainingSessionConfiguration,
 } from '@entities/scenario'
 import { getApiErrorMessage } from '@shared/api'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -18,42 +25,51 @@ export const useTrainingSettings = () => {
   const location = useLocation()
   const { scenarioId = '' } = useParams()
   const routeState = location.state as ScenarioRouteState | null
+  const isCurrent = useRouteLifetime()
+  const routeScenario =
+    String(routeState?.scenario?.scenarioId) === scenarioId ? routeState?.scenario : undefined
   const [step, setStep] = useState<TrainingSettingStep>('level')
   const [difficulty, setDifficulty] = useState<ScenarioDifficulty>('low')
   const [personality, setPersonality] = useState<ScenarioPersonality>('KIND')
   const [delayFrom, setDelayFrom] = useState(0)
   const [delayTo, setDelayTo] = useState(0)
+  const [shouldKeepSchedule, setShouldKeepSchedule] = useState(false)
   const scenariosQuery = useQuery({
     queryKey: ['scenarios'],
     queryFn: () => getScenarios(),
-    enabled: !routeState?.scenario,
+    enabled: !routeScenario,
   })
   const scenario = useMemo<Scenario | undefined>(
     () =>
-      routeState?.scenario ??
-      scenariosQuery.data?.find((item) => String(item.scenarioId) === scenarioId),
-    [routeState?.scenario, scenarioId, scenariosQuery.data],
+      routeScenario ?? scenariosQuery.data?.find((item) => String(item.scenarioId) === scenarioId),
+    [routeScenario, scenarioId, scenariosQuery.data],
   )
 
   const sessionMutation = useMutation({
-    mutationFn: createTrainingSession,
+    mutationFn: (request: TrainingSessionConfiguration) => createTrainingSession(request),
     onSuccess: (session) => {
-      if (!scenario) return
-      const minimum = Math.min(delayFrom, delayTo)
-      const maximum = Math.max(delayFrom, delayTo)
-      const delayMinutes = minimum + Math.random() * (maximum - minimum)
-
+      if (!scenario || !isCurrent()) return
       navigate(`/training/${scenario.scenarioId}/call`, {
         state: {
+          callId: crypto.randomUUID(),
           scenario,
           session,
-          callDelaySeconds: Math.round(delayMinutes * 60),
+          callDelaySeconds: 0,
         } satisfies ScenarioRouteState,
       })
     },
   })
 
   const isDelayInvalid = delayFrom > delayTo
+  const scheduleMutation = useMutation({
+    mutationFn: (request: CreateTrainingCallScheduleRequest) => createTrainingCallSchedule(request),
+    onSuccess: (schedule) => {
+      if (!scenario || !isCurrent()) return
+      navigate(`/training/${scenario.scenarioId}/call`, {
+        state: { callId: crypto.randomUUID(), scenario, schedule } satisfies ScenarioRouteState,
+      })
+    },
+  })
 
   /** 첫 단계에서 발신 시간 단계로 진행합니다. */
   const handleNext = () => setStep('time')
@@ -64,19 +80,45 @@ export const useTrainingSettings = () => {
       setStep('level')
       return
     }
-    navigate(-1)
+    navigate('/training')
   }
 
   /** 선택한 조건으로 서버 훈련 세션을 생성합니다. */
   const handleComplete = () => {
-    if (!scenario || isDelayInvalid) return
+    if (!scenario || isDelayInvalid || sessionMutation.isPending || scheduleMutation.isPending)
+      return
 
-    sessionMutation.mutate({
+    const sessionConfiguration: TrainingSessionConfiguration = {
       scenarioId: scenario.scenarioId,
       type: scenario.isCustom ? 'CUSTOM' : 'SCENARIO',
       difficulty,
       aiPersonality: personality,
-    })
+    }
+    if (shouldKeepSchedule && delayTo > 0) {
+      scheduleMutation.mutate({
+        scenarioId: scenario.scenarioId,
+        type: sessionConfiguration.type,
+        aiPersonality: personality,
+        minDelayMinutes: delayFrom,
+        maxDelayMinutes: delayTo,
+      })
+      return
+    }
+    const delayMinutes = delayFrom + Math.random() * (delayTo - delayFrom)
+    const callDelaySeconds = Math.round(delayMinutes * 60)
+    if (callDelaySeconds > 0) {
+      navigate(`/training/${scenario.scenarioId}/call`, {
+        state: {
+          callId: crypto.randomUUID(),
+          scenario,
+          sessionConfiguration,
+          callDelaySeconds,
+          callScheduledAt: Date.now() + callDelaySeconds * 1000,
+        } satisfies ScenarioRouteState,
+      })
+      return
+    }
+    sessionMutation.mutate(sessionConfiguration)
   }
 
   return {
@@ -86,12 +128,20 @@ export const useTrainingSettings = () => {
     personality,
     delayFrom,
     delayTo,
-    isLoading: scenariosQuery.isPending && !routeState?.scenario,
-    isCreatingSession: sessionMutation.isPending,
+    isLoading: scenariosQuery.isPending && !routeScenario,
+    shouldKeepSchedule,
+    setShouldKeepSchedule,
+    isCreatingSession: sessionMutation.isPending || scheduleMutation.isPending,
     isDelayInvalid,
-    errorMessage: sessionMutation.isError
-      ? getApiErrorMessage(sessionMutation.error, '훈련 세션을 만들지 못했습니다.')
-      : '',
+    errorMessage:
+      sessionMutation.isError || scheduleMutation.isError
+        ? getApiErrorMessage(
+            sessionMutation.error ?? scheduleMutation.error,
+            '훈련을 준비하지 못했습니다.',
+          )
+        : scenariosQuery.isError
+          ? getApiErrorMessage(scenariosQuery.error, '시나리오를 불러오지 못했습니다.')
+          : '',
     setDifficulty,
     setPersonality,
     setDelayFrom,

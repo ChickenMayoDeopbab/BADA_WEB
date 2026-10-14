@@ -1,8 +1,11 @@
+import { hasMatchingCallScenario } from './callRouting'
+import { useRouteLifetime } from './useRouteLifetime'
 import { postTrainingAnxietyScore } from '../api/scenarioTrainingApi'
+import { getApiErrorMessage } from '@shared/api'
 import type { ScenarioRouteState } from '@entities/scenario'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 export const trainingResultMessages = [
   { face: 'thinking', text: '이번 전화는 어땠나요?' },
@@ -20,8 +23,20 @@ const lastMessageIndex = trainingResultMessages.length - 1
 /** 통화 종료 안내와 불안 점수 기록 상태를 관리합니다. */
 export const useTrainingResult = () => {
   const navigate = useNavigate()
+  const isCurrent = useRouteLifetime()
+  const queryClient = useQueryClient()
   const location = useLocation()
   const routeState = location.state as ScenarioRouteState | null
+  const { scenarioId = '' } = useParams()
+  const hasResult =
+    Boolean(routeState?.session?.sessionId) && hasMatchingCallScenario(scenarioId, routeState)
+  useEffect(() => {
+    if (!hasResult) navigate('/training', { replace: true })
+  }, [hasResult, navigate])
+  const canRecordScore =
+    hasResult &&
+    (!routeState?.endReason ||
+      ['SCENARIO_DONE', 'USER_END', 'END_CALL', 'TIMEOUT'].includes(routeState.endReason))
   const [isScoreVisible, setIsScoreVisible] = useState(false)
   const [messageIndex, setMessageIndex] = useState(0)
   const [typedLength, setTypedLength] = useState(0)
@@ -62,28 +77,41 @@ export const useTrainingResult = () => {
     setIsScoreVisible(true)
   }
 
-  /** 불안 점수 기록 성공 여부와 관계없이 기록 화면으로 이동합니다. */
+  /** 기록이 준비되지 않았거나 저장에 실패하면 재시도할 수 있도록 화면을 유지합니다. */
   const handleSubmit = async () => {
-    if (mutation.isPending) return
-    const sessionId = routeState?.session?.sessionId
+    if (!hasResult || mutation.isPending) return
+    const sessionId = canRecordScore ? routeState?.session?.sessionId : undefined
     if (sessionId) {
       try {
         await mutation.mutateAsync({ sessionId, nextScore: score })
       } catch {
-        // 앱과 동일하게 점수 기록 실패가 다음 화면 이동을 막지 않게 합니다.
+        return
       }
     }
-    navigate('/records', { replace: true })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['training-records'] }),
+      queryClient.invalidateQueries({ queryKey: ['scenarios'] }),
+      queryClient.invalidateQueries({ queryKey: ['scenario-recommendation'] }),
+      queryClient.invalidateQueries({ queryKey: ['scenario-feedback'] }),
+    ])
+    if (isCurrent()) navigate('/records', { replace: true })
   }
 
   return {
     scenario: routeState?.scenario,
+    canRecordScore,
     isScoreVisible,
     messageIndex,
     message,
     typedText: isScoreVisible ? message.text : message.text.slice(0, typedLength),
     score,
     isSubmitting: mutation.isPending,
+    errorMessage: mutation.isError
+      ? getApiErrorMessage(
+          mutation.error,
+          '불안 점수를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
+        )
+      : '',
     setScore,
     handleShowScore,
     handleSubmit,

@@ -19,6 +19,7 @@ import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
 import { AudioPreview } from './AudioPreview'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
+import { ServicePageContent } from '@shared/ui'
 
 const formatSummaryDuration = (durationSeconds: number) => {
   const hours = Math.floor(durationSeconds / 3600)
@@ -146,7 +147,7 @@ const TimelineItem = ({
   onToggleAudio,
 }: TimelineItemProps) => (
   <div className="gap-1.5 relative z-10 flex w-full items-start">
-    <span className="relative z-10 shrink-0">
+    <span className="relative z-10 shrink-0 self-stretch" aria-hidden="true">
       <img src={timelinePoint} alt="" />
       {!isLast && (
         <span className="top-7 -bottom-4 w-0.5 absolute left-1/2 -translate-x-1/2 bg-line-neutral" />
@@ -424,16 +425,16 @@ export const TrainingRecordsView = () => {
   const groupedRecords = groupRecordsByDate(paginatedRecords)
 
   return (
-    <main className="min-w-0 px-10 pt-6 flex-1 overflow-hidden">
-      <div className="flex w-full flex-col">
-        <header className="gap-3 flex items-baseline">
+    <ServicePageContent className="overflow-hidden">
+      <div className="flex w-full flex-col gap-[18px]">
+        <header className="gap-3 flex items-center">
           <h1 className="text-title1 font-bold text-label-normal">훈련 기록</h1>
           <p className="text-body font-medium text-neutral-60">
             훈련 정보와 피드백을 다시 확인해 보세요.
           </p>
         </header>
 
-        <div className="mt-4 h-12 gap-6 flex items-center justify-between">
+        <div className="gap-6 h-12 flex items-center justify-between">
           <div
             className="pb-2 relative flex items-center gap-[15px]"
             role="tablist"
@@ -458,26 +459,28 @@ export const TrainingRecordsView = () => {
               )
             })}
             <span
-              className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute w-[42px] bg-primary-normal transition-transform duration-[420ms] motion-reduce:transition-none"
+              className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute w-[42px] bg-primary-normal transition-[transform,width] duration-[420ms] motion-reduce:transition-none"
               style={{ transform: `translateX(${activePeriodIndex * 57}px)` }}
               aria-hidden="true"
             />
           </div>
 
-          <label className="h-12 gap-2 px-4 flex w-[300px] items-center rounded-component bg-fill-alternative text-label-alternative focus-within:outline-2 focus-within:outline-primary-normal">
+          <label className="h-12 px-2.5 flex w-[300px] items-center justify-between overflow-hidden rounded-component bg-fill-alternative">
             <span className="sr-only">훈련 기록 검색</span>
             <input
               type="search"
               value={searchQuery}
               onChange={(event) => handleSearchQueryChange(event.target.value)}
               placeholder="제목 또는 설명으로 검색"
-              className="min-w-0 flex-1 bg-transparent text-body text-label-normal outline-none placeholder:text-neutral-70"
+              className="min-w-0 flex-1 bg-transparent text-headline2 font-medium text-label-neutral outline-none placeholder:text-neutral-70"
             />
-            <img className="size-6 shrink-0" src={searchIcon} alt="" />
+            <span className="size-10 flex shrink-0 items-center justify-center">
+              <img src={searchIcon} alt="" />
+            </span>
           </label>
         </div>
 
-        <section className="mt-4 px-7 flex h-[136px] items-center justify-between rounded-card border border-line-alternative bg-background-normal">
+        <section className="px-7 flex h-[136px] items-center justify-between rounded-card border border-line-alternative bg-background-normal">
           <div className="gap-2 flex flex-col">
             <button
               type="button"
@@ -524,7 +527,7 @@ export const TrainingRecordsView = () => {
           </dl>
         </section>
 
-        <section className="mt-[18px] gap-3 flex flex-col">
+        <section className="gap-3 flex flex-col">
           <h2 className="text-title2 font-bold text-label-normal">최근 기록</h2>
           <div className="gap-2.5 flex flex-col">
             {isLoading && (
@@ -591,6 +594,6 @@ export const TrainingRecordsView = () => {
           onToggleAudio={handleToggleAudio}
         />
       )}
-    </main>
+    </ServicePageContent>
   )
 }

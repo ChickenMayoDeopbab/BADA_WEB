@@ -3,6 +3,7 @@ import type { ScenarioCategory } from '@entities/scenario'
 import { getApiErrorMessage } from '@shared/api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export type CustomScenarioStep = 'info' | 'detail' | 'loading' | 'success' | 'error'
 
@@ -22,6 +23,7 @@ const initialForm: CustomScenarioForm = {
 
 /** 커스텀 시나리오 2단계 입력과 서버 생성을 관리합니다. */
 export const useCustomScenario = () => {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [step, setStep] = useState<CustomScenarioStep>('info')
   const [form, setForm] = useState<CustomScenarioForm>(initialForm)
@@ -30,14 +32,22 @@ export const useCustomScenario = () => {
   const mutation = useMutation({
     mutationFn: createCustomScenario,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['scenarios'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['scenarios'] }),
+        queryClient.invalidateQueries({ queryKey: ['scenario-recommendation'] }),
+      ])
       setStep('success')
     },
     onError: () => setStep('error'),
   })
 
-  const isInfoValid = form.title.trim().length > 0 && form.category !== ''
-  const isDetailValid = form.callTarget.trim().length >= 2 && form.callPurpose.trim().length >= 5
+  const isInfoValid =
+    form.title.trim().length > 0 && form.title.trim().length <= 50 && form.category !== ''
+  const isDetailValid =
+    form.callTarget.trim().length >= 2 &&
+    form.callTarget.trim().length <= 100 &&
+    form.callPurpose.trim().length >= 5 &&
+    form.callPurpose.trim().length <= 200
 
   /** 폼의 한 필드를 현재 입력값으로 갱신합니다. */
   const handleFieldChange = <Key extends keyof CustomScenarioForm>(
@@ -55,7 +65,8 @@ export const useCustomScenario = () => {
 
   /** 완성된 입력값으로 커스텀 시나리오 생성을 요청합니다. */
   const handleSubmit = () => {
-    if (!isDetailValid || !form.category) return
+    if (step !== 'detail' || !isInfoValid || !isDetailValid || !form.category || mutation.isPending)
+      return
 
     setStep('loading')
     mutation.mutate({
@@ -83,6 +94,25 @@ export const useCustomScenario = () => {
   /** 작성 중 나가기 확인 대화상자를 닫습니다. */
   const handleCloseExitDialog = () => setIsExitDialogOpen(false)
 
+  /** 생성한 시나리오를 기존 설정·실시간 통화 흐름으로 전달합니다. */
+  const handleStartTraining = () => {
+    if (!mutation.data) return
+    navigate(`/training/${mutation.data.scenarioId}/settings`, {
+      replace: true,
+      state: { scenario: mutation.data },
+    })
+  }
+
+  /** 생성 완료 또는 작성 취소 후 커스텀 목록으로 돌아갑니다. */
+  const handleGoToCatalog = () =>
+    navigate('/training', { replace: step === 'success', state: { selectedTab: 'custom' } })
+
+  /** 작성 단계를 보존하면서 이전 화면 또는 나가기 확인을 표시합니다. */
+  const handleBack = () => {
+    if (step === 'detail') handlePrevious()
+    else handleOpenExitDialog()
+  }
+
   return {
     step,
     form,
@@ -101,6 +131,9 @@ export const useCustomScenario = () => {
     handlePrevious,
     handleOpenExitDialog,
     handleCloseExitDialog,
+    handleStartTraining,
+    handleGoToCatalog,
+    handleBack,
     setIsCategoryOpen,
   }
 }

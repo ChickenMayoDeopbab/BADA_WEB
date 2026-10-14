@@ -128,6 +128,16 @@
   --color-train-call-gradient-end: #abefa8;
   --color-train-custom-banner-gradient-start: #09c357;
   --color-train-custom-banner-gradient-end: #8bba9f;
+  --color-train-anxiety-1: #04b868;
+  --color-train-anxiety-2: #04b868;
+  --color-train-anxiety-3: #39c06c;
+  --color-train-anxiety-4: #7bc560;
+  --color-train-anxiety-5: #bac14e;
+  --color-train-anxiety-6: #f5a624;
+  --color-train-anxiety-7: #ef9229;
+  --color-train-anxiety-8: #e95c3c;
+  --color-train-anxiety-9: #df4748;
+  --color-train-anxiety-10: #d54254;
 }
 
 .dark {

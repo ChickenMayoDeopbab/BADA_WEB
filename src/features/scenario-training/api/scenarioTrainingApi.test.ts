@@ -1,132 +1,240 @@
-import { aiHttpClient } from '@shared/api'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { aiHttpClient, httpClient } from '@shared/api'
 import {
+  acceptTrainingCallSchedule,
+  cancelTrainingCallSchedule,
+  copySharedScenario,
   createCustomScenario,
+  createTrainingCallSchedule,
+  createTrainingSession,
   deleteCustomScenario,
   getRecommendedScenario,
+  getRingingTrainingCallSchedule,
   getScenarioExample,
+  getScenarioFeedback,
   getScenarios,
+  getTrainingRingtone,
+  postTrainingAnxietyScore,
 } from './scenarioTrainingApi'
 
 vi.mock('@shared/api', () => ({
-  aiHttpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    delete: vi.fn(),
-  },
-  httpClient: {
-    post: vi.fn(),
-  },
+  aiHttpClient: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
+  httpClient: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }))
 
-const scenarioResponse = {
-  scenario_id: 21,
-  title: '음식점 예약',
-  content: '음식점에 전화해 자리를 예약해요.',
-  category: 'daily' as const,
-  difficulties: ['low', 'medium'] as const,
-  personalities: ['KIND', 'NORMAL'] as const,
-  scenario_image: 'https://example.com/scenario.png',
-  is_custom: false,
-  is_copied: false,
+const scenario = {
+  scenario_id: 12,
+  title: '예약 변경',
+  content: '예약 날짜를 변경합니다.',
+  category: 'daily',
+  difficulties: ['low', 'medium', 'high'],
+  personalities: ['KIND', 'NORMAL'],
+  scenario_image: 'https://media.example.test/scenario.png',
+  is_custom: true,
+  is_copied: true,
   practice_count: 3,
 }
+const schedule = { scheduleId: 5, scheduledAt: '2026-10-14T14:00:00+09:00', status: 'SCHEDULED' }
 
-describe('scenarioTrainingApi', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+describe('pasted OpenAPI scenario training contracts', () => {
+  beforeEach(() => vi.resetAllMocks())
 
-  it('선택한 카테고리로 시나리오 목록을 조회하고 화면 데이터로 변환한다', async () => {
-    vi.mocked(aiHttpClient.get).mockResolvedValue({
-      data: { scenarios: [scenarioResponse] },
-    })
-
-    await expect(getScenarios('daily')).resolves.toEqual([
-      {
-        scenarioId: 21,
-        title: '음식점 예약',
-        content: '음식점에 전화해 자리를 예약해요.',
-        category: 'daily',
-        difficulties: ['low', 'medium'],
-        personalities: ['KIND', 'NORMAL'],
-        imageUrl: 'https://example.com/scenario.png',
-        isCustom: false,
-        isCopied: false,
+  it('preserves backend scenario images and copied/custom classification with category queries', async () => {
+    vi.mocked(aiHttpClient.get).mockResolvedValue({ data: { scenarios: [scenario] } })
+    expect(await getScenarios('daily')).toEqual([
+      expect.objectContaining({
+        scenarioId: 12,
+        imageUrl: scenario.scenario_image,
+        isCustom: true,
+        isCopied: true,
         practiceCount: 3,
-      },
+      }),
     ])
     expect(aiHttpClient.get).toHaveBeenCalledWith('/api/v1/scenario/scenarios', {
       params: { category: 'daily' },
     })
   })
 
-  it('추천 시나리오를 조회한다', async () => {
-    vi.mocked(aiHttpClient.get).mockResolvedValue({
-      data: { scenario: scenarioResponse, reason: 'NOT_PRACTICED' },
-    })
-
-    await expect(getRecommendedScenario()).resolves.toMatchObject({ scenarioId: 21 })
-    expect(aiHttpClient.get).toHaveBeenCalledWith('/api/v1/scenario/recommendation')
-  })
-
-  it('시나리오 예시 대화와 음성 주소를 조회한다', async () => {
+  it('keeps recommendation reason and the separately provided category icon', async () => {
     vi.mocked(aiHttpClient.get).mockResolvedValue({
       data: {
-        scenario_id: 21,
-        dialogue: [{ speaker: 'ai', text: '안녕하세요.' }],
-        audio_url: 'https://example.com/example.mp3',
+        scenario,
+        reason: 'CUSTOM_NOT_PRACTICED',
+        category_icon_url: 'https://media.example.test/category.png',
       },
     })
-
-    await expect(getScenarioExample(21)).resolves.toEqual({
-      dialogue: [{ speaker: 'ai', text: '안녕하세요.' }],
-      audioUrl: 'https://example.com/example.mp3',
+    expect(await getRecommendedScenario()).toMatchObject({
+      reason: 'CUSTOM_NOT_PRACTICED',
+      categoryIconUrl: 'https://media.example.test/category.png',
+      scenario: { isCustom: true },
     })
-    expect(aiHttpClient.get).toHaveBeenCalledWith('/api/v1/scenario/21/example')
   })
 
-  it('입력값을 서버 필드명으로 바꿔 커스텀 시나리오를 생성한다', async () => {
+  it('keeps both example dialogue and generated TTS URL', async () => {
+    const dialogue = [{ speaker: 'ai', text: '안녕하세요.' }]
+    vi.mocked(aiHttpClient.get).mockResolvedValue({
+      data: { scenario_id: 12, dialogue, audio_url: 'https://media.example.test/example.mp3' },
+    })
+    expect(await getScenarioExample(12)).toEqual({
+      dialogue,
+      audioUrl: 'https://media.example.test/example.mp3',
+    })
+    expect(aiHttpClient.get).toHaveBeenCalledWith('/api/v1/scenario/12/example', {
+      timeout: 120000,
+    })
+  })
+
+  it('posts snake_case custom fields, defaults and returns a custom scenario without creating a session', async () => {
     vi.mocked(aiHttpClient.post).mockResolvedValue({
       data: {
         scenario: {
-          scenario_id: 31,
-          title: '병원 예약',
-          content: '병원 예약을 연습해요.',
-          ai_prompt: '예약 직원을 연기한다.',
+          scenario_id: 13,
+          title: '내 예약',
+          content: '전화 예약입니다.',
+          ai_prompt: 'internal',
           tts_voice_id: null,
           script: [],
         },
-        created_at: '2026-10-13T00:00:00Z',
+        created_at: '2026-10-14',
       },
     })
-
-    await expect(
-      createCustomScenario({
-        title: '병원 예약',
-        callTarget: '병원 접수 직원',
-        callPurpose: '진료 날짜와 시간을 예약하고 싶어요.',
+    expect(
+      await createCustomScenario({
+        title: ' 내 예약 ',
         category: 'daily',
+        callTarget: ' 식당 직원 ',
+        callPurpose: ' 저녁 예약하기 ',
       }),
-    ).resolves.toMatchObject({
-      scenarioId: 31,
-      category: 'daily',
-      isCustom: true,
-      isCopied: false,
-      practiceCount: 0,
-    })
-    expect(aiHttpClient.post).toHaveBeenCalledWith('/api/v1/scenario/custom', {
-      title: '병원 예약',
-      call_target: '병원 접수 직원',
-      call_purpose: '진료 날짜와 시간을 예약하고 싶어요.',
-      category: 'daily',
-    })
+    ).toMatchObject({ scenarioId: 13, category: 'daily', isCustom: true, isCopied: false })
+    expect(aiHttpClient.post).toHaveBeenCalledWith(
+      '/api/v1/scenario/custom',
+      {
+        title: '내 예약',
+        category: 'daily',
+        call_target: '식당 직원',
+        call_purpose: '저녁 예약하기',
+        personality: 'NORMAL',
+        difficulty: 'medium',
+        is_warmup: false,
+      },
+      { timeout: 120000 },
+    )
+    expect(httpClient.post).not.toHaveBeenCalled()
   })
 
-  it('내 커스텀 시나리오를 삭제한다', async () => {
-    vi.mocked(aiHttpClient.delete).mockResolvedValue({ data: undefined })
+  it('retains idempotent copy results from an attached community scenario', async () => {
+    vi.mocked(aiHttpClient.post).mockResolvedValue({
+      data: { scenario_id: 14, title: '공유 예약', category: 'daily', already_copied: true },
+    })
+    expect(await copySharedScenario(40)).toEqual({
+      scenarioId: 14,
+      title: '공유 예약',
+      category: 'daily',
+      isAlreadyCopied: true,
+    })
+    expect(aiHttpClient.post).toHaveBeenCalledWith('/api/v1/community/posts/40/scenario/copy')
+  })
 
-    await expect(deleteCustomScenario(31)).resolves.toBeUndefined()
-    expect(aiHttpClient.delete).toHaveBeenCalledWith('/api/v1/scenario/custom/31')
+  it('deletes a custom scenario using its own API', async () => {
+    await deleteCustomScenario(13)
+    expect(aiHttpClient.delete).toHaveBeenCalledWith('/api/v1/scenario/custom/13')
+  })
+
+  it('posts the selected difficulty and optional duration to Spring session creation', async () => {
+    const request = {
+      scenarioId: 12,
+      type: 'CUSTOM' as const,
+      difficulty: 'high' as const,
+      aiPersonality: 'TOUGH' as const,
+      maxDurationSeconds: 120,
+    }
+    vi.mocked(httpClient.post).mockResolvedValue({
+      data: { data: { sessionId: 'session', wsUrl: 'wss://ai.example.test/ws/voice/session' } },
+    })
+    expect(await createTrainingSession(request)).toMatchObject({ sessionId: 'session' })
+    expect(httpClient.post).toHaveBeenCalledWith('/api/v1/session', request, { signal: undefined })
+  })
+
+  it('uses the server delay range and unwraps schedule creation and ringing, including no ringing call', async () => {
+    const request = {
+      scenarioId: 12,
+      type: 'CUSTOM' as const,
+      aiPersonality: 'KIND' as const,
+      minDelayMinutes: 2,
+      maxDelayMinutes: 4,
+    }
+    vi.mocked(httpClient.post).mockResolvedValue({ data: { data: schedule } })
+    expect(await createTrainingCallSchedule(request)).toEqual(schedule)
+    expect(httpClient.post).toHaveBeenCalledWith('/api/v1/training-call-schedules', request)
+    const signal = new AbortController().signal
+    vi.mocked(httpClient.get)
+      .mockResolvedValueOnce({ data: { data: { ...schedule, status: 'RINGING' } } })
+      .mockResolvedValueOnce({ data: { data: null } })
+    expect(await getRingingTrainingCallSchedule(signal)).toMatchObject({ status: 'RINGING' })
+    expect(httpClient.get).toHaveBeenCalledWith('/api/v1/training-call-schedules/ringing', {
+      signal,
+    })
+    expect(await getRingingTrainingCallSchedule()).toBeNull()
+  })
+
+  it('uses the accepted server session and handles cancellation response', async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({
+      data: {
+        data: {
+          scheduleId: 5,
+          status: 'ACCEPTED',
+          sessionId: 'accepted',
+          wsUrl: 'wss://ai.example.test/ws/voice/accepted',
+        },
+      },
+    })
+    expect(await acceptTrainingCallSchedule(5)).toMatchObject({
+      sessionId: 'accepted',
+      status: 'ACCEPTED',
+    })
+    expect(httpClient.post).toHaveBeenCalledWith('/api/v1/training-call-schedules/5/accept')
+    vi.mocked(httpClient.delete).mockResolvedValue({
+      data: { data: { ...schedule, status: 'CANCELED' } },
+    })
+    expect(await cancelTrainingCallSchedule(5)).toMatchObject({ status: 'CANCELED' })
+  })
+
+  it('normalizes Spring NON_NULL serialization when there is no ringing reservation', async () => {
+    vi.mocked(httpClient.get).mockResolvedValue({ data: { status: 200 } })
+    expect(await getRingingTrainingCallSchedule()).toBeNull()
+  })
+
+  it('reads unwrapped feedback and wrapped ringtone/score responses without confusing the servers', async () => {
+    const feedback = {
+      sessionType: 'CUSTOM',
+      scenarioName: '내 예약',
+      trainingTime: '00:01:00',
+      goodSegments: [{ start: 1, end: 4, good_point: '용건을 잘 말했어요.' }],
+      transcript: [],
+      recordingUrl: null,
+    }
+    vi.mocked(httpClient.get)
+      .mockResolvedValueOnce({ data: feedback })
+      .mockResolvedValueOnce({ data: { data: { defaultRingtone: true, url: null } } })
+    expect(await getScenarioFeedback(12)).toEqual(feedback)
+    expect(httpClient.get).toHaveBeenCalledWith('/api/v1/training-records/feedback', {
+      params: { scenarioId: 12 },
+    })
+    expect(await getTrainingRingtone()).toEqual({ defaultRingtone: true, url: null })
+    vi.mocked(httpClient.post).mockResolvedValue({
+      data: {
+        data: {
+          recordId: 8,
+          sessionId: 'session',
+          anxietyScore: 4,
+          scoreApplied: false,
+          scoreExclusionReason: 'MISSING_ANALYSIS',
+        },
+      },
+    })
+    expect(await postTrainingAnxietyScore('session', 4)).toMatchObject({
+      scoreApplied: false,
+      anxietyScore: 4,
+    })
   })
 })

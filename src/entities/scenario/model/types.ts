@@ -31,8 +31,54 @@ export interface TrainingSession {
   wsUrl: string
 }
 
+export interface TrainingSessionConfiguration {
+  scenarioId: number
+  type: ScenarioSessionType
+  aiPersonality: ScenarioPersonality
+  difficulty: ScenarioDifficulty
+  maxDurationSeconds?: number
+}
+
+export interface TrainingCallSchedule {
+  scheduleId: number
+  scheduledAt?: string
+  status: 'SCHEDULED' | 'RINGING' | 'ACCEPTED' | 'CANCELED'
+  sessionId?: string | null
+  wsUrl?: string | null
+}
+
+export interface ScenarioRecommendation {
+  scenario: Scenario
+  reason?: 'CUSTOM_NOT_PRACTICED' | 'NOT_PRACTICED' | 'LONGEST_ABSENT'
+  categoryIconUrl?: string
+}
+
+export interface ScenarioFeedback {
+  sessionType: ScenarioSessionType | 'WARMUP'
+  scenarioName: string
+  trainingTime: string
+  goodSegments: Array<{ start: number; end: number; good_point: string }>
+  recordingUrl?: string | null
+  transcript: Array<{ role: 'ai' | 'user'; text: string }>
+}
+
+export interface TrainingAnxietyScore {
+  recordId: number
+  sessionId: string
+  anxietyScore: number
+  scoreApplied: boolean
+  scoreExclusionReason?: string | null
+}
+
 export interface ScenarioRouteState {
+  callId?: string
+  callScheduledAt?: number
   scenario?: Scenario
   session?: TrainingSession
+  sessionConfiguration?: TrainingSessionConfiguration
   callDelaySeconds?: number
+  callDurationSeconds?: number
+  endReason?: string
+  schedule?: TrainingCallSchedule
+  isAnswered?: boolean
 }

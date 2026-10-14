@@ -1,7 +1,7 @@
 import { useTrainingSettings } from '../model/useTrainingSettings'
 import type { ScenarioDifficulty, ScenarioPersonality } from '@entities/scenario'
 import { IoArrowBack } from 'react-icons/io5'
-import { useEffect, useRef } from 'react'
+import { useMinutePicker, minuteValues } from '../model/useMinutePicker'
 
 const difficultyOptions: Array<{ value: ScenarioDifficulty; label: string }> = [
   { value: 'low', label: '하' },
@@ -45,7 +45,7 @@ const ScaleField = <Value extends string>({
           {options.map((option, index) => (
             <span
               key={option.value}
-              className="top-1/2 size-3 absolute -translate-x-1/2 -translate-y-1/2 rounded-pill bg-line-neutral"
+              className="size-3 absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-pill bg-line-neutral"
               style={{ left: `calc(16px + (100% - 32px) * ${index / (options.length - 1)})` }}
             />
           ))}
@@ -61,7 +61,7 @@ const ScaleField = <Value extends string>({
             value={selectedIndex}
             onChange={(event) => onChange(options[Number(event.target.value)].value)}
             aria-label={label}
-            className="inset-0 absolute z-10 h-8 w-full cursor-pointer opacity-0"
+            className="inset-0 h-8 absolute z-10 w-full cursor-pointer opacity-0"
           />
         </div>
         <div className="mt-3 flex items-center justify-between">
@@ -73,9 +73,7 @@ const ScaleField = <Value extends string>({
                 type="button"
                 onClick={() => onChange(option.value)}
                 className={`min-w-10 text-caption transition-colors ${
-                  isSelected
-                    ? 'font-bold text-label-normal'
-                    : 'font-medium text-label-alternative'
+                  isSelected ? 'font-bold text-label-normal' : 'font-medium text-label-alternative'
                 }`}
               >
                 {option.label}
@@ -88,9 +86,6 @@ const ScaleField = <Value extends string>({
   )
 }
 
-const minuteValues = Array.from({ length: 61 }, (_, minute) => minute)
-const minuteItemHeight = 44
-
 interface MinuteColumnProps {
   label: string
   selected: number
@@ -99,30 +94,7 @@ interface MinuteColumnProps {
 
 /** 앱의 0~60분 스크롤 스냅 휠을 웹 상호작용으로 옮깁니다. */
 const MinuteColumn = ({ label, selected, onChange }: MinuteColumnProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const isInitializedRef = useRef(false)
-
-  useEffect(() => {
-    const scrollElement = scrollRef.current
-    if (!scrollElement || isInitializedRef.current) return
-    isInitializedRef.current = true
-    scrollElement.scrollTop = selected * minuteItemHeight
-  }, [selected])
-
-  const handleScroll = () => {
-    const scrollElement = scrollRef.current
-    if (!scrollElement) return
-    const minute = Math.min(
-      60,
-      Math.max(0, Math.round(scrollElement.scrollTop / minuteItemHeight)),
-    )
-    if (minute !== selected) onChange(minute)
-  }
-
-  const handleSelect = (minute: number) => {
-    onChange(minute)
-    scrollRef.current?.scrollTo({ top: minute * minuteItemHeight, behavior: 'smooth' })
-  }
+  const { scrollRef, handleScroll, handleSelect } = useMinutePicker(selected, onChange)
 
   return (
     <div className="min-w-0 flex flex-1 flex-col items-center">
@@ -130,7 +102,7 @@ const MinuteColumn = ({ label, selected, onChange }: MinuteColumnProps) => {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="h-[220px] w-full snap-y snap-proximity overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="h-[220px] w-full snap-y snap-proximity [scrollbar-width:none] overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden"
       >
         <div className="h-[88px]" aria-hidden="true" />
         {minuteValues.map((minute) => {
@@ -141,7 +113,7 @@ const MinuteColumn = ({ label, selected, onChange }: MinuteColumnProps) => {
               key={minute}
               type="button"
               onClick={() => handleSelect(minute)}
-              className={`h-11 w-full snap-center flex items-center justify-center text-center transition-[color,opacity,font-size] ${
+              className={`h-11 flex w-full snap-center items-center justify-center text-center transition-[color,opacity,font-size] ${
                 isSelected
                   ? 'text-title2 font-bold text-primary-normal'
                   : distance === 1
@@ -167,17 +139,12 @@ interface MinuteRangePickerProps {
 }
 
 /** 최소·최대 발신 시간을 하나의 선택 영역에서 조절합니다. */
-const MinuteRangePicker = ({
-  from,
-  to,
-  onChangeFrom,
-  onChangeTo,
-}: MinuteRangePickerProps) => (
+const MinuteRangePicker = ({ from, to, onChangeFrom, onChangeTo }: MinuteRangePickerProps) => (
   <div className="relative">
-    <span className="inset-x-0 top-[120px] h-11 absolute rounded-component bg-fill-normal" />
+    <span className="inset-x-0 h-11 absolute top-[120px] rounded-component bg-fill-normal" />
     <div className="relative flex items-end">
       <MinuteColumn label="최소" selected={from} onChange={onChangeFrom} />
-      <span className="h-[220px] px-4 flex items-center text-headline1 font-medium text-label-alternative">
+      <span className="px-4 flex h-[220px] items-center text-headline1 font-medium text-label-alternative">
         ~
       </span>
       <MinuteColumn label="최대" selected={to} onChange={onChangeTo} />
@@ -213,7 +180,7 @@ export const ScenarioSettingsView = () => {
   }
 
   return (
-    <main className="min-w-0 px-10 pt-6 h-[calc(100vh-32px)] flex flex-1 flex-col gap-4">
+    <main className="min-w-0 px-10 pt-6 gap-4 flex h-[calc(100vh-32px)] flex-1 flex-col">
       <header className="h-11 gap-3.5 flex shrink-0 items-center">
         <button
           type="button"
@@ -226,8 +193,8 @@ export const ScenarioSettingsView = () => {
         <h1 className="text-title1 font-bold text-label-neutral">훈련 설정</h1>
       </header>
 
-      <section className="min-h-0 flex flex-1 items-center rounded-dialog bg-background-normal px-10 py-12">
-        <div className="mx-auto h-full w-[640px] flex flex-col">
+      <section className="min-h-0 px-10 py-12 flex flex-1 items-center rounded-dialog bg-background-normal">
+        <div className="mx-auto flex h-full w-[640px] flex-col">
           <div
             className="gap-2 flex"
             aria-label={`2단계 중 ${settings.step === 'level' ? 1 : 2}단계`}
@@ -263,10 +230,28 @@ export const ScenarioSettingsView = () => {
                 onChangeFrom={settings.setDelayFrom}
                 onChangeTo={settings.setDelayTo}
               />
-              <div className="mt-8 rounded-component bg-fill-normal px-3 py-4">
+              <div className="mt-8 px-3 py-4 rounded-component bg-fill-normal">
                 <p className="text-label font-medium text-label-alternative">
                   • 설정한 시간 범위 안에서 무작위로 전화가 걸려와요.
                 </p>
+                {settings.delayTo > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <label className="gap-2 flex items-center text-label text-label-normal">
+                      <input
+                        type="checkbox"
+                        checked={settings.shouldKeepSchedule}
+                        onChange={(event) => settings.setShouldKeepSchedule(event.target.checked)}
+                        className="accent-primary-normal"
+                      />
+                      페이지를 벗어나도 예약 유지
+                    </label>
+                    <p className="text-caption text-label-alternative">
+                      {settings.shouldKeepSchedule
+                        ? '예약 전화는 기본 난이도로 진행돼요. 상대의 태도는 선택대로 적용돼요. 다시 접속하면 수신 중인 전화를 받을 수 있어요.'
+                        : '선택한 난이도로 진행해요. 전화가 올 때까지 이 페이지를 유지해 주세요.'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
