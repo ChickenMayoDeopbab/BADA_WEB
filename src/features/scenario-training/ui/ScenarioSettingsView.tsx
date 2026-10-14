@@ -234,6 +234,24 @@ export const ScenarioSettingsView = () => {
                 <p className="text-label font-medium text-label-alternative">
                   • 설정한 시간 범위 안에서 무작위로 전화가 걸려와요.
                 </p>
+                {settings.delayTo > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <label className="gap-2 flex items-center text-label text-label-normal">
+                      <input
+                        type="checkbox"
+                        checked={settings.shouldKeepSchedule}
+                        onChange={(event) => settings.setShouldKeepSchedule(event.target.checked)}
+                        className="accent-primary-normal"
+                      />
+                      페이지를 벗어나도 예약 유지
+                    </label>
+                    <p className="text-caption text-label-alternative">
+                      {settings.shouldKeepSchedule
+                        ? '예약 전화는 기본 난이도로 진행돼요. 상대의 태도는 선택대로 적용돼요. 다시 접속하면 수신 중인 전화를 받을 수 있어요.'
+                        : '선택한 난이도로 진행해요. 전화가 올 때까지 이 페이지를 유지해 주세요.'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

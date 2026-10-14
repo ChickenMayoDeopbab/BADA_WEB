@@ -143,12 +143,15 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
               </p>
               {call.remainingDelay === 0 && (
                 <p role="status" className="mt-2 text-body text-label-alternative">
-                  통화 세션을 준비하고 있어요.
+                  {call.schedule
+                    ? '예약 전화의 수신을 기다리고 있어요.'
+                    : '통화 세션을 준비하고 있어요.'}
                 </p>
               )}
               <button
                 type="button"
                 onClick={call.handleDecline}
+                disabled={call.isCanceling}
                 className="mt-5 text-caption text-label-alternative"
               >
                 훈련 취소하기
@@ -159,6 +162,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
               <button
                 type="button"
                 onClick={call.handleAnswer}
+                disabled={call.isAccepting || call.isCanceling}
                 aria-label="전화 받기"
                 className="size-20 flex items-center justify-center rounded-pill bg-green-40"
               >
@@ -167,12 +171,27 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
               <button
                 type="button"
                 onClick={call.handleDecline}
+                disabled={call.isAccepting || call.isCanceling}
                 aria-label="전화 거절"
                 className="size-20 flex items-center justify-center rounded-pill bg-red-40"
               >
                 <img src={callDecline} alt="" className="size-9 rotate-[135deg]" />
               </button>
             </div>
+          )}
+          {call.isAccepting && (
+            <p role="status" className="text-body text-label-alternative">
+              예약 전화를 수락하고 있어요.
+            </p>
+          )}
+          {call.isRingtoneBlocked && (
+            <button
+              type="button"
+              onClick={() => void call.handlePlayRingtone()}
+              className="text-label text-primary-normal"
+            >
+              벨소리 켜기
+            </button>
           )}
         </div>
 

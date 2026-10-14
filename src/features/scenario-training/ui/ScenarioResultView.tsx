@@ -28,6 +28,24 @@ const scoreColors = [
 export const ScenarioResultView = () => {
   const result = useTrainingResult()
 
+  if (!result.canRecordScore) {
+    return (
+      <main className="gap-5 p-8 flex min-h-screen flex-col items-center justify-center bg-background-normal text-center">
+        <h1 className="text-title1 font-bold text-label-normal">훈련이 종료됐어요.</h1>
+        <p className="text-body text-label-alternative">
+          이번 통화는 불안 점수를 기록할 수 없어요. 훈련 기록에서 통화 내용을 확인해 주세요.
+        </p>
+        <button
+          type="button"
+          onClick={() => void result.handleSubmit()}
+          className="px-6 py-3 rounded-component bg-primary-normal text-body font-bold text-label-button-text"
+        >
+          기록 확인하기
+        </button>
+      </main>
+    )
+  }
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-background-normal">
       <section

@@ -45,6 +45,12 @@ const prepareCall = async (page: Page) => {
     route.fulfill({ json: { scenario } }),
   )
   await page.route('**/api/v1/users/me', (route) => route.fulfill({ json: { data: {} } }))
+  await page.route('**/api/v1/training-call-schedules/ringing', (route) =>
+    route.fulfill({ json: { data: null } }),
+  )
+  await page.route('**/api/v1/ringtones/settings', (route) =>
+    route.fulfill({ json: { data: { defaultRingtone: false, url: null } } }),
+  )
   let sessions = 0
   await page.route('**/api/v1/session', async (route) => {
     expect(route.request().postDataJSON()).toEqual({
@@ -348,4 +354,126 @@ test('keeps the result screen available for retry when anxiety score saving fail
   await page.getByRole('button', { name: '훈련 마치기', exact: true }).click()
   await expect(page).toHaveURL(/\/records/)
   expect(attempts).toBe(2)
+})
+
+test('receives a server schedule, accepts its existing session and cleans the call', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  let ringingRequests = 0
+  let accepts = 0
+  const schedule = {
+    scheduleId: 10,
+    status: 'SCHEDULED',
+    scheduledAt: new Date(Date.now() + 1000).toISOString(),
+  }
+  await page.route('**/api/v1/training-call-schedules', (route) => {
+    expect(route.request().postDataJSON()).toEqual({
+      scenarioId: 1,
+      type: 'SCENARIO',
+      aiPersonality: 'KIND',
+      minDelayMinutes: 1,
+      maxDelayMinutes: 1,
+    })
+    return route.fulfill({ json: { data: schedule } })
+  })
+  await page.route('**/api/v1/training-call-schedules/ringing', (route) => {
+    ringingRequests += 1
+    return route.fulfill({
+      json: ringingRequests < 2 ? { status: 200 } : { data: { ...schedule, status: 'RINGING' } },
+    })
+  })
+  await page.route('**/api/v1/training-call-schedules/10/accept', (route) => {
+    accepts += 1
+    return route.fulfill({
+      json: {
+        data: {
+          scheduleId: 10,
+          status: 'ACCEPTED',
+          sessionId: 'accepted-session',
+          wsUrl: 'ws://internal-host/ignored',
+        },
+      },
+    })
+  })
+  await page.goto('/training/1/settings')
+  await page.getByRole('button', { name: '다음으로', exact: true }).click()
+  await page
+    .getByText('최소', { exact: true })
+    .locator('..')
+    .getByRole('button', { name: '1분', exact: true })
+    .click()
+  await page
+    .getByText('최대', { exact: true })
+    .locator('..')
+    .getByRole('button', { name: '1분', exact: true })
+    .click()
+  await page.getByRole('checkbox', { name: '페이지를 벗어나도 예약 유지' }).check()
+  await expect(page.getByText(/예약 전화는 기본 난이도로/)).toBeVisible()
+  await page.getByRole('button', { name: '설정 완료하기', exact: true }).click()
+  await expect(page.getByText('전화가 걸려오기까지')).toBeVisible()
+  expect(audit.getSessionCount()).toBe(0)
+  await expect(page.getByRole('button', { name: '전화 받기', exact: true })).toBeVisible({
+    timeout: 8000,
+  })
+  await page.getByRole('button', { name: '전화 받기', exact: true }).click()
+  await page.getByRole('button', { name: '건너뛰기', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '상담 직원' })).toBeVisible()
+  await expect.poll(() => audit.binaryFrames.length).toBeGreaterThan(0)
+  expect(accepts).toBe(1)
+  expect(audit.getSessionCount()).toBe(0)
+  await page.getByRole('button', { name: '통화 종료', exact: true }).click()
+  await expect(page).toHaveURL(/\/training\/1\/result/)
+  expect(
+    await page.evaluate(() =>
+      window.badaAudioAudit.streams.every((stream) =>
+        stream.getTracks().every((track) => track.readyState === 'ended'),
+      ),
+    ),
+  ).toBe(true)
+})
+
+test('restores a ringing reservation from the catalog and retries cancellation without opening the microphone', async ({
+  page,
+}) => {
+  await prepareCall(page)
+  let cancellations = 0
+  await page.route('**/api/v1/training-call-schedules/ringing', (route) =>
+    route.fulfill({ json: { data: { scheduleId: 11, status: 'RINGING' } } }),
+  )
+  await page.route('**/api/v1/training-call-schedules/11', (route) => {
+    cancellations += 1
+    return route.fulfill({
+      status: cancellations === 1 ? 503 : 200,
+      json: { data: { scheduleId: 11, status: 'CANCELED' } },
+    })
+  })
+  await page.goto('/training')
+  await page.getByRole('button', { name: '예약 전화 확인', exact: true }).click()
+  await page.getByRole('button', { name: '전화 거절', exact: true }).click()
+  await expect(page.getByRole('alert')).toContainText('예약을 취소하지 못했어요')
+  await page.getByRole('button', { name: '목록으로 돌아가기', exact: true }).click()
+  await expect(page).toHaveURL(/\/training$/)
+  expect(cancellations).toBe(2)
+  expect(await page.evaluate(() => window.badaAudioAudit.streams.length)).toBe(0)
+})
+
+test('does not post an anxiety score for server NO_AUDIO termination', async ({ page }) => {
+  const audit = await prepareCall(page)
+  let scoreRequests = 0
+  await page.route('**/api/v1/training-records/*/anxiety-score', (route) => {
+    scoreRequests += 1
+    return route.fulfill({ status: 403, json: {} })
+  })
+  await page.route('**/api/v1/training-records?*', (route) =>
+    route.fulfill({ json: { data: { content: [], totalPages: 1 } } }),
+  )
+  await startCall(page)
+  await expect(page.getByRole('heading', { name: '상담 직원' })).toBeVisible()
+  audit.getSocket().send(JSON.stringify({ type: 'end', reason: 'NO_AUDIO' }))
+  await expect(page.getByRole('button', { name: '기록 확인하기', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '불안 점수 1', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: '기록 확인하기', exact: true }).click()
+  await expect(page).toHaveURL(/\/records$/)
+  expect(scoreRequests).toBe(0)
 })

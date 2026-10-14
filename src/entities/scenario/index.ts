@@ -8,4 +8,8 @@ export type {
   ScenarioSessionType,
   TrainingSession,
   TrainingSessionConfiguration,
+  TrainingCallSchedule,
+  ScenarioRecommendation,
+  ScenarioFeedback,
+  TrainingAnxietyScore,
 } from './model/types'

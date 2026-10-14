@@ -1,8 +1,14 @@
 import { VoiceCall, type VoiceCallState } from './voiceCall'
-import { createTrainingSession } from '../api/scenarioTrainingApi'
+import { useIncomingRingtone } from './useIncomingRingtone'
+import {
+  createTrainingSession,
+  getRingingTrainingCallSchedule,
+  acceptTrainingCallSchedule,
+  cancelTrainingCallSchedule,
+} from '../api/scenarioTrainingApi'
 import { getApiErrorMessage } from '@shared/api'
 import type { ScenarioRouteState } from '@entities/scenario'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
@@ -17,19 +23,69 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
   const queryClient = useQueryClient()
   const { scenarioId = '' } = useParams()
   const routeState = location.state as ScenarioRouteState | null
-  const initialDelay = Math.max(0, routeState?.callDelaySeconds ?? 0)
+  const serverSchedule = routeState?.schedule
+  const [initialDelay] = useState(() => {
+    const delay = serverSchedule?.scheduledAt
+      ? Math.ceil((Date.parse(serverSchedule.scheduledAt) - Date.now()) / 1000)
+      : (routeState?.callDelaySeconds ?? 0)
+    return Number.isFinite(delay) ? Math.max(0, delay) : 0
+  })
   const [remainingDelay, setRemainingDelay] = useState(initialDelay)
   const [preparationStage, setPreparationStage] = useState<
     'scheduled' | 'incoming' | 'meditationPrompt' | 'meditationVideo'
-  >(initialDelay > 0 ? 'scheduled' : 'incoming')
+  >(
+    routeState?.isAnswered && routeState.session?.sessionId
+      ? 'meditationPrompt'
+      : serverSchedule?.status === 'SCHEDULED' || initialDelay > 0
+        ? 'scheduled'
+        : 'incoming',
+  )
   const [voiceState, setVoiceState] = useState<VoiceCallState | null>(null)
   const [session, setSession] = useState(routeState?.session)
   const [sessionErrorMessage, setSessionErrorMessage] = useState('')
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [isScriptOpen, setIsScriptOpen] = useState(false)
   const callRef = useRef<VoiceCall | null>(null)
-  const stage = sessionErrorMessage ? 'error' : (voiceState?.stage ?? preparationStage)
+  const baseStage = sessionErrorMessage ? 'error' : (voiceState?.stage ?? preparationStage)
   const sessionId = session?.sessionId
+  const ringingQuery = useQuery({
+    queryKey: ['training-call-ringing'],
+    queryFn: ({ signal }) => getRingingTrainingCallSchedule(signal),
+    enabled: Boolean(serverSchedule && preparationStage === 'scheduled'),
+    refetchInterval: 2000,
+    retry: false,
+    refetchOnMount: 'always',
+  })
+  const acceptMutation = useMutation({
+    mutationFn: acceptTrainingCallSchedule,
+    onSuccess: (accepted) => {
+      if (accepted.status !== 'ACCEPTED' || !accepted.sessionId || !accepted.wsUrl) {
+        setSessionErrorMessage('통화 세션을 받지 못했어요. 새 훈련을 시작해 주세요.')
+        return
+      }
+      const nextSession = { sessionId: accepted.sessionId, wsUrl: accepted.wsUrl }
+      setSession(nextSession)
+      setPreparationStage('meditationPrompt')
+      navigate(location.pathname, {
+        replace: true,
+        state: { ...routeState, schedule: accepted, session: nextSession, isAnswered: true },
+      })
+      void queryClient.invalidateQueries({ queryKey: ['training-call-ringing'] })
+    },
+    onError: (error) =>
+      setSessionErrorMessage(getApiErrorMessage(error, '예약 전화를 수락하지 못했어요.')),
+  })
+  const cancelMutation = useMutation({ mutationFn: cancelTrainingCallSchedule })
+  const stage =
+    baseStage === 'scheduled' &&
+    serverSchedule &&
+    ringingQuery.data?.scheduleId === serverSchedule.scheduleId &&
+    ringingQuery.data.status === 'RINGING'
+      ? 'incoming'
+      : baseStage
+  const ringtone = useIncomingRingtone(
+    stage === 'incoming' && !acceptMutation.isPending && !cancelMutation.isPending,
+  )
 
   useEffect(() => {
     if (preparationStage !== 'scheduled') return
@@ -62,14 +118,14 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
       setRemainingDelay(remaining)
       if (remaining === 0) {
         window.clearInterval(timer)
-        void prepareScheduledSession()
+        if (!serverSchedule) void prepareScheduledSession()
       }
     }, 250)
     return () => {
       window.clearInterval(timer)
       controller.abort()
     }
-  }, [initialDelay, preparationStage, routeState?.sessionConfiguration, sessionId])
+  }, [initialDelay, preparationStage, routeState?.sessionConfiguration, sessionId, serverSchedule])
 
   useEffect(() => {
     if (stage !== 'active' || voiceState?.startedAt == null) return
@@ -137,7 +193,11 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
   }, [])
 
   /** 수신 화면에서 기존 명상 안내를 엽니다. */
-  const handleAnswer = () => setPreparationStage('meditationPrompt')
+  const handleAnswer = () => {
+    if (acceptMutation.isPending) return
+    if (serverSchedule && !sessionId) acceptMutation.mutate(serverSchedule.scheduleId)
+    else setPreparationStage('meditationPrompt')
+  }
   /** 명상 화면을 표시합니다. */
   const handleMeditate = () => setPreparationStage('meditationVideo')
   /** 사용자 제스처 안에서 통화 제어기를 한 번만 생성합니다. */
@@ -157,13 +217,41 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
     callRef.current?.end()
   }
   /** 수신 거절 또는 오류 복귀 시 현재 통화를 정리하고 목록을 엽니다. */
-  const handleDecline = () => {
+  const handleDecline = async () => {
+    if (cancelMutation.isPending) return
     callRef.current?.dispose()
+    if (serverSchedule && !sessionId) {
+      try {
+        await cancelMutation.mutateAsync(serverSchedule.scheduleId)
+        await queryClient.invalidateQueries({ queryKey: ['training-call-ringing'] })
+      } catch (error) {
+        setSessionErrorMessage(
+          getApiErrorMessage(error, '예약을 취소하지 못했어요. 다시 시도해 주세요.'),
+        )
+        return
+      }
+    }
     navigate('/training')
   }
   /** 실패한 세션을 재사용하지 않고 설정 화면에서 새 세션을 만들도록 안내합니다. */
-  const handleRetry = () => {
+  const handleRetry = async () => {
+    if (cancelMutation.isPending) return
     callRef.current?.dispose()
+    if (serverSchedule && !sessionId) {
+      try {
+        await cancelMutation.mutateAsync(serverSchedule.scheduleId)
+        await queryClient.invalidateQueries({ queryKey: ['training-call-ringing'] })
+      } catch (error) {
+        setSessionErrorMessage(
+          getApiErrorMessage(error, '이전 예약을 취소하지 못했어요. 다시 시도해 주세요.'),
+        )
+        return
+      }
+    }
+    if (!Number.isSafeInteger(Number(scenarioId))) {
+      navigate('/training', { replace: true })
+      return
+    }
     navigate(`/training/${scenarioId}/settings`, {
       state: { scenario: routeState?.scenario },
       replace: true,
@@ -176,8 +264,11 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
 
   return {
     ...routeState,
+    ...ringtone,
     session,
-    stage,
+    stage: ringingQuery.isError && preparationStage === 'scheduled' ? 'error' : stage,
+    isAccepting: acceptMutation.isPending,
+    isCanceling: cancelMutation.isPending,
     remainingDelay,
     elapsedSeconds: ['ending', 'ended', 'error'].includes(stage)
       ? (voiceState?.durationSeconds ?? 0)
@@ -193,9 +284,16 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
     isPlaybackBlocked: voiceState?.isPlaybackBlocked ?? false,
     isAudioSuspended: voiceState?.isAudioSuspended ?? false,
     notice: voiceState?.notice ?? '',
-    errorMessage: sessionErrorMessage || voiceState?.errorMessage || '',
+    errorMessage:
+      sessionErrorMessage ||
+      voiceState?.errorMessage ||
+      (ringingQuery.isError
+        ? getApiErrorMessage(ringingQuery.error, '예약 전화 상태를 확인하지 못했어요.')
+        : ''),
     hasSession: Boolean(
-      sessionId || (routeState?.sessionConfiguration && preparationStage === 'scheduled'),
+      sessionId ||
+      serverSchedule ||
+      (routeState?.sessionConfiguration && preparationStage === 'scheduled'),
     ),
     handleToggleMute,
     handleToggleScript,

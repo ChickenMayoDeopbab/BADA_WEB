@@ -3,12 +3,14 @@ import {
   getRecommendedScenario,
   getScenarioExample,
   getScenarios,
+  getScenarioFeedback,
+  getRingingTrainingCallSchedule,
 } from '../api/scenarioTrainingApi'
 import type { Scenario, ScenarioCategory } from '@entities/scenario'
 import { getApiErrorMessage } from '@shared/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { routePaths } from '@shared/config'
 
 export type ScenarioTab = 'basic' | 'custom' | 'shared'
@@ -16,8 +18,13 @@ export type ScenarioTab = 'basic' | 'custom' | 'shared'
 /** 시나리오 목록의 조회, 분류, 검색과 상세 패널 상태를 관리합니다. */
 export const useScenarioCatalog = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
-  const [selectedTab, setSelectedTab] = useState<ScenarioTab>('basic')
+  const [selectedTab, setSelectedTab] = useState<ScenarioTab>(() =>
+    location.state?.selectedTab === 'custom' || location.state?.selectedTab === 'shared'
+      ? location.state.selectedTab
+      : 'basic',
+  )
   const [selectedCategory, setSelectedCategory] = useState<ScenarioCategory | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null)
@@ -45,10 +52,23 @@ export const useScenarioCatalog = () => {
     queryFn: () => getScenarioExample(selectedScenario?.scenarioId as number),
     enabled: selectedScenario !== null,
   })
+  const feedbackQuery = useQuery({
+    queryKey: ['scenario-feedback', selectedScenario?.scenarioId],
+    queryFn: () => getScenarioFeedback(selectedScenario!.scenarioId),
+    enabled: Boolean(selectedScenario && selectedScenario.practiceCount > 0 && isDetailOpen),
+    retry: false,
+  })
+  const ringingQuery = useQuery({
+    queryKey: ['training-call-ringing'],
+    queryFn: ({ signal }) => getRingingTrainingCallSchedule(signal),
+    refetchInterval: 5000,
+    retry: false,
+  })
   const deleteScenarioMutation = useMutation({
     mutationFn: deleteCustomScenario,
     onSuccess: async (_, deletedScenarioId) => {
       queryClient.removeQueries({ queryKey: ['scenario-example', deletedScenarioId] })
+      queryClient.removeQueries({ queryKey: ['scenario-feedback', deletedScenarioId] })
       setDeleteTarget(null)
       setIsDetailMenuOpen(false)
       if (selectedScenario?.scenarioId === deletedScenarioId) {
@@ -124,9 +144,9 @@ export const useScenarioCatalog = () => {
   /** 상세 패널 우측 상단의 시나리오 메뉴를 열거나 닫습니다. */
   const handleToggleDetailMenu = () => setIsDetailMenuOpen((isOpen) => !isOpen)
 
-  /** 현재 사용자가 만든 커스텀 시나리오의 삭제 확인 창을 엽니다. */
+  /** 내 목록의 커스텀 시나리오 삭제 확인 창을 엽니다. 가져온 사본도 서버에서 소유권을 확인합니다. */
   const handleOpenDeleteDialog = (scenario = selectedScenario) => {
-    if (!scenario?.isCustom || scenario.isCopied) return
+    if (!scenario?.isCustom) return
 
     deleteScenarioMutation.reset()
     setIsDetailMenuOpen(false)
@@ -143,7 +163,7 @@ export const useScenarioCatalog = () => {
 
   /** 확인한 커스텀 시나리오를 서버에서 삭제합니다. */
   const handleDeleteScenario = () => {
-    if (!deleteTarget?.isCustom || deleteTarget.isCopied || deleteScenarioMutation.isPending) {
+    if (!deleteTarget?.isCustom || deleteScenarioMutation.isPending) {
       return
     }
 
@@ -158,6 +178,12 @@ export const useScenarioCatalog = () => {
   /** 기존 커스텀 시나리오 경로로 이동합니다. */
   const handleCreateCustomScenario = () => navigate(routePaths.trainingCustomNew)
 
+  /** 다른 페이지에서 돌아와도 서버에 남아 있는 수신 전화를 수락할 수 있습니다. */
+  const handleOpenRingingCall = () => {
+    if (!ringingQuery.data) return
+    navigate('/training/scheduled/call', { state: { schedule: ringingQuery.data } })
+  }
+
   return {
     handleStartScenario,
     handleCreateCustomScenario,
@@ -169,7 +195,15 @@ export const useScenarioCatalog = () => {
     isDetailMenuOpen,
     deleteTarget,
     scenarios: visibleScenarios,
-    recommendedScenario: recommendationQuery.data,
+    recommendedScenario: recommendationQuery.data?.scenario,
+    recommendationIconUrl: recommendationQuery.data?.categoryIconUrl,
+    ringingSchedule: ringingQuery.data,
+    handleOpenRingingCall,
+    feedback: feedbackQuery.data,
+    isFeedbackLoading: feedbackQuery.isFetching,
+    feedbackErrorMessage: feedbackQuery.isError
+      ? getApiErrorMessage(feedbackQuery.error, '최근 훈련 피드백을 불러오지 못했어요.')
+      : '',
     example: exampleQuery.data,
     isLoading: activeScenariosQuery.isPending,
     isRefreshing: activeScenariosQuery.isFetching,

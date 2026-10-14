@@ -1,4 +1,5 @@
 import { postTrainingAnxietyScore } from '../api/scenarioTrainingApi'
+import { getApiErrorMessage } from '@shared/api'
 import type { ScenarioRouteState } from '@entities/scenario'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
@@ -23,6 +24,10 @@ export const useTrainingResult = () => {
   const queryClient = useQueryClient()
   const location = useLocation()
   const routeState = location.state as ScenarioRouteState | null
+  const canRecordScore =
+    Boolean(routeState?.session?.sessionId) &&
+    (!routeState?.endReason ||
+      ['SCENARIO_DONE', 'USER_END', 'END_CALL', 'TIMEOUT'].includes(routeState.endReason))
   const [isScoreVisible, setIsScoreVisible] = useState(false)
   const [messageIndex, setMessageIndex] = useState(0)
   const [typedLength, setTypedLength] = useState(0)
@@ -66,7 +71,7 @@ export const useTrainingResult = () => {
   /** 기록이 준비되지 않았거나 저장에 실패하면 재시도할 수 있도록 화면을 유지합니다. */
   const handleSubmit = async () => {
     if (mutation.isPending) return
-    const sessionId = routeState?.session?.sessionId
+    const sessionId = canRecordScore ? routeState?.session?.sessionId : undefined
     if (sessionId) {
       try {
         await mutation.mutateAsync({ sessionId, nextScore: score })
@@ -74,12 +79,18 @@ export const useTrainingResult = () => {
         return
       }
     }
-    await queryClient.invalidateQueries({ queryKey: ['training-records'] })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['training-records'] }),
+      queryClient.invalidateQueries({ queryKey: ['scenarios'] }),
+      queryClient.invalidateQueries({ queryKey: ['scenario-recommendation'] }),
+      queryClient.invalidateQueries({ queryKey: ['scenario-feedback'] }),
+    ])
     navigate('/records', { replace: true })
   }
 
   return {
     scenario: routeState?.scenario,
+    canRecordScore,
     isScoreVisible,
     messageIndex,
     message,
@@ -87,7 +98,10 @@ export const useTrainingResult = () => {
     score,
     isSubmitting: mutation.isPending,
     errorMessage: mutation.isError
-      ? '불안 점수를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.'
+      ? getApiErrorMessage(
+          mutation.error,
+          '불안 점수를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
+        )
       : '',
     setScore,
     handleShowScore,

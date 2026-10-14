@@ -14,6 +14,7 @@ import {
   ScenarioResultPage,
   ScenarioSettingsPage,
   ScenarioTrainingPage,
+  CustomScenarioPage,
 } from '@pages/training'
 import { routePaths } from '@shared/config'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
@@ -63,7 +64,7 @@ const router = createBrowserRouter([
           },
           {
             path: routePaths.trainingCustomNew,
-            element: <ServicePlaceholderPage title="커스텀 시나리오 생성 화면" />,
+            element: <CustomScenarioPage />,
           },
           {
             path: routePaths.trainingSettings,

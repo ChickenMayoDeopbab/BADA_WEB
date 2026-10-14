@@ -178,6 +178,9 @@ interface ScenarioDetailPanelProps {
   example: ReturnType<typeof useScenarioCatalog>['example']
   isExampleLoading: boolean
   exampleErrorMessage: string
+  feedback: ReturnType<typeof useScenarioCatalog>['feedback']
+  isFeedbackLoading: boolean
+  feedbackErrorMessage: string
   onClose: () => void
   onStart: () => void
   onToggleMenu: () => void
@@ -192,6 +195,9 @@ const ScenarioDetailPanel = ({
   example,
   isExampleLoading,
   exampleErrorMessage,
+  feedback,
+  isFeedbackLoading,
+  feedbackErrorMessage,
   onClose,
   onStart,
   onToggleMenu,
@@ -230,7 +236,7 @@ const ScenarioDetailPanel = ({
           >
             <img src={backArrow} alt="" />
           </button>
-          {scenario.isCustom && !scenario.isCopied && (
+          {scenario.isCustom && (
             <button
               type="button"
               onClick={onToggleMenu}
@@ -297,7 +303,40 @@ const ScenarioDetailPanel = ({
               {!isExampleLoading && !exampleErrorMessage && (
                 <ScenarioExampleAudio audioUrl={example?.audioUrl} />
               )}
+              {example?.dialogue && example.dialogue.length > 0 && (
+                <details className="mt-3 text-label text-label-neutral">
+                  <summary className="cursor-pointer">예시 대화 보기</summary>
+                  <ol className="mt-3 space-y-3">
+                    {example.dialogue.map((turn, index) => (
+                      <li key={index} className="whitespace-pre-wrap">
+                        <strong>{turn.speaker === 'user' ? '나' : '상대방'}: </strong>
+                        {turn.text}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              )}
             </section>
+            {scenario.practiceCount > 0 && (
+              <section className="px-6 pb-5">
+                <h3 className="mb-2 text-label font-bold text-label-normal">최근 훈련 피드백</h3>
+                {isFeedbackLoading ? (
+                  <p className="text-label text-label-alternative">불러오는 중...</p>
+                ) : feedbackErrorMessage ? (
+                  <p role="status" className="text-label text-label-alternative">
+                    {feedbackErrorMessage}
+                  </p>
+                ) : feedback?.goodSegments?.length ? (
+                  <ul className="space-y-2 text-body text-label-neutral">
+                    {feedback.goodSegments.map((segment, index) => (
+                      <li key={index}>{segment.good_point}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-label text-label-alternative">아직 표시할 피드백이 없어요.</p>
+                )}
+              </section>
+            )}
           </div>
         </div>
 
@@ -438,6 +477,21 @@ export const ScenarioTrainingView = () => {
       </div>
 
       <section className="mt-4 px-9 py-8 min-h-[calc(100vh-140px)] rounded-dialog bg-background-normal">
+        {catalog.ringingSchedule && (
+          <div
+            role="status"
+            className="mb-5 gap-3 p-4 flex items-center justify-between rounded-component bg-primary-alternative"
+          >
+            <p className="text-body text-label-normal">예약한 훈련 전화가 도착했어요.</p>
+            <button
+              type="button"
+              onClick={catalog.handleOpenRingingCall}
+              className="px-4 py-2 rounded-control bg-primary-normal text-label font-bold text-label-button-text"
+            >
+              예약 전화 확인
+            </button>
+          </div>
+        )}
         {catalog.selectedTab === 'custom' && !catalog.searchQuery && (
           <button
             type="button"
@@ -473,13 +527,23 @@ export const ScenarioTrainingView = () => {
               className="group p-4 hover:-translate-y-1 focus-visible:-translate-y-1 relative flex h-[200px] w-full items-end justify-between overflow-hidden rounded-component text-left shadow-elevated-card transition duration-200 focus-visible:outline-2 focus-visible:outline-primary-normal"
             >
               <img
-                src={catalog.recommendedScenario.imageUrl ?? recommendationImage}
+                src={
+                  catalog.recommendedScenario.imageUrl ??
+                  catalog.recommendationIconUrl ??
+                  recommendationImage
+                }
                 alt=""
                 className="inset-0 absolute size-full object-cover transition group-hover:scale-[1.01]"
               />
               <span className="inset-x-0 bottom-0 absolute h-[111px] bg-gradient-to-b from-transparent to-common-100" />
               <div className="relative text-common-0">
-                <p className="text-caption">기본 제공 시나리오</p>
+                <p className="text-caption">
+                  {catalog.recommendedScenario.isCopied
+                    ? '공유 시나리오'
+                    : catalog.recommendedScenario.isCustom
+                      ? '커스텀 시나리오'
+                      : '기본 제공 시나리오'}
+                </p>
                 <h2 className="text-headline1 font-bold">{catalog.recommendedScenario.title}</h2>
               </div>
               <span className="gap-2 px-2.5 backdrop-blur-sm relative flex h-[30px] items-center rounded-control border border-common-0/30 bg-common-0/10 text-body font-medium text-common-0">
@@ -564,6 +628,9 @@ export const ScenarioTrainingView = () => {
           example={catalog.example}
           isExampleLoading={catalog.isExampleLoading}
           exampleErrorMessage={catalog.exampleErrorMessage}
+          feedback={catalog.feedback}
+          isFeedbackLoading={catalog.isFeedbackLoading}
+          feedbackErrorMessage={catalog.feedbackErrorMessage}
           onClose={catalog.handleCloseDetail}
           onStart={() => catalog.handleStartScenario(catalog.selectedScenario as Scenario)}
           onToggleMenu={catalog.handleToggleDetailMenu}
