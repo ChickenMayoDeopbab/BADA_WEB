@@ -7,6 +7,7 @@ export {
   setAuthTokens,
 } from './model/authSession'
 export { checkUsername } from './api/authApi'
+export { useLogout } from './model/useLogout'
 export { configureAuthHttpClient } from './api/configureAuthHttpClient'
 export { getValidAccessToken } from './model/getValidAccessToken'
 export type { LoginMode } from './model/types'

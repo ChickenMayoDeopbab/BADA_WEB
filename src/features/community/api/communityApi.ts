@@ -6,6 +6,17 @@ import type {
 } from '@entities/community'
 import { getProfileImageUrl } from '@entities/user'
 import { aiHttpClient, httpClient } from '@shared/api'
+import type { CommunityReportReason } from '../model/report'
+
+/** 게시글 신고 사유를 AI 서버에 접수합니다. */
+export const reportCommunityPost = async (postId: number, reason: CommunityReportReason) => {
+  await aiHttpClient.post(`/api/v1/community/posts/${postId}/reports`, { reason })
+}
+
+/** 댓글과 답글은 동일한 댓글 신고 API로 접수합니다. */
+export const reportCommunityComment = async (commentId: number, reason: CommunityReportReason) => {
+  await aiHttpClient.post(`/api/v1/community/comments/${commentId}/reports`, { reason })
+}
 
 type ApiReactionKind = 'CHEER' | 'RELATE' | 'LIKE'
 type ApiAttachmentKind = 'SCENARIO' | 'TRAINING_RECORD' | 'FILE'

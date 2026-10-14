@@ -1,5 +1,8 @@
 import type { CommunityAttachment, CommunityPost, ReactionKind } from '@entities/community'
-import { BlockUserButton } from './BlockUserButton'
+import { CommunityContentMenu } from './CommunityContentMenu'
+import { ReportCommunityContentDialog } from './ReportCommunityContentDialog'
+import { useReportCommunityContent } from '../model/useReportCommunityContent'
+import type { CommunityReportTarget } from '../model/report'
 import scenarioImage from '@shared/assets/community/figma-1.png'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
@@ -576,6 +579,17 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [comment, setComment] = useState('')
   const [isRefreshingComments, setIsRefreshingComments] = useState(false)
+  const [reportingTarget, setReportingTarget] = useState<CommunityReportTarget | null>(null)
+  const [reportNotice, setReportNotice] = useState('')
+  const report = useReportCommunityContent()
+
+  /** 새 신고를 열 때 이전 선택 결과와 오류를 정리합니다. */
+  const handleOpenReport = (target: CommunityReportTarget) => {
+    if (report.isPending) return
+    report.reset()
+    setReportNotice('')
+    setReportingTarget(target)
+  }
   const [editingComment, setEditingComment] = useState<{ id: string; content: string } | null>(null)
   const [deletingTarget, setDeletingTarget] = useState<
     { type: 'post' } | { type: 'comment'; id: string } | null
@@ -618,6 +632,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   return (
     <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
+      {reportNotice && <p role="status" className="mt-4 px-4 py-3 rounded-component bg-primary-alternative text-label text-label-normal">{reportNotice}</p>}
       <button
         type="button"
         onClick={() => navigate(routePaths.community)}
@@ -632,7 +647,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
         <article className="p-5 max-sm:p-4 max-lg:min-h-0 flex min-h-[580px] flex-col rounded-component bg-background-normal shadow-surface-card">
           <div className="flex items-start justify-between">
             <h2 className="text-title2 font-bold">{post.title}</h2>
-            {post.authorId !== currentUserId && <BlockUserButton id={post.authorId} name={post.author} onBlocked={() => navigate(routePaths.community)} />}
+            {post.authorId !== currentUserId && <CommunityContentMenu id={post.authorId} name={post.author} reportTarget="게시글" onReport={() => handleOpenReport({ type: 'post', id: post.id, label: '게시글' })} onBlocked={() => navigate(routePaths.community)} />}
             {post.authorId === currentUserId && (
               <ActionMenu
                 onEdit={() => navigate(`/community/${post.id}/edit`)}
@@ -687,7 +702,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                 <div key={item.id} className="py-3">
                   <div className="flex items-center justify-between">
                     <Profile author={item.author} />
-                    {item.authorId !== currentUserId && <BlockUserButton id={item.authorId} name={item.author} />}
+                    {item.authorId !== currentUserId && <CommunityContentMenu id={item.authorId} name={item.author} reportTarget="댓글" onReport={() => handleOpenReport({ type: 'comment', id: Number(item.id), label: '댓글' })} />}
                     {item.authorId === currentUserId && (
                       <ActionMenu
                         onEdit={() => setEditingComment({ id: item.id, content: item.content })}
@@ -720,7 +735,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                       <div key={reply.id} className="mt-2 pl-5">
                         <div className="flex items-center justify-between">
                           <Profile author={reply.author} />
-                          {reply.authorId !== currentUserId && <BlockUserButton id={reply.authorId} name={reply.author} />}
+                          {reply.authorId !== currentUserId && <CommunityContentMenu id={reply.authorId} name={reply.author} reportTarget="답글" onReport={() => handleOpenReport({ type: 'comment', id: Number(reply.id), label: '답글' })} />}
                           {reply.authorId === currentUserId && (
                             <ActionMenu
                               onEdit={() =>
@@ -771,6 +786,20 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
           </div>
         </aside>
       </div>
+      {reportingTarget && <ReportCommunityContentDialog
+        key={`${reportingTarget.type}:${reportingTarget.id}`}
+        target={reportingTarget}
+        isPending={report.isPending}
+        error={report.isError ? getApiErrorMessage(report.error, '신고를 접수하지 못했어요. 다시 시도해 주세요.') : undefined}
+        onClose={() => { if (!report.isPending) setReportingTarget(null) }}
+        onConfirm={reason => {
+          if (report.isPending) return
+          report.mutate({ target: reportingTarget, reason }, { onSuccess: () => {
+            setReportNotice(`${reportingTarget.label} 신고를 접수했습니다. 검토 후 운영정책에 따라 조치합니다.`)
+            setReportingTarget(null)
+          } })
+        }}
+      />}
       {editingComment && (
         <EditModal
           title="댓글 수정"
