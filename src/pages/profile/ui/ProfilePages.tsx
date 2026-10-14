@@ -4,6 +4,7 @@ import defaultProfileSummary from '@shared/assets/profile/default-profile-summar
 import { clearAuthSession } from '@features/auth'
 import { getApiErrorMessage } from '@shared/api'
 import { routePaths } from '@shared/config'
+import { ServicePageContent } from '@shared/ui'
 import {
   useCheckUsername,
   useMyPage,
@@ -36,14 +37,14 @@ interface PageFrameProps {
 }
 
 const PageFrame = ({ title, description, children, showBack = false }: PageFrameProps) => (
-  <main className="px-16 pt-9 pb-10 min-w-0 max-xl:px-6 max-md:px-4 max-md:pt-6 flex-1">
+  <ServicePageContent className="pb-10">
     <header className="mb-[18px] gap-3 flex flex-wrap items-center">
       {showBack && <ProfileBackLink />}
       <h1 className="text-title1 font-bold text-label-normal">{title}</h1>
       <p className="text-body font-medium text-neutral-60">{description}</p>
     </header>
     {children}
-  </main>
+  </ServicePageContent>
 )
 
 const Card = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
@@ -242,7 +243,7 @@ export const ProfileOverviewPage = () => {
 
   return (
     <PageFrame title="프로필" description="계정 정보와 서비스 설정을 관리하세요.">
-      <div className="gap-4 grid max-w-[1024px] grid-cols-3 max-sm:grid-cols-1">
+      <div className="gap-4 grid grid-cols-3 max-sm:grid-cols-1">
       <Card className="gap-6 p-6 max-sm:gap-4 max-sm:p-4 max-sm:flex-wrap col-span-3 max-sm:col-span-1 flex items-center">
         <div className="size-20 flex shrink-0 items-center justify-center rounded-pill bg-fill-normal">
           <img

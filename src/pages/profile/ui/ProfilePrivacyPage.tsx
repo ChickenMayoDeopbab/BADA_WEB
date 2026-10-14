@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ProfileBackLink } from './ProfileBackLink'
 import { FiChevronDown } from 'react-icons/fi'
 import { useState } from 'react'
-import { ConfirmDialog } from '@shared/ui'
+import { ConfirmDialog, ServicePageContent } from '@shared/ui'
 import { PRIVACY_POLICY_TEXT } from '../model/privacyPolicy'
 
 const terms = [
@@ -34,7 +34,7 @@ export const ProfilePrivacyPage = () => {
     },
   })
   return (
-    <main className="min-w-0 px-16 max-xl:px-6 max-md:px-4 max-md:pt-6 pt-9 pb-10 flex-1">
+    <ServicePageContent className="pb-10">
       <header className="mb-5 gap-3 flex flex-wrap items-center max-w-[1024px]">
         <ProfileBackLink />
         <h1 className="text-title1 font-bold text-label-normal">개인정보 관리</h1>
@@ -67,6 +67,6 @@ export const ProfilePrivacyPage = () => {
         </section>
       </div>
       {confirming && <ConfirmDialog title="민감정보 처리 동의를 철회할까요?" description="철회 후 통화불안 진단과 음성·훈련 분석 기능을 이용하려면 다시 동의해야 합니다." confirmLabel="철회하기" danger pending={withdrawal.isPending} onClose={() => setConfirming(false)} onConfirm={() => withdrawal.mutate(undefined, {onSuccess: () => setConfirming(false)})} />}
-    </main>
+    </ServicePageContent>
   )
 }

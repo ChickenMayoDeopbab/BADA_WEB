@@ -4,6 +4,7 @@ import scenarioImage from '@shared/assets/community/figma-1.png'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
 import { routePaths } from '@shared/config'
+import { ServicePageContent } from '@shared/ui'
 import { getApiErrorMessage } from '@shared/api'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -154,7 +155,7 @@ const CommunityList = () => {
   const { data: posts = [], isLoading, isError } = useCommunityPosts(tab === 'mine', query.trim())
 
   return (
-    <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
+    <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
       <div className="mt-5 gap-3 flex items-end justify-between">
         <div className="gap-4 flex shrink-0">
@@ -238,7 +239,7 @@ const CommunityList = () => {
       >
         게시글 작성
       </button>
-    </div>
+    </ServicePageContent>
   )
 }
 
@@ -622,7 +623,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   }
 
   return (
-    <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
+    <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
       <button
         type="button"
@@ -809,7 +810,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
           }}
         />
       )}
-    </div>
+    </ServicePageContent>
   )
 }
 
@@ -1181,7 +1182,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
   }
 
   return (
-    <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
+    <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
       <button
         type="button"
@@ -1321,7 +1322,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
           }}
         />
       )}
-    </div>
+    </ServicePageContent>
   )
 }
 
@@ -1329,9 +1330,9 @@ const CommunityDetailRoute = ({ postId }: { postId: number }) => {
   const { data: post, isLoading, isError } = useCommunityPost(postId)
 
   if (isLoading)
-    return <div className="p-12 flex-1 text-label-alternative">게시글을 불러오는 중이에요.</div>
+    return <ServicePageContent className="text-label-alternative">게시글을 불러오는 중이에요.</ServicePageContent>
   if (isError || !post)
-    return <div className="p-12 flex-1 text-status-error">게시글을 불러오지 못했어요.</div>
+    return <ServicePageContent className="text-status-error">게시글을 불러오지 못했어요.</ServicePageContent>
   return <PostDetail post={post} />
 }
 
@@ -1339,11 +1340,11 @@ const CommunityEditRoute = ({ postId }: { postId: number }) => {
   const { data: post, isLoading, isError } = useCommunityPost(postId)
 
   if (isLoading)
-    return <div className="p-12 flex-1 text-label-alternative">게시글을 불러오는 중이에요.</div>
+    return <ServicePageContent className="text-label-alternative">게시글을 불러오는 중이에요.</ServicePageContent>
   if (isError || !post)
-    return <div className="p-12 flex-1 text-status-error">게시글을 불러오지 못했어요.</div>
+    return <ServicePageContent className="text-status-error">게시글을 불러오지 못했어요.</ServicePageContent>
   if (post.authorId !== getCurrentUserId())
-    return <div className="p-12 flex-1 text-status-error">게시글 수정 권한이 없어요.</div>
+    return <ServicePageContent className="text-status-error">게시글 수정 권한이 없어요.</ServicePageContent>
   return <PostComposer post={post} />
 }
 

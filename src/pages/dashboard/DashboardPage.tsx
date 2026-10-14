@@ -3,11 +3,12 @@ import { DashboardHeader } from '@widgets/dashboard-header'
 import { DashboardPromoCards } from '@widgets/dashboard-promo'
 import { RecentTrainingRecords } from '@widgets/recent-training-records'
 import { WeeklyReport } from '@widgets/weekly-report'
+import { ServicePageContent } from '@shared/ui'
 
 // 대시보드 라우트의 전체 페이지 레이아웃을 구성합니다.
 export default function DashboardPage() {
   return (
-    <main className="min-w-0 gap-5 px-10 pt-6 flex flex-1 flex-col">
+    <ServicePageContent className="gap-5 flex flex-col">
       <DashboardHeader />
       <div className="gap-4 px-8 py-7 flex flex-col rounded-dialog bg-background-normal">
         <DashboardPromoCards />
@@ -17,6 +18,6 @@ export default function DashboardPage() {
           <RecentTrainingRecords />
         </div>
       </div>
-    </main>
+    </ServicePageContent>
   )
 }
