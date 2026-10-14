@@ -434,7 +434,7 @@ export const TrainingRecordsView = () => {
           </p>
         </header>
 
-        <div className="flex items-end justify-between">
+        <div className="gap-6 h-12 flex items-center justify-between">
           <div
             className="pb-2 relative flex items-center gap-[15px]"
             role="tablist"
@@ -450,8 +450,8 @@ export const TrainingRecordsView = () => {
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => handleSelectPeriod(periodOption.id)}
-                  className={`ease-out w-[42px] text-center text-title2 font-medium transition-colors duration-[420ms] motion-reduce:transition-none ${
-                    isActive ? 'text-primary-normal' : 'text-neutral-70'
+                  className={`ease-out w-[42px] text-center text-title2 font-bold transition-colors duration-[420ms] motion-reduce:transition-none ${
+                    isActive ? 'text-primary-normal' : 'text-neutral-70 hover:text-label-neutral'
                   }`}
                 >
                   {periodOption.label}
@@ -459,7 +459,7 @@ export const TrainingRecordsView = () => {
               )
             })}
             <span
-              className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute w-[42px] bg-primary-normal transition-transform duration-[420ms] motion-reduce:transition-none"
+              className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute w-[42px] bg-primary-normal transition-[transform,width] duration-[420ms] motion-reduce:transition-none"
               style={{ transform: `translateX(${activePeriodIndex * 57}px)` }}
               aria-hidden="true"
             />
