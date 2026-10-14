@@ -27,7 +27,6 @@ interface ContactProps {
 const Contact = ({ title }: ContactProps) => (
   <div className="flex flex-col items-center text-center">
     <h1 className="text-display1 font-bold text-label-normal">{title}</h1>
-    <p className="mt-2 text-body font-medium text-label-alternative">바다 AI</p>
     <img
       src={callAvatar}
       alt="AI 통화 상대"
