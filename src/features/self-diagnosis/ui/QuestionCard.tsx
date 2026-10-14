@@ -1,8 +1,8 @@
+import { BackIcon } from '@shared/ui'
 import type { SelfDiagnosis } from '../model/useSelfDiagnosis'
 import { AnswerScale } from './AnswerScale'
 import { DiagnosisButton } from './DiagnosisButton'
 import { DiagnosisCard } from './DiagnosisCard'
-import { IoChevronBack } from 'react-icons/io5'
 
 type QuestionCardProps = {
   diagnosis: SelfDiagnosis
@@ -33,7 +33,7 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
           onClick={goBack}
           className="size-10 flex items-center justify-center rounded-component text-label-normal hover:bg-fill-normal"
         >
-          <IoChevronBack size={24} aria-hidden />
+          <BackIcon />
         </button>
         <h1 className="text-headline2 font-bold text-label-normal">자가진단</h1>
         <span className="size-10" aria-hidden />

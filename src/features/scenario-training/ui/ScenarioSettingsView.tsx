@@ -1,6 +1,6 @@
+import { BackIcon } from '@shared/ui'
 import { useTrainingSettings } from '../model/useTrainingSettings'
 import type { ScenarioDifficulty, ScenarioPersonality } from '@entities/scenario'
-import { IoArrowBack } from 'react-icons/io5'
 import { useMinutePicker, minuteValues } from '../model/useMinutePicker'
 
 const difficultyOptions: Array<{ value: ScenarioDifficulty; label: string }> = [
@@ -188,7 +188,7 @@ export const ScenarioSettingsView = () => {
           aria-label="이전"
           className="size-11 flex items-center justify-center rounded-component bg-background-normal text-label-normal"
         >
-          <IoArrowBack size={24} aria-hidden="true" />
+          <BackIcon />
         </button>
         <h1 className="text-title1 font-bold text-label-neutral">훈련 설정</h1>
       </header>

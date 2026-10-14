@@ -4,7 +4,6 @@ import {
   type TrainingPeriod,
   type TrainingRecord,
 } from '@entities/training-record'
-import backArrow from '@shared/assets/training-records/back-arrow.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
 import feedbackArrow from '@shared/assets/training-records/feedback-arrow.svg'
 import feedbackArrowOpen from '@shared/assets/training-records/feedback-arrow-open.svg'
@@ -18,7 +17,7 @@ import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
 import { AudioPreview } from './AudioPreview'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
-import { ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
+import { BackIcon, ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
 import { useSearchParams } from 'react-router-dom'
 
 const periodTabs = trainingPeriodOptions.map(({ id, label }) => ({ value: id, label }))
@@ -277,7 +276,7 @@ const RecordDetailPanel = ({
               className="h-10 w-5 flex items-center justify-center"
               aria-label="훈련 기록 상세 닫기"
             >
-              <img src={backArrow} alt="" />
+              <BackIcon />
             </button>
             <button
               type="button"

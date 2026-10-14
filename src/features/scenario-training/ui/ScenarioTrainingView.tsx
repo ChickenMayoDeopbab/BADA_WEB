@@ -8,7 +8,6 @@ import otherImage from '@shared/assets/scenario-training/other.png'
 import recommendationImage from '@shared/assets/scenario-training/recommendation.png'
 import schoolImage from '@shared/assets/scenario-training/school.png'
 import workImage from '@shared/assets/scenario-training/work.png'
-import backArrow from '@shared/assets/training-records/back-arrow.svg'
 import menuDots from '@shared/assets/training-records/menu-dots.svg'
 import {
   IoChevronForward,
@@ -20,7 +19,7 @@ import {
   IoTimeOutline,
 } from 'react-icons/io5'
 import type { CSSProperties } from 'react'
-import { ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
+import { BackIcon, ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
 
 const tabs: Array<{ value: ScenarioTab; label: string; width: number }> = [
   { value: 'basic', label: '기본 제공', width: 92 },
@@ -233,7 +232,7 @@ const ScenarioDetailPanel = ({
             className="h-10 w-5 flex items-center justify-center"
             aria-label="시나리오 상세 닫기"
           >
-            <img src={backArrow} alt="" />
+            <BackIcon />
           </button>
           {scenario.isCustom && (
             <button

@@ -2,7 +2,7 @@ import { useScenarioCall, type ScenarioCallOptions } from '../model/useScenarioC
 import { useCallScriptScroll } from '../model/useCallScriptScroll'
 import { ScriptHintBar } from './ScriptHintBar'
 import callAnswer from '@shared/assets/scenario-training/call-answer.svg'
-import callAvatar from '@shared/assets/scenario-training/call-avatar.png'
+import defaultProfile from '@shared/assets/profile/default-profile-large.svg'
 import callDecline from '@shared/assets/scenario-training/call-decline.svg'
 import callEnd from '@shared/assets/scenario-training/call-end.svg'
 import callEndedStatus from '@shared/assets/scenario-training/call-ended-status.svg'
@@ -28,11 +28,9 @@ interface ContactProps {
 const Contact = ({ title }: ContactProps) => (
   <div className="flex flex-col items-center text-center">
     <h1 className="text-display1 font-bold text-label-normal">{title}</h1>
-    <img
-      src={callAvatar}
-      alt="AI 통화 상대"
-      className="mt-8 size-[140px] rounded-pill object-cover"
-    />
+    <div className="mt-8 flex size-[140px] items-center justify-center rounded-pill bg-label-disabled">
+      <img src={defaultProfile} alt="AI 통화 상대" className="size-[84px]" />
+    </div>
   </div>
 )
 

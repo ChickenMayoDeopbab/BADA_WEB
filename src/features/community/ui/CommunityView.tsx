@@ -4,13 +4,11 @@ import scenarioImage from '@shared/assets/community/figma-1.png'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
 import { routePaths } from '@shared/config'
-import { ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
+import { BackIcon, ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
 import { getApiErrorMessage } from '@shared/api'
 import { useEffect, useRef, useState } from 'react'
 import {
-  FiArrowLeft,
   FiCheck,
-  FiChevronLeft,
   FiChevronRight,
   FiEye,
   FiImage,
@@ -626,7 +624,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
         className="gap-2 mt-4 flex w-fit items-center text-body text-label-neutral"
       >
         <span className="p-1 rounded-pill bg-fill-alternative">
-          <FiArrowLeft />
+          <BackIcon />
         </span>
         전체 글
       </button>
@@ -942,7 +940,7 @@ const SelectionModal = ({
                     }
                     className="size-8 flex items-center justify-center rounded-pill hover:bg-fill-normal"
                   >
-                    <FiChevronLeft className="size-5" />
+                    <BackIcon className="size-5" />
                   </button>
                   <strong className="text-label font-bold">
                     {calendarYear}년 {calendarMonthIndex + 1}월
@@ -1184,7 +1182,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
         onClick={() => navigate(returnPath)}
         className="gap-2 mt-4 flex w-fit items-center text-body"
       >
-        <FiArrowLeft /> {isEditing ? '게시글로 돌아가기' : '전체 글'}
+        <BackIcon /> {isEditing ? '게시글로 돌아가기' : '전체 글'}
       </button>
       <div className="gap-4 mt-4 max-lg:grid-cols-1 grid flex-1 grid-cols-[minmax(0,1fr)_230px]">
         <section className="p-5 max-sm:p-4 flex flex-col rounded-component bg-background-normal shadow-surface-card">

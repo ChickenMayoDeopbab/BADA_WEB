@@ -76,9 +76,12 @@ export const uploadProfileImage = async (file: File) => {
     {
       params: { fileType: 'PROFILE' },
       headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' },
+      timeout: 60_000,
     },
   )
-  return response.data.data
+  const uploaded = response.data.data
+  if (!uploaded?.s3Key) throw new Error('사진 업로드 응답에 파일 정보가 없습니다.')
+  return uploaded
 }
 
 export const getProfileImageUrl = async (s3Key: string) => {

@@ -59,6 +59,9 @@ vi.mock('../model/useProfile', () => ({
 }))
 
 vi.mock('@features/auth', () => ({ clearAuthSession: vi.fn() }))
+vi.mock('../model/useProfileImageConsent', () => ({
+  useProfileImageConsent: () => ({ ensureConsent: vi.fn().mockResolvedValue(true), isChecking: false, isDialogOpen: false }),
+}))
 
 afterEach(() => {
   cleanup()
@@ -75,6 +78,10 @@ import {
 } from './ProfilePages'
 
 describe('Profile pages', () => {
+  it('이메일은 변경하거나 포커스할 수 없는 비활성 입력이다', () => {
+    render(<ProfileEditPage />, { wrapper: MemoryRouter })
+    expect(screen.getByRole('textbox', { name: '이메일' })).toBeDisabled()
+  })
   it('프로필 수정에서 기본 사진을 선택하고 기본 정보와 함께 저장한다', async () => {
     render(<ProfileEditPage />, { wrapper: MemoryRouter })
     expect(screen.queryByRole('link', { name: '프로필 사진 변경' })).not.toBeInTheDocument()

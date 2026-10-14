@@ -1,5 +1,7 @@
 import defaultProfileLarge from '@shared/assets/profile/default-profile-large.svg'
 import { ProfileBackLink } from './ProfileBackLink'
+import { ProfileImageConsentDialog } from './ProfileImageConsentDialog'
+import { useProfileImageConsent } from '../model/useProfileImageConsent'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import { clearAuthSession } from '@features/auth'
 import { getApiErrorMessage } from '@shared/api'
@@ -402,6 +404,7 @@ const inputClass =
   'h-12 min-w-0 w-full rounded-control border border-line-alternative bg-fill-field px-4 text-body text-label-normal outline-none focus:border-primary-normal'
 
 export const ProfileEditPage = () => {
+  const consent = useProfileImageConsent()
   const navigate = useNavigate()
   const inputId = useId()
   const uploadImage = useUploadProfileImage()
@@ -460,8 +463,10 @@ export const ProfileEditPage = () => {
   }
 
   const handleSubmit = async () => {
+    if (consent.isChecking || uploadImage.isPending || updateProfile.isPending || !profileData) return
     setSubmitError('')
     try {
+      if (selectedFile && !(await consent.ensureConsent())) return
       const uploaded = selectedFile ? await uploadImage.mutateAsync(selectedFile) : undefined
       await updateProfile.mutateAsync({
         name: displayedName.trim(),
@@ -469,8 +474,8 @@ export const ProfileEditPage = () => {
         s3Key: useDefaultImage ? '' : (uploaded?.s3Key ?? profileQuery.data?.s3Key),
       })
       navigate(routePaths.profile)
-    } catch {
-      setSubmitError('프로필을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error, '프로필을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.'))
     }
   }
 
@@ -560,7 +565,7 @@ export const ProfileEditPage = () => {
             </Field>
             <div className="col-span-2 max-sm:col-span-1">
               <Field label="이메일" description="인증 및 알림에 사용되는 이메일입니다.">
-                <input className={inputClass} value={profileData?.email || EMPTY_VALUE} readOnly />
+                <input aria-label="이메일" className={`${inputClass} cursor-not-allowed disabled:bg-fill-normal disabled:text-label-alternative`} value={profileData?.email || EMPTY_VALUE} disabled />
               </Field>
             </div>
             <div className="pt-6 col-span-2 max-sm:col-span-1 border-t border-line-alternative">
@@ -591,16 +596,18 @@ export const ProfileEditPage = () => {
               disabled={
                 updateProfile.isPending ||
                 uploadImage.isPending ||
+                consent.isChecking ||
                 !profileData ||
                 !displayedName.trim() ||
                 !displayedUsername.trim()
               }
             >
-              {updateProfile.isPending || uploadImage.isPending ? '저장 중' : '변경사항 저장'}
+              {updateProfile.isPending || uploadImage.isPending || consent.isChecking ? '저장 중' : '변경사항 저장'}
             </PrimaryButton>
           </div>
         </form>
       </Card>
+      <ProfileImageConsentDialog consent={consent} />
     </PageFrame>
   )
 }
@@ -623,14 +630,14 @@ const SelectRow = ({
   action,
 }: SelectRowProps) => (
   <button
-    className={`px-5 flex min-h-[82px] w-full items-center rounded-component text-left ${selected ? 'bg-primary-alternative' : 'bg-fill-normal'} ${className}`}
+    className={`px-5 flex min-h-[82px] w-full items-center rounded-component text-left transition-colors duration-400 ease-out motion-reduce:transition-none ${selected ? 'bg-primary-alternative hover:bg-primary-alternative/80' : 'bg-fill-normal hover:bg-fill-pressed'} ${className}`}
     type="button"
     onClick={onSelect}
   >
     <span
-      className={`mr-5 size-5 flex items-center justify-center rounded-pill border-2 ${selected ? 'border-primary-normal' : 'border-line-normal'}`}
+      className={`mr-5 size-5 flex items-center justify-center rounded-pill border-2 transition-colors duration-400 ease-out motion-reduce:transition-none ${selected ? 'border-primary-normal' : 'border-line-normal'}`}
     >
-      {selected && <span className="size-2.5 rounded-pill bg-primary-normal" />}
+      <span className={`size-2.5 rounded-pill bg-primary-normal transition-[opacity,scale] duration-400 ease-out motion-reduce:transition-none ${selected ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} />
     </span>
     <span className="min-w-0 flex-1">
       <span className="block text-body font-bold text-label-normal">{title}</span>
@@ -713,19 +720,22 @@ const Toggle = ({
   checked,
   onChange,
   label,
+  disabled,
 }: {
   checked: boolean
   onChange: () => void
   label: string
+  disabled?: boolean
 }) => (
   <button
     aria-label={label}
     aria-pressed={checked}
-    className={`h-6 p-1 flex w-10 shrink-0 items-center rounded-pill transition-colors ${checked ? 'justify-end bg-primary-normal' : 'justify-start bg-label-disabled'}`}
+    className={`h-6 p-1 flex w-10 shrink-0 items-center rounded-pill transition-colors duration-350 ease-out motion-reduce:transition-none ${checked ? 'bg-primary-normal' : 'bg-label-disabled'}`}
     type="button"
+    disabled={disabled}
     onClick={onChange}
   >
-    <span className="size-4 rounded-pill bg-common-0 shadow-subtle-card" />
+    <span className={`size-4 rounded-pill bg-common-0 shadow-subtle-card transition-transform duration-350 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
   </button>
 )
 
@@ -750,7 +760,7 @@ export const ProfileNotificationsPage = () => {
       : null)
 
   const toggleSetting = async (index: number) => {
-    if (!settings) return
+    if (!settings || updateNotifications.isPending) return
 
     const previous = settings
     const next = settings.map((value, itemIndex) => (itemIndex === index ? !value : value))
@@ -784,7 +794,7 @@ export const ProfileNotificationsPage = () => {
               return <div className="gap-4 flex min-h-14 items-center justify-between" key={title}>
                 <p className="text-body font-bold text-label-normal">{title}</p>
                 {settings?.[index] == null ? <span className="text-label text-label-alternative">{EMPTY_VALUE}</span> : (
-                  <Toggle checked={settings[index]} label={`${title} ${settings[index] ? '끄기' : '켜기'}`} onChange={() => void toggleSetting(index)} />
+                  <Toggle checked={settings[index]} disabled={updateNotifications.isPending} label={`${title} ${settings[index] ? '끄기' : '켜기'}`} onChange={() => void toggleSetting(index)} />
                 )}
               </div>
             })}
@@ -827,6 +837,7 @@ export const ProfileLanguagePage = () => {
 }
 
 export const ProfilePhotoPage = () => {
+  const consent = useProfileImageConsent()
   const navigate = useNavigate()
   const inputId = useId()
   const profileQuery = useMyPage()
@@ -868,6 +879,7 @@ export const ProfilePhotoPage = () => {
   }
 
   const savePhoto = async () => {
+    if (consent.isChecking || uploadImage.isPending || updateProfile.isPending) return
     if (!profileQuery.data) {
       setPhotoError('프로필 정보를 불러온 뒤 다시 시도해 주세요.')
       return
@@ -875,6 +887,7 @@ export const ProfilePhotoPage = () => {
 
     setPhotoError('')
     try {
+      if (selectedFile && !(await consent.ensureConsent())) return
       const uploaded = selectedFile ? await uploadImage.mutateAsync(selectedFile) : undefined
       await updateProfile.mutateAsync({
         name: profileQuery.data.name,
@@ -882,8 +895,8 @@ export const ProfilePhotoPage = () => {
         s3Key: useDefaultImage ? '' : (uploaded?.s3Key ?? profileQuery.data.s3Key),
       })
       navigate(routePaths.profile)
-    } catch {
-      setPhotoError('프로필 사진을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+    } catch (error) {
+      setPhotoError(getApiErrorMessage(error, '프로필 사진을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.'))
     }
   }
 
@@ -948,14 +961,15 @@ export const ProfilePhotoPage = () => {
           <div className="gap-3 mt-auto flex justify-end">
             <SecondaryButton onClick={() => navigate(routePaths.profile)}>취소</SecondaryButton>
             <PrimaryButton
-              disabled={uploadImage.isPending || updateProfile.isPending}
+              disabled={uploadImage.isPending || updateProfile.isPending || consent.isChecking}
               onClick={() => void savePhoto()}
             >
-              {uploadImage.isPending || updateProfile.isPending ? '저장 중' : '저장'}
+              {uploadImage.isPending || updateProfile.isPending || consent.isChecking ? '저장 중' : '저장'}
             </PrimaryButton>
           </div>
         </div>
       </Card>
+      <ProfileImageConsentDialog consent={consent} />
     </PageFrame>
   )
 }

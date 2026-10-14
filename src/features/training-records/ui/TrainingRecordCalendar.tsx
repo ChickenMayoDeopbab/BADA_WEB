@@ -1,3 +1,4 @@
+import { BackIcon } from '@shared/ui'
 import { formatTrainingRecordDateRange } from '../model/formatTrainingRecordDateRange'
 import type { TrainingRecordDateRange } from '../model/useTrainingRecordCalendar'
 
@@ -69,7 +70,7 @@ const CalendarMonth = ({
           aria-label="이전 달"
           onClick={onPreviousMonth}
         >
-          ‹
+          <BackIcon />
         </button>
         <h3 className="text-center text-headline1 font-bold text-label-normal">
           {month.getFullYear()}년 {month.getMonth() + 1}월

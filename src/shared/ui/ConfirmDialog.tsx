@@ -28,7 +28,7 @@ export const ConfirmDialog = ({ title, description, confirmLabel, pending, dange
   }, [])
   return <dialog ref={ref} aria-labelledby={id} aria-describedby={`${id}-description`} onCancel={event => { event.preventDefault(); if (!pending) onClose() }} onClick={event => { if (event.target === ref.current && !pending) { const r = ref.current.getBoundingClientRect(); if(event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) onClose() } }} className="m-auto w-[calc(100%-32px)] max-w-[360px] rounded-dialog border-0 bg-background-normal p-5 text-label-normal shadow-elevated-card backdrop:bg-black/40">
     <h2 id={id} className="text-headline2 font-bold">{title}</h2>
-    <p id={`${id}-description`} className="mt-2 text-label text-label-alternative">{description}</p>
+    <p id={`${id}-description`} className="mt-2 whitespace-pre-line text-label text-label-alternative">{description}</p>
     {error && <p role="alert" className="mt-3 text-label text-status-error">{error}</p>}
     <div className="mt-4 grid grid-cols-2 gap-3">
       <button autoFocus disabled={pending} onClick={onClose} className="h-10 rounded-control bg-fill-normal text-label font-bold disabled:opacity-50">취소</button>
