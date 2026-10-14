@@ -2,6 +2,7 @@ export type {
   Scenario,
   ScenarioCategory,
   ScenarioDifficulty,
+  ScenarioDialogueTurn,
   ScenarioExample,
   ScenarioPersonality,
   ScenarioRouteState,

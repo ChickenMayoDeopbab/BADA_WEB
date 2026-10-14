@@ -1,4 +1,5 @@
 import { useScenarioCall, type ScenarioCallOptions } from '../model/useScenarioCall'
+import { useCallScriptScroll } from '../model/useCallScriptScroll'
 import { ScriptHintBar } from './ScriptHintBar'
 import callAnswer from '@shared/assets/scenario-training/call-answer.svg'
 import callAvatar from '@shared/assets/scenario-training/call-avatar.png'
@@ -82,6 +83,7 @@ const CallControl = ({
 /** Figma 수신·명상·통화·종료 화면을 표시합니다. */
 export const ScenarioCallView = (options: ScenarioCallOptions) => {
   const call = useScenarioCall(options)
+  const scriptScrollRef = useCallScriptScroll(call.isScriptOpen, call.script)
   const title = call.scenario?.title ?? '시나리오 훈련'
 
   if (!call.hasSession || call.stage === 'error') {
@@ -335,8 +337,18 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
         }`}
       >
         <div className="p-8 min-w-0 flex h-full flex-col">
-          <h2 className="text-headline1 font-bold text-label-normal">실시간 대화 스크립트</h2>
-          <div className="mt-7 min-h-0 pr-3 flex-1 overflow-y-auto">
+          <div className="gap-3 flex items-center justify-between">
+            <h2 className="text-headline1 font-bold text-label-normal">실시간 대화 스크립트</h2>
+            <button
+              type="button"
+              onClick={call.handleToggleScript}
+              tabIndex={call.isScriptOpen && !isEnded ? 0 : -1}
+              className="px-3 py-2 shrink-0 rounded-control bg-fill-normal text-label font-medium text-label-neutral"
+            >
+              스크립트 가리기
+            </button>
+          </div>
+          <div ref={scriptScrollRef} className="mt-7 min-h-0 pr-3 flex-1 overflow-y-auto">
             {call.script.length > 0 && (
               <ol className="gap-6 flex flex-col">
                 {call.script.map((turn, index) => (

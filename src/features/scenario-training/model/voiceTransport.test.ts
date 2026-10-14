@@ -117,15 +117,40 @@ describe('voice transport', () => {
     expect(vi.getTimerCount()).toBe(0)
   })
 
-  it('fails safely on malformed audio messages and cleans both socket and timers', async () => {
+  it('fails safely on unsupported audio messages and cleans both socket and timers', async () => {
     const { transport, onError } = createTransport()
     await transport.connect()
     const socket = FakeSocket.instances[0]
     socket.onopen?.()
-    socket.onmessage?.({ data: '{broken JSON' })
+    socket.onmessage?.({ data: new Uint8Array(640) })
     expect(onError).toHaveBeenCalledOnce()
     expect(socket.close).toHaveBeenCalledOnce()
     expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('ignores malformed optional JSON and hint frames without dropping the audio connection', async () => {
+    const { transport, onMessage, onBinary, onError } = createTransport()
+    await transport.connect()
+    const socket = FakeSocket.instances[0]
+    socket.onmessage?.({ data: JSON.stringify({ type: 'scenario_info', aiRole: '직원' }) })
+    socket.onmessage?.({ data: '{broken JSON' })
+    socket.onmessage?.({ data: 'null' })
+    socket.onmessage?.({
+      data: JSON.stringify({ type: 'script_hint', level: 'invalid', text: '무시' }),
+    })
+    socket.onmessage?.({ data: new ArrayBuffer(640) })
+    socket.onmessage?.({
+      data: JSON.stringify({ type: 'script_hint', level: 1, text: '두 명 예약하고 싶어요.' }),
+    })
+    expect(onError).not.toHaveBeenCalled()
+    expect(onBinary).toHaveBeenCalledOnce()
+    expect(onMessage).toHaveBeenLastCalledWith({
+      type: 'script_hint',
+      level: 1,
+      text: '두 명 예약하고 싶어요.',
+    })
+    expect(transport.sendBinary(new ArrayBuffer(640))).toBe(true)
+    transport.dispose()
   })
 
   it('limits microphone send backlog rather than accumulating stale voice', async () => {

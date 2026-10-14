@@ -16,7 +16,7 @@ import {
 import { getApiErrorMessage } from '@shared/api'
 import type { ScenarioRouteState } from '@entities/scenario'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 export interface ScenarioCallOptions {
@@ -341,6 +341,11 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
     void callRef.current?.resumeAudio()
   }
 
+  const script = useMemo(
+    () => voiceState?.transcript.map((turn) => ({ speaker: turn.role, text: turn.text })) ?? [],
+    [voiceState?.transcript],
+  )
+
   return {
     ...routeState,
     ...ringtone,
@@ -356,7 +361,7 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
     isSpeakerOn: false,
     isRecording: false,
     isScriptOpen,
-    script: voiceState?.transcript.map((turn) => ({ speaker: turn.role, text: turn.text })) ?? [],
+    script,
     scriptHint: voiceState?.scriptHint ?? null,
     displayName: voiceState?.displayName ?? '',
     connection: voiceState?.connection ?? 'idle',

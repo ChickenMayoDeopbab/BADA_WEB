@@ -728,3 +728,66 @@ test('returns to training when opening a result URL without a completed session'
   await expect(page.getByRole('heading', { name: '시나리오 훈련', exact: true })).toBeVisible()
   expect(audit.messages).toEqual([])
 })
+
+test('shows one changing next-sentence hint from the voice stream beside the latest conversation', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  const audit = await prepareCall(page)
+  await startCall(page)
+  await expect(page.getByRole('heading', { name: '상담 직원', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '스크립트 보기', exact: true }).click()
+  const hint = page.getByRole('status', { name: '추천 문장', exact: true })
+  await expect(hint).toHaveCount(0)
+  const socket = audit.getSocket()
+  socket.send(
+    JSON.stringify({
+      type: 'transcript',
+      role: 'user',
+      text: '안녕하세요, 식사 예약하려고 전화드렸어요.',
+    }),
+  )
+  sendAiTurn(socket, 1)
+  socket.send(
+    JSON.stringify({
+      type: 'script_hint',
+      level: 1,
+      text: '내일 저녁 7시에 두 명 예약하고 싶어요.',
+    }),
+  )
+  await expect(hint).toHaveCount(1)
+  await expect(hint).toHaveText('추천 : 내일 저녁 7시에 두 명 예약하고 싶어요.')
+  await page.screenshot({ path: test.info().outputPath('next-sentence-hint.png'), fullPage: true })
+  await expect
+    .poll(() =>
+      audit.messages.some((frame) => frame.type === 'playback_done' && frame.turn_id === 1),
+    )
+    .toBe(true)
+  await expect(page.getByRole('status').filter({ hasText: '편하게 말씀해 주세요.' })).toBeVisible()
+  socket.send('{invalid optional metadata')
+  socket.send(JSON.stringify({ type: 'script_hint', level: 'invalid', text: '무시하는 프레임' }))
+  for (let index = 0; index < 25; index += 1) {
+    socket.send(
+      JSON.stringify({ type: 'transcript', role: 'user', text: `대화 내용 ${index + 1}` }),
+    )
+  }
+  socket.send(
+    JSON.stringify({ type: 'transcript', role: 'ai', text: '예약자 성함을 알려주시겠어요?' }),
+  )
+  socket.send(
+    JSON.stringify({ type: 'script_hint', level: 1, text: '김바다 이름으로 예약해 주세요.' }),
+  )
+  await expect(hint).toHaveCount(1)
+  await expect(hint).toHaveText('추천 : 김바다 이름으로 예약해 주세요.')
+  await expect(page.getByText('예약자 성함을 알려주시겠어요?', { exact: false })).toBeInViewport()
+  await expect(page.getByRole('heading', { name: '상담 직원', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '스크립트 가리기', exact: true }).click()
+  await expect(hint).toHaveCount(0)
+  await page.getByRole('button', { name: '스크립트 보기', exact: true }).click()
+  await expect(hint).toHaveText('추천 : 김바다 이름으로 예약해 주세요.')
+  expect(audit.errors).toEqual([])
+  expect(audit.getBinaryWhileMuted()).toBe(0)
+  expect(audit.messages.filter((frame) => frame.type === 'mute' && frame.muted)).toHaveLength(1)
+  await page.getByRole('button', { name: '통화 종료', exact: true }).click()
+  await expect(page).toHaveURL(/\/training\/1\/result$/)
+})

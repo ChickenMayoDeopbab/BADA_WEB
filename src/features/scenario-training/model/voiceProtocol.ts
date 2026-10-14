@@ -34,8 +34,14 @@ export const createVoiceUrl = (sessionId: string, token: string) => {
 /** 서버 JSON을 종류별로 검증하고 알 수 없는 확장 메시지는 무시합니다. */
 export const parseVoiceMessage = (text: string): VoiceServerMessage | null => {
   if (text.length > 65536) throw new Error('WS_INVALID_MESSAGE')
-  const data: unknown = JSON.parse(text)
-  if (!data || typeof data !== 'object' || !('type' in data)) throw new Error('WS_INVALID_MESSAGE')
+  let data: unknown
+  try {
+    data = JSON.parse(text)
+  } catch {
+    // 앱 훅처럼 잘못된 JSON 안내 프레임 하나 때문에 음성 통화를 끊지 않습니다.
+    return null
+  }
+  if (!data || typeof data !== 'object' || !('type' in data)) return null
   const message = data as Record<string, unknown>
   switch (message.type) {
     case 'scenario_info':
@@ -68,7 +74,7 @@ export const parseVoiceMessage = (text: string): VoiceServerMessage | null => {
           level: message.level,
           text: typeof message.text === 'string' ? message.text.trim() : '',
         }
-      break
+      return null
     case 'notice':
       if (typeof message.code === 'string' && typeof message.text === 'string')
         return { type: 'notice', code: message.code, text: message.text }

@@ -100,6 +100,31 @@ describe('voice call coordination', () => {
     call.dispose()
   })
 
+  it('sends mute only on gate changes and does not rerender for each AI audio chunk', async () => {
+    const { call, states } = createCall()
+    await call.start()
+    mocks.transportOptions!.onMessage({ type: 'scenario_info', aiRole: '직원' })
+    expect(mocks.sendJson).toHaveBeenLastCalledWith({ type: 'mute', muted: false })
+    mocks.audioOptions!.onBlocked(true)
+    const stateCount = states.length
+    for (let index = 0; index < 20; index += 1) mocks.audioOptions!.onBlocked(true)
+    expect(states).toHaveLength(stateCount)
+    expect(mocks.sendJson.mock.calls.map(([payload]) => payload)).toEqual([
+      { type: 'mute', muted: false },
+      { type: 'mute', muted: true },
+    ])
+    call.toggleMute()
+    mocks.audioOptions!.onBlocked(false)
+    expect(mocks.sendJson).toHaveBeenCalledTimes(2)
+    mocks.audioOptions!.onPcm(new ArrayBuffer(640))
+    expect(mocks.sendBinary).not.toHaveBeenCalled()
+    call.toggleMute()
+    expect(mocks.sendJson).toHaveBeenLastCalledWith({ type: 'mute', muted: false })
+    mocks.audioOptions!.onPcm(new ArrayBuffer(640))
+    expect(mocks.sendBinary).toHaveBeenCalledOnce()
+    call.dispose()
+  })
+
   it('ignores duplicate starts and a microphone promise that resolves after ending', async () => {
     let resolve!: () => void
     mocks.prepare.mockReturnValue(

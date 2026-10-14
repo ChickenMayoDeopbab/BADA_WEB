@@ -37,6 +37,7 @@ export class VoiceCall {
   private microphoneBytes = 0
   private lastMicrophoneDiagnosticAt = 0
   private isCaptureBlocked = true
+  private isServerMuted: boolean | null = null
   private endTimer: ReturnType<typeof setTimeout> | null = null
   private prepareTimer: ReturnType<typeof setTimeout> | null = null
   private state: VoiceCallState = {
@@ -82,6 +83,7 @@ export class VoiceCall {
         }
       },
       onBlocked: (isPlaybackBlocked) => {
+        if (this.state.isPlaybackBlocked === isPlaybackBlocked) return
         this.update({ isPlaybackBlocked })
         this.syncMute()
       },
@@ -98,6 +100,7 @@ export class VoiceCall {
       },
       onError: this.fail,
       onSuspended: (isAudioSuspended) => {
+        if (this.state.isAudioSuspended === isAudioSuspended) return
         this.update({ isAudioSuspended })
         this.syncMute()
       },
@@ -145,8 +148,10 @@ export class VoiceCall {
         microphoneBytes: this.microphoneBytes,
       })
     }
-    if (this.state.connection === 'authenticated')
-      this.transport.sendJson({ type: 'mute', muted: isBlocked })
+    // 앱의 boolean 상태 변경처럼 실제 게이트 전환마다 한 번만 서버에 알립니다.
+    if (this.state.connection === 'authenticated' && this.isServerMuted !== isBlocked) {
+      if (this.transport.sendJson({ type: 'mute', muted: isBlocked })) this.isServerMuted = isBlocked
+    }
   }
 
   /** 실제 서버 transcript와 턴 경계를 통화 상태에 반영합니다. */

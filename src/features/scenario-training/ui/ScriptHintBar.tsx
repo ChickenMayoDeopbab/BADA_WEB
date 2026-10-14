@@ -7,8 +7,8 @@ interface ScriptHintBarProps {
 
 /** 앱 PR #186과 같이 추천·조언을 하단에 표시하고 힌트 없음이나 빈 문장은 숨깁니다. */
 export const ScriptHintBar = ({ hint }: ScriptHintBarProps) => {
-  const text = hint?.text.trim()
-  if (!text || (hint?.level !== 1 && hint?.level !== 2)) return null
+  const text = typeof hint?.text === 'string' ? hint.text.trim() : ''
+  if (!hint || !text || (hint.level !== 1 && hint.level !== 2)) return null
 
   return (
     <div

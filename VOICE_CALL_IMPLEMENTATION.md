@@ -119,3 +119,18 @@ React Native 녹음과 네이티브 오디오 큐는 `getUserMedia`, 단일 `Aud
 회귀 검사는 REST·WebSocket 응답만 대체하고 Chromium의 실제 AudioContext·AudioWorklet 및 테스트 마이크를 사용합니다. 기존 음성·Half-Duplex·정리 검사와 라우트 교체, 뒤로·앞으로, 새로고침, 예약 보존, 늦은 응답, 다른 시나리오 state 차단, 결과 직접 진입을 포함합니다.
 
 최종 검증: `npm run lint`, `npm run build`, 단위 테스트 95개, E2E 24개 모두 통과했습니다. 빌드에는 기존과 같은 500kB 초과 번들 크기 안내가 남아 있습니다.
+
+## 앱 오디오 훅·PR 사진 재대조와 다음 발화 추천 (2026-10-14)
+
+사용자가 지정한 앱 [hooks/useAudio.ts](https://github.com/ChickenMayoDeopbab/BADA_APP/blob/main/hooks/useAudio.ts), [hooks/useTrainWebSocket.ts](https://github.com/ChickenMayoDeopbab/BADA_APP/blob/main/hooks/useTrainWebSocket.ts)를 GitHub 실제 소스와 로컬 소스에서 다시 읽었습니다. PR #186의 main 미반영 변경은 [PR head의 WebSocket 훅](https://github.com/ChickenMayoDeopbab/BADA_APP/blob/8d31765ea7cddb47499dbe5ba7e86ec042ab80d7/hooks/useTrainWebSocket.ts), `useTrainPlayback.ts`, `utils/trainPlayback.ts`에서 확인했고, PR의 추천·조언 스크린샷도 직접 열어 확인했습니다.
+
+앱과 웹은 동일한 16kHz 모노 PCM16 LE 바이너리, `emotion`, `speaking_end`, `playback_done`, `mute`, `end` 통신을 사용합니다. 서버 소스에서 query 토큰 및 첫 auth 프레임 인증 지원을 재확인하여 기존에 실제 연결을 확인한 frame 인증 기본값을 유지합니다. 녹음·출력은 기존 Web Audio/AudioWorklet 구현을 재사용하며 별도의 STT/TTS나 라이브러리를 추가하지 않습니다.
+
+- AI PCM 청크마다 반복하던 동일한 `mute` 프레임과 같은 재생/오디오 정지 상태의 React 갱신을 제거했습니다. 최초 인증 시 게이트를 알리고 이후 실제 게이트 변경마다 한 번만 알립니다. 여러 청크를 출력한 뒤의 완료 ACK와 300ms 잔향, 사용자 음소거 유지 규칙은 유지합니다.
+- 앱의 JSON 이벤트 처리처럼 잘못된 JSON 및 잘못된 선택적 `script_hint` 메타데이터는 무시합니다. 지원하지 않는 바이너리 입력, PCM 출력 실패, 인증 실패 등은 계속 통화 오류로 처리합니다. 안내 프레임 한 개가 정상 음성 스트림을 종료시키지 않습니다.
+- 스크립트는 서버 `transcript`를 최신 발화로 자동 스크롤합니다. 추천은 스크롤 영역 밖에 **현재 `script_hint.text` 하나**만 표시하며 새 응답이 오면 교체합니다. 사진의 예시 문장을 제품 코드에 고정하지 않았고, 웹에서 별도 추천을 생성하지 않습니다. 스크립트 가리기/다시 열기에서도 현재 추천이 유지됩니다.
+- 서버 `pipeline.py`의 `_maybe_send_script_hint`는 사용자 발화와 대화 history를 포함한 턴 처리 후 LLM suggestion 또는 현재 script step hint를 전송합니다. level 1은 다음에 말할 문장, level 2는 조언, level 3은 표시 없음입니다. 연결 직후에는 아직 대화 턴이 없어 추천이 없는 것이 서버 규격입니다.
+
+검증에는 실제 Chromium AudioContext/Worklet과 테스트 마이크를 사용하고 REST·WebSocket 응답만 모의 처리했습니다. 새 회귀 검사는 PCM 재생 도중 사진 형태의 다음 문장 표시, 다음 턴에서 추천 한 개 교체, 최신 대화 자동 스크롤, 가리기/다시 열기, 잘못된 선택적 메시지 이후 정상 음성 유지, 재생 중 음성 송신 차단 및 mute 중복 제거를 함께 확인합니다. 이번 작업에서는 배포 서버 STT/TTS와 물리적 마이크·스피커 왕복을 다시 실행하지 않았습니다. 사용자가 종료를 요청한 5174 서버는 재시작하지 않았습니다.
+
+최종 검사: 린트·타입 검사/운영 빌드, 단위 테스트 97개, Chromium E2E 25개 통과. 기존 번들 크기 안내는 남아 있습니다.
