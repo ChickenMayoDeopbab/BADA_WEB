@@ -59,7 +59,10 @@ vi.mock('../model/useProfile', () => ({
   useWithdrawAccount: () => ({ mutateAsync: withdrawAccountMock, isPending: false }),
 }))
 
-vi.mock('@features/auth', () => ({ clearAuthSession: vi.fn() }))
+vi.mock('@features/auth', () => ({
+  clearAuthSession: vi.fn(),
+  LogoutButton: () => <button>로그아웃</button>,
+}))
 vi.mock('../model/useProfileImageConsent', () => ({
   useProfileImageConsent: () => ({
     ensureConsent: vi.fn().mockResolvedValue(true),

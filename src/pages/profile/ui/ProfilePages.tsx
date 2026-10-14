@@ -6,7 +6,7 @@ import { ProfileBackLink } from './ProfileBackLink'
 import { ProfileImageConsentDialog } from './ProfileImageConsentDialog'
 import { useProfileImageConsent } from '../model/useProfileImageConsent'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
-import { clearAuthSession } from '@features/auth'
+import { clearAuthSession, LogoutButton } from '@features/auth'
 import { getApiErrorMessage } from '@shared/api'
 import { routePaths } from '@shared/config'
 import {
@@ -46,15 +46,17 @@ interface PageFrameProps {
   title: string
   description: string
   showBack?: boolean
+  action?: ReactNode
   children: ReactNode
 }
 
-const PageFrame = ({ title, description, children, showBack = false }: PageFrameProps) => (
+const PageFrame = ({ title, description, children, showBack = false, action }: PageFrameProps) => (
   <ServicePageContent className="pb-10">
     <header className="gap-3 mb-[18px] flex flex-wrap items-center">
       {showBack && <ProfileBackLink />}
       <h1 className="text-title1 font-bold text-label-normal">{title}</h1>
       <p className="text-body font-medium text-neutral-60">{description}</p>
+      {action}
     </header>
     {children}
   </ServicePageContent>
@@ -209,6 +211,12 @@ export const ProfileOverviewPage = () => {
   const profileImageQuery = useProfileImage(profileQuery.data?.s3Key)
   const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false)
 
+  const mobileLogout = (
+    <div className="md:hidden ml-auto">
+      <LogoutButton />
+    </div>
+  )
+
   const summaryCards = [
     [
       '총 훈련 횟수',
@@ -238,13 +246,21 @@ export const ProfileOverviewPage = () => {
 
   if (profileQuery.isPending && !profileData)
     return (
-      <PageFrame title="프로필" description="계정 정보와 서비스 설정을 관리하세요.">
+      <PageFrame
+        title="프로필"
+        description="계정 정보와 서비스 설정을 관리하세요."
+        action={mobileLogout}
+      >
         <ProfileSkeleton />
       </PageFrame>
     )
   if (profileQuery.isError && !profileData)
     return (
-      <PageFrame title="프로필" description="계정 정보와 서비스 설정을 관리하세요.">
+      <PageFrame
+        title="프로필"
+        description="계정 정보와 서비스 설정을 관리하세요."
+        action={mobileLogout}
+      >
         <StatusState
           isError
           title="프로필 정보를 불러오지 못했어요."
@@ -255,7 +271,11 @@ export const ProfileOverviewPage = () => {
     )
 
   return (
-    <PageFrame title="프로필" description="계정 정보와 서비스 설정을 관리하세요.">
+    <PageFrame
+      title="프로필"
+      description="계정 정보와 서비스 설정을 관리하세요."
+      action={mobileLogout}
+    >
       <div className="gap-4 max-sm:grid-cols-1 grid grid-cols-3">
         <Card className="gap-6 p-6 max-sm:gap-4 max-sm:p-4 max-sm:flex-wrap max-sm:col-span-1 col-span-3 flex items-center">
           <div className="size-20 flex shrink-0 items-center justify-center rounded-pill bg-fill-normal">

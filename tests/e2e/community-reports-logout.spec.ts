@@ -253,3 +253,50 @@ test('waits for server logout, preserves credentials on failure and clears both 
   expect(api.logoutRequests()).toBe(2)
   expect(api.errors).toEqual([])
 })
+
+/** 모바일의 기존 마이페이지 탭으로 이동해 실제 서버 로그아웃을 검증합니다. */
+test('provides mobile logout through My Page and retains the session on failure', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const api = await prepareCommunity(page)
+  await page.getByRole('link', { name: '마이페이지', exact: true }).click()
+  const logout = page.getByRole('button', { name: '로그아웃', exact: true })
+  await expect(logout).toBeVisible()
+  await logout.scrollIntoViewIfNeeded()
+  const bounds = await logout.boundingBox()
+  expect(bounds!.x).toBeGreaterThanOrEqual(0)
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390)
+  api.failNextLogout()
+  const resume = api.pauseLogout()
+  await logout.click()
+  await expect.poll(api.logoutRequests).toBe(1)
+  await expect(page.getByRole('button', { name: '로그아웃 중...', exact: true })).toBeDisabled()
+  resume()
+  await expect(page.getByRole('alert')).toHaveText('서버 로그아웃에 실패했습니다.')
+  expect(await page.evaluate(() => Boolean(localStorage.getItem('bada.refreshToken')))).toBe(true)
+  await page.getByRole('button', { name: '로그아웃', exact: true }).click()
+  await expect(page).toHaveURL(/\/$/)
+  expect(api.logoutRequests()).toBe(2)
+  expect(
+    await page.evaluate(() => [
+      localStorage.getItem('bada.accessToken'),
+      sessionStorage.getItem('bada.accessToken'),
+    ]),
+  ).toEqual([null, null])
+  expect(api.errors).toEqual([])
+})
+
+/** 프로필 조회가 실패해도 계정에서 빠져나올 수 있어야 합니다. */
+test('keeps mobile logout available when profile loading fails', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const api = await prepareCommunity(page)
+  await page.route('**/api/v1/user/mypage', (route) =>
+    route.fulfill({ status: 503, json: { message: '프로필 조회 오류' } }),
+  )
+  await page.getByRole('link', { name: '마이페이지', exact: true }).click()
+  await expect(page.getByRole('alert')).toContainText('프로필 정보를 불러오지 못했어요.')
+  await page.getByRole('button', { name: '로그아웃', exact: true }).click()
+  await expect(page).toHaveURL(/\/$/)
+  expect(api.logoutRequests()).toBe(1)
+})

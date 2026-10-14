@@ -1,6 +1,5 @@
 import { SidebarUserProfile } from './SidebarUserProfile'
-import { useLogout } from '@features/auth'
-import { getApiErrorMessage } from '@shared/api'
+import { LogoutButton } from '@features/auth'
 import badaLogo from '@shared/assets/training-records/bada-logo.svg'
 import bellIcon from '@shared/assets/training-records/nav-bell.svg'
 import callIcon from '@shared/assets/training-records/nav-call.svg'
@@ -86,8 +85,6 @@ const SidebarItem = ({
 
 // 애플리케이션 공통 사이드바를 표시합니다.
 export const AppSidebar = () => {
-  const logout = useLogout()
-
   return (
     <aside className="pb-1 pt-7 max-md:fixed max-md:inset-x-3 max-md:bottom-3 max-md:z-50 max-md:h-auto max-md:min-h-0 max-md:w-auto max-md:p-1 min-h-0 flex h-full w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
       <div className="gap-2.5 max-md:gap-0 flex flex-col">
@@ -106,22 +103,10 @@ export const AppSidebar = () => {
           {utilityItems.map((item) => (
             <SidebarItem key={item.label} {...item} />
           ))}
-          <button
-            type="button"
-            disabled={logout.isPending}
-            onClick={() => {
-              if (!logout.isPending) logout.mutate()
-            }}
+          <LogoutButton
+            icon={<SidebarIcon icon={logoutIcon} />}
             className="h-12 gap-2 px-2 flex w-full items-center rounded-control text-left text-headline2 font-medium text-label-normal transition-colors duration-200 hover:bg-fill-normal disabled:cursor-wait disabled:opacity-50"
-          >
-            <SidebarIcon icon={logoutIcon} />
-            <span>{logout.isPending ? '로그아웃 중...' : '로그아웃'}</span>
-          </button>
-          {logout.isError && (
-            <p role="alert" className="px-2 py-2 text-caption text-status-error">
-              {getApiErrorMessage(logout.error, '로그아웃하지 못했어요. 다시 시도해 주세요.')}
-            </p>
-          )}
+          />
         </nav>
         <div className="px-4 py-3 border-t border-line-alternative">
           <SidebarUserProfile />

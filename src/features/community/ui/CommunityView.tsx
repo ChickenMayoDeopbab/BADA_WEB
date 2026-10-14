@@ -12,6 +12,7 @@ import {
   ConfirmDialog,
   ListSkeleton,
   LoadingRegion,
+  LoadingSpinner,
   Skeleton,
   StatusState,
   BackIcon,
@@ -20,7 +21,7 @@ import {
   ServiceTabs,
 } from '@shared/ui'
 import { getApiErrorMessage } from '@shared/api'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   FiCheck,
   FiChevronRight,
@@ -136,6 +137,42 @@ const CommunityDetailSkeleton = () => (
     </div>
   </LoadingRegion>
 )
+
+/** 이전 글은 유지하면서 최신 조회 실패와 재시도 동작을 함께 알립니다. */
+const CommunityRefreshNotice = ({
+  isError,
+  isFetching,
+  onRetry,
+}: {
+  isError: boolean
+  isFetching: boolean
+  onRetry: () => void
+}) => {
+  if (!isError) return null
+  return (
+    <section
+      role="alert"
+      aria-label="게시글 새로고침 오류"
+      className="gap-3 mt-4 p-4 max-sm:flex-col max-sm:items-start flex items-center justify-between rounded-component border border-line-alternative bg-fill-normal"
+    >
+      <div>
+        <p className="text-body font-medium text-label-normal">최신 게시글을 불러오지 못했어요.</p>
+        <p className="mt-1 text-label text-label-alternative">
+          이전에 불러온 내용을 표시하고 있어요. 다시 불러와 주세요.
+        </p>
+      </div>
+      <button
+        type="button"
+        disabled={isFetching}
+        aria-busy={isFetching}
+        onClick={onRetry}
+        className="gap-2 px-4 py-2 flex shrink-0 items-center rounded-control bg-fill-neutral text-label font-bold text-label-normal disabled:opacity-50"
+      >
+        {isFetching && <LoadingSpinner />}다시 불러오기
+      </button>
+    </section>
+  )
+}
 
 const Reactions = ({
   post,
@@ -549,7 +586,13 @@ const EditModal = ({
   )
 }
 
-const PostDetail = ({ post }: { post: CommunityPost }) => {
+const PostDetail = ({
+  post,
+  queryFeedback,
+}: {
+  post: CommunityPost
+  queryFeedback?: ReactNode
+}) => {
   const navigate = useNavigate()
   const currentUserId = getCurrentUserId()
   const [expanded, setExpanded] = useState<string[]>([])
@@ -607,6 +650,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   return (
     <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
+      {queryFeedback}
       {reportNotice && (
         <p
           role="status"
@@ -1183,7 +1227,13 @@ const SelectionModal = ({
   )
 }
 
-const PostComposer = ({ post }: { post?: CommunityPost }) => {
+const PostComposer = ({
+  post,
+  queryFeedback,
+}: {
+  post?: CommunityPost
+  queryFeedback?: ReactNode
+}) => {
   const navigate = useNavigate()
   const imageInputRef = useRef<HTMLInputElement>(null)
   const attachmentMenuRef = useRef<HTMLDivElement>(null)
@@ -1266,6 +1316,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
   return (
     <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
+      {queryFeedback}
       <button
         type="button"
         onClick={() => navigate(returnPath)}
@@ -1409,7 +1460,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
 }
 
 const CommunityDetailRoute = ({ postId }: { postId: number }) => {
-  const { data: post, isLoading, refetch, isFetching } = useCommunityPost(postId)
+  const { data: post, isLoading, isError, refetch, isFetching } = useCommunityPost(postId)
 
   if (isLoading)
     return (
@@ -1440,11 +1491,22 @@ const CommunityDetailRoute = ({ postId }: { postId: number }) => {
         />
       </ServicePageContent>
     )
-  return <PostDetail post={post} />
+  return (
+    <PostDetail
+      post={post}
+      queryFeedback={
+        <CommunityRefreshNotice
+          isError={isError}
+          isFetching={isFetching}
+          onRetry={() => void refetch()}
+        />
+      }
+    />
+  )
 }
 
 const CommunityEditRoute = ({ postId }: { postId: number }) => {
-  const { data: post, isLoading, refetch, isFetching } = useCommunityPost(postId)
+  const { data: post, isLoading, isError, refetch, isFetching } = useCommunityPost(postId)
 
   if (isLoading)
     return (
@@ -1481,7 +1543,18 @@ const CommunityEditRoute = ({ postId }: { postId: number }) => {
         게시글 수정 권한이 없어요.
       </ServicePageContent>
     )
-  return <PostComposer post={post} />
+  return (
+    <PostComposer
+      post={post}
+      queryFeedback={
+        <CommunityRefreshNotice
+          isError={isError}
+          isFetching={isFetching}
+          onRetry={() => void refetch()}
+        />
+      }
+    />
+  )
 }
 
 export const CommunityView = () => {
