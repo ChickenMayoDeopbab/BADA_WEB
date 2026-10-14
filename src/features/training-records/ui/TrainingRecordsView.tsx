@@ -146,7 +146,7 @@ const TimelineItem = ({
   onToggleAudio,
 }: TimelineItemProps) => (
   <div className="gap-1.5 relative z-10 flex w-full items-start">
-    <span className="relative z-10 shrink-0">
+    <span className="relative z-10 shrink-0 self-stretch" aria-hidden="true">
       <img src={timelinePoint} alt="" />
       {!isLast && (
         <span className="top-7 -bottom-4 w-0.5 absolute left-1/2 -translate-x-1/2 bg-line-neutral" />
