@@ -8,6 +8,7 @@ export {
 } from './model/authSession'
 export { checkUsername } from './api/authApi'
 export { configureAuthHttpClient } from './api/configureAuthHttpClient'
+export { getValidAccessToken } from './model/getValidAccessToken'
 export type { LoginMode } from './model/types'
 export { FindIdFlow } from './ui/FindIdFlow'
 export { IdLogin } from './ui/IdLogin'

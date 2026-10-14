@@ -74,6 +74,19 @@ describe('configureAuthHttpClient', () => {
     expect(adapter.mock.calls[0]?.[0].headers.has('Authorization')).toBe(false)
   })
 
+  it('authenticates AI requests but never exposes the token to third-party audio URLs', async () => {
+    setAuthTokens({ accessToken: 'access', refreshToken: 'refresh' }, true)
+    const adapter = vi.fn<AxiosAdapter>(async (config) => response(config, {}))
+    aiHttpClient.defaults.adapter = adapter
+    configureAuthHttpClient(vi.fn())
+
+    await aiHttpClient.get('/api/v1/scenario/scenarios')
+    await aiHttpClient.get('https://audio.example.com/example.wav')
+
+    expect(adapter.mock.calls[0]?.[0].headers.get('Authorization')).toBe('Bearer access')
+    expect(adapter.mock.calls[1]?.[0].headers.has('Authorization')).toBe(false)
+  })
+
   it('refreshes once and retries concurrent unauthorized requests with the new token', async () => {
     const refreshToken = token({ sub: '34' })
     setAuthTokens({ accessToken: 'expired-access', refreshToken }, false)

@@ -19,6 +19,7 @@ import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
 import { AudioPreview } from './AudioPreview'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
+import { ServicePageContent } from '@shared/ui'
 import { useSearchParams } from 'react-router-dom'
 
 const formatSummaryDuration = (durationSeconds: number) => {
@@ -147,7 +148,7 @@ const TimelineItem = ({
   onToggleAudio,
 }: TimelineItemProps) => (
   <div className="gap-1.5 relative z-10 flex w-full items-start">
-    <span className="relative z-10 shrink-0">
+    <span className="relative z-10 shrink-0 self-stretch" aria-hidden="true">
       <img src={timelinePoint} alt="" />
       {!isLast && (
         <span className="top-7 -bottom-4 w-0.5 absolute left-1/2 -translate-x-1/2 bg-line-neutral" />
@@ -428,8 +429,8 @@ export const TrainingRecordsView = () => {
   const groupedRecords = groupRecordsByDate(paginatedRecords)
 
   return (
-    <main className="min-w-0 flex-1 overflow-hidden">
-      <div className="ml-16 mt-9 flex w-[1024px] max-w-[calc(100%-96px)] flex-col gap-[18px]">
+    <ServicePageContent className="overflow-hidden">
+      <div className="flex w-full flex-col gap-[18px]">
         <header className="gap-3 flex items-center">
           <h1 className="text-title1 font-bold text-label-normal">훈련 기록</h1>
           <p className="text-body font-medium text-neutral-60">
@@ -437,7 +438,7 @@ export const TrainingRecordsView = () => {
           </p>
         </header>
 
-        <div className="flex items-end justify-between">
+        <div className="gap-6 h-12 flex items-center justify-between">
           <div
             className="pb-2 relative flex items-center gap-[15px]"
             role="tablist"
@@ -453,8 +454,8 @@ export const TrainingRecordsView = () => {
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => handleSelectPeriod(periodOption.id)}
-                  className={`ease-out w-[42px] text-center text-title2 font-medium transition-colors duration-[420ms] motion-reduce:transition-none ${
-                    isActive ? 'text-primary-normal' : 'text-neutral-70'
+                  className={`ease-out w-[42px] text-center text-title2 font-bold transition-colors duration-[420ms] motion-reduce:transition-none ${
+                    isActive ? 'text-primary-normal' : 'text-neutral-70 hover:text-label-neutral'
                   }`}
                 >
                   {periodOption.label}
@@ -462,7 +463,7 @@ export const TrainingRecordsView = () => {
               )
             })}
             <span
-              className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute w-[42px] bg-primary-normal transition-transform duration-[420ms] motion-reduce:transition-none"
+              className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute w-[42px] bg-primary-normal transition-[transform,width] duration-[420ms] motion-reduce:transition-none"
               style={{ transform: `translateX(${activePeriodIndex * 57}px)` }}
               aria-hidden="true"
             />
@@ -597,6 +598,6 @@ export const TrainingRecordsView = () => {
           onToggleAudio={handleToggleAudio}
         />
       )}
-    </main>
+    </ServicePageContent>
   )
 }

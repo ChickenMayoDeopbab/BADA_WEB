@@ -115,6 +115,18 @@ export const SEMANTIC_COLORS = {
   train: {
     callGradientStart: '#F5F5F5',
     callGradientEnd: '#ABEFA8',
+    customBannerGradientStart: '#09C357',
+    customBannerGradientEnd: '#8BBA9F',
+    anxiety1: '#04B868',
+    anxiety2: '#04B868',
+    anxiety3: '#39C06C',
+    anxiety4: '#7BC560',
+    anxiety5: '#BAC14E',
+    anxiety6: '#F5A624',
+    anxiety7: '#EF9229',
+    anxiety8: '#E95C3C',
+    anxiety9: '#DF4748',
+    anxiety10: '#D54254',
   },
   dashboard: {
     recommendGradientStart: '#F5A266',

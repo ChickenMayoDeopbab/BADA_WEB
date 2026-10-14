@@ -8,5 +8,6 @@ export const getApiErrorMessage = (error: unknown, fallback: string) => {
   }
 
   const data = error.response?.data
-  return data?.error?.message || data?.message || (typeof data?.detail === 'string' ? data.detail : fallback)
+  const detail = typeof data?.detail === 'string' ? data.detail : ''
+  return data?.error?.message || data?.message || detail || fallback
 }
