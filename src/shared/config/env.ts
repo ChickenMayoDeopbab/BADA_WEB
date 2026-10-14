@@ -37,9 +37,16 @@ const readVoiceAuthMode = (value: string | undefined): 'frame' | 'query' => {
   throw new Error('[환경변수 오류] VITE_VOICE_AUTH_MODE는 frame 또는 query여야 합니다.')
 }
 
+const configuredAiApiBaseUrl = readUrlEnvironment(
+  'VITE_AI_API_BASE_URL',
+  import.meta.env.VITE_AI_API_BASE_URL,
+)
+
 export const env = {
   apiBaseUrl: readUrlEnvironment('VITE_API_BASE_URL', import.meta.env.VITE_API_BASE_URL),
-  aiApiBaseUrl: readUrlEnvironment('VITE_AI_API_BASE_URL', import.meta.env.VITE_AI_API_BASE_URL),
+  aiApiBaseUrl: import.meta.env.DEV
+    ? new URL('/__bada_ai', window.location.origin).toString()
+    : configuredAiApiBaseUrl,
   isAuthGuardEnabled: readBooleanEnvironment(import.meta.env.VITE_AUTH_GUARD_ENABLED, true),
   voiceAuthMode: readVoiceAuthMode(import.meta.env.VITE_VOICE_AUTH_MODE),
 } as const

@@ -110,17 +110,19 @@ export class VoiceTransport {
   }
 
   /** 과도한 송신 대기가 발생하면 오래된 음성을 쌓지 않고 연결 실패로 처리합니다. */
-  sendBinary = (data: ArrayBuffer) => {
+  sendBinary = (data: ArrayBuffer): boolean => {
     if (this.isDisposed || !this.hasAuthenticated || this.socket?.readyState !== WebSocket.OPEN)
-      return
+      return false
     if (this.socket.bufferedAmount > 64000) {
       this.fail(new Error('WS_BACKPRESSURE'))
-      return
+      return false
     }
     try {
       this.socket.send(data)
+      return true
     } catch {
       this.fail(new Error('WS_SEND_FAILED'))
+      return false
     }
   }
 

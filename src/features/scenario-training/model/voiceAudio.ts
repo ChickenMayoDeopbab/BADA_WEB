@@ -1,4 +1,5 @@
 import { TrainPlayback, TRAIN_SAMPLE_RATE, type PlaybackStats } from './trainPlayback'
+import { reportVoiceDiagnostic } from './voiceDiagnostics'
 
 interface VoiceAudioOptions {
   onPcm: (data: ArrayBuffer) => void
@@ -95,6 +96,11 @@ export class VoiceAudio {
     this.input.connect(this.worklet)
     this.worklet.connect(context.destination)
     this.options.onSuspended(context.state !== 'running')
+    reportVoiceDiagnostic('microphone_ready', {
+      inputSampleRate: context.sampleRate,
+      wireSampleRate: TRAIN_SAMPLE_RATE,
+      hasLiveTrack: this.stream.getAudioTracks().some((track) => track.readyState === 'live'),
+    })
   }
 
   /** 차단 전환 시 Worklet의 부분 청크까지 비워 에코가 나중에 전송되지 않게 합니다. */

@@ -1,6 +1,6 @@
 # 웹 실시간 AI 통화 구현 기록
 
-2026-10-13 기준. 작업 저장소는 `/Users/b2ong091225/Documents/ChatGPT/BADA_WEB`이며 사용자의 지시에 따라 이슈나 새 브랜치 없이 현재 브랜치에 구현했다.
+2026-10-14 기준. 작업 저장소는 `/Users/b2ong091225/Documents/ChatGPT/BADA_WEB`이며 사용자의 지시에 따라 이슈나 새 브랜치 없이 현재 브랜치에 구현했다.
 
 ## 실제 확인한 소스
 
@@ -19,7 +19,7 @@
 
 - Spring: `POST /api/v1/session`, 요청은 `scenarioId`, `type: SCENARIO | CUSTOM`, `aiPersonality: KIND | NORMAL | TOUGH | RUDE`, `difficulty: low | medium | high`. 응답의 `data.sessionId`를 사용한다.
 - WebSocket: 공개 AI API 주소의 `/ws/voice/{sessionId}`. Spring이 반환하는 내부 주소 `wsUrl`을 그대로 사용하지 않는 앱의 방식을 유지한다.
-- 현재 서버는 첫 메시지 `{ type: 'auth', token }` 인증과 기존 앱의 `?token=...` 인증을 모두 지원한다. 기본값은 첫 메시지 인증이다. 운영 서버가 이전 버전이면 `VITE_VOICE_AUTH_MODE=query`로 기존 앱 방식을 선택할 수 있다. 실제 배포 버전은 별도 확인이 필요하다.
+- 현재 서버는 첫 메시지 `{ type: 'auth', token }` 인증과 기존 앱의 `?token=...` 인증을 모두 지원한다. 기본값은 첫 메시지 인증이다. 운영 서버가 이전 버전이면 `VITE_VOICE_AUTH_MODE=query`로 기존 앱 방식을 선택할 수 있다. 2026-10-14 실제 배포 서버에서 첫 auth 메시지 인증을 확인했다.
 - 입·출력은 헤더 없는 **16kHz, 모노, signed PCM16 little-endian 바이너리**다. WAV, Opus, 브라우저 STT/TTS는 사용하지 않는다.
 - 기존 앱 Worklet은 4096샘플씩 모은다. 서버는 고정 프레임 크기를 요구하지 않고 수신한 PCM을 STT 큐에 넣는다. 웹은 입력 지연을 줄이기 위해 320샘플/20ms/640바이트씩 보낸다. PCM 포맷과 서버 프레임 규격은 같다.
 - 연결 후 `{ type: 'playback_capabilities', completion_ack: true }`, 30초 간격 `{ type: 'ping' }`를 보낸다.
@@ -68,16 +68,28 @@ React Native 녹음과 네이티브 오디오 큐는 `getUserMedia`, 단일 `Aud
 
 - `npm run lint`: 통과.
 - `npm run build`: TypeScript 검사 및 Vite 빌드 통과. Worklet이 별도 정적 JS 자산으로 출력된다. 메인 JS의 500kB 초과 경고는 남아 있다.
-- `npm run test:run`: 20개 파일, 79개 테스트 통과.
+- `npm run test:run`: 21개 파일, 82개 테스트 통과.
 - `npm run test:e2e -- --reporter=list`: Chromium 10개 테스트 통과(통화 7개, 기존 라우터·기록 3개).
 - `git diff --check`: 통과.
 
 브라우저 통화 테스트는 모의 REST/WebSocket 서버와 Chromium 가상 마이크를 사용한다. **getUserMedia, AudioContext, AudioWorklet, PCM 변환과 실제 재생 스케줄러는 대체하지 않는다.** 여러 PCM 청크의 출력 완료 전 ACK가 없고, 출력 완료와 잔향 대기 동안 입력이 차단되며, 사용자 음소거가 유지되는 것을 검사한다. 같은 SPA에서 재훈련, 권한 거부, 페이지 이동, 브라우저 오디오 suspend/resume, 비정상 서버 종료, 예약 시점 세션 생성, 결과 점수 저장 실패 후 재시도를 검사한다.
 
-## 운영에서 추가 확인할 사항
+## 실제 배포 서버 통화 검사와 수정
 
-운영 계정의 인증된 세션, 실제 사용자 음성의 서버 STT, AI 응답과 실제 TTS 수신, 최종 훈련 기록/피드백 저장까지는 이 환경에서 검증하지 않았다. 모의 서버 테스트를 실제 서버 성공으로 해석하면 안 된다. 물리적 마이크·스피커의 에코와 Bluetooth 출력 지연, Safari/Firefox/모바일 브라우저에서도 직접 통화 확인이 필요하다.
+2026-10-14 Chrome에서 사용자 로그인 후 Spring `https://spring.chickenmayo.kr`와 AI `https://fastapi.chickenmayo.kr`에 연결해 확인했다. 가상 마이크/모의 응답을 사용한 E2E와 별도로, 물리적 마이크와 실제 계정의 세션을 사용했다.
 
-배포 서버의 첫 auth 메시지 지원 여부, 웹 origin의 CORS 허용, WSS 프록시·인증 설정, 사용자 정보 처리 동의를 확인해야 한다. 서버 프로토콜 변경이나 백엔드 수정은 필요하지 않았다.
+- 기존 localhost:5173은 별도 `/Users/b2ong091225/Documents/BADA_WEB` 체크아웃의 UI만 전환하는 통화 코드였다. 구현된 현재 체크아웃을 localhost:5174에서 실행했다.
+- AI 서버에 localhost:5174 origin으로 OPTIONS 요청 시 400 `Disallowed CORS origin`이 발생했다. 개발 전용 Vite `/__bada_ai` REST/WebSocket 프록시를 추가했다. 브라우저는 같은 origin으로 요청하고, 프록시는 기존 공개 AI 주소에 TLS 검증을 유지한 채 전달한다. 운영 빌드는 기존 공개 AI URL을 직접 사용한다.
+- AI health, 인증되지 않은 소켓의 `TOKEN_INVALID` 종료, 실제 로그인한 계정의 세션 생성 및 첫 auth 프레임 인증을 확인했다. 백엔드 코드와 통신 규격을 변경하지 않았다.
+- 실제 마이크 입력이 서버에 전송됐고 사용자 STT와 AI transcript가 두 턴씩 수신됐다. 기존 서버의 STT/LLM/TTS를 사용했다.
+- 첫 TTS는 19청크/5,600ms, 다음 TTS는 29청크/8,719.75ms였다. 두 응답 모두 브라우저 출력 완료 콜백에서 `completed`, 유실 청크 0, 잘못된 PCM 바이트 0으로 보고됐다. 음성 내용이나 인증 토큰은 검사 로그에 기록하지 않았다.
+- 사용자 음소거 후 PCM 전송이 멈췄다. 장시간 음소거로 서버가 `NO_AUDIO` 종료를 보냈고 결과 화면 이동, Chrome 마이크 사용 표시 해제, 실제 훈련 기록 4분 41초/피드백 3개 저장을 확인했다. 사용자의 주관적 불안 점수는 대신 입력하지 않았다.
+- 다시 새 세션으로 연결해 실제 입력 48kHz → 전송 16kHz 변환을 확인했다. 음소거 10.7초 동안 전송량은 372,480바이트로 유지됐고, 해제 후 증가했다. 종료 버튼은 서버 `USER_END` 확인을 받은 뒤 결과 화면으로 이동했고 마이크 사용 표시가 사라졌다. 기록 화면에서도 이 통화가 34초로 추가된 것을 확인했다. 화면 통화 타이머는 마이크·인증 완료부터 27초를 측정했으며, 서버가 반환한 기록 시간 34초는 그대로 표시한다.
+- 개발 로그는 마이크 준비, 인증, 입력 게이트, 전송 바이트 수, TTS 완료 및 종료 수치만 기록한다. 토큰·연결 URL·transcript·음성 데이터는 포함하지 않으며 운영 빌드에서는 로그를 출력하지 않는다.
+- 로컬 `.env.local`에는 공개 API 주소와 인증 옵션만 저장했다. Git에서 제외되며 인증 정보는 없다.
+
+## 추가 확인할 사항
+
+브라우저 출력 완료까지 확인했지만 사용자가 스피커로 실제 들었다는 확인은 아직 받지 않았다. 물리적 스피커의 음량·출력 장치, 에코와 Bluetooth 지연, Safari/Firefox/모바일 브라우저는 추가 확인이 필요하다. 프로덕션 웹 origin의 CORS 설정은 실제 배포 환경에서 확인해야 한다. 개발 프록시는 운영 빌드에 포함되지 않는다.
 
 명상 영상 및 커스텀 시나리오 생성 라우트는 기존 구현 상태를 유지한다. 실시간 서버의 STT/TTS와 브라우저 SpeechRecognition/speechSynthesis를 혼용하지 않는다.

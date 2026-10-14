@@ -2,6 +2,7 @@ import { getCallErrorMessage } from './callErrors'
 import { VoiceAudio } from './voiceAudio'
 import { VoiceTransport } from './voiceTransport'
 import type { VoiceServerMessage } from './voiceProtocol'
+import { reportVoiceDiagnostic } from './voiceDiagnostics'
 
 export interface VoiceCallState {
   stage: 'preparing' | 'connecting' | 'active' | 'ending' | 'ended' | 'error'
@@ -33,6 +34,9 @@ export class VoiceCall {
   private isDisposed = false
   private hasStarted = false
   private isAudioReady = false
+  private microphoneBytes = 0
+  private lastMicrophoneDiagnosticAt = 0
+  private isCaptureBlocked = true
   private endTimer: ReturnType<typeof setTimeout> | null = null
   private prepareTimer: ReturnType<typeof setTimeout> | null = null
   private state: VoiceCallState = {
@@ -69,14 +73,29 @@ export class VoiceCall {
     })
     this.audio = new VoiceAudio({
       onPcm: (data) => {
-        if (this.canSendAudio()) this.transport.sendBinary(data)
+        if (this.canSendAudio() && this.transport.sendBinary(data)) {
+          this.microphoneBytes += data.byteLength
+          if (Date.now() - this.lastMicrophoneDiagnosticAt >= 1000) {
+            this.lastMicrophoneDiagnosticAt = Date.now()
+            reportVoiceDiagnostic('microphone_sent', { bytes: this.microphoneBytes })
+          }
+        }
       },
       onBlocked: (isPlaybackBlocked) => {
         this.update({ isPlaybackBlocked })
         this.syncMute()
       },
       onComplete: (turnId) => this.transport.sendJson({ type: 'playback_done', turn_id: turnId }),
-      onStats: (stats) => this.transport.sendJson(stats),
+      onStats: (stats) => {
+        this.transport.sendJson(stats)
+        reportVoiceDiagnostic('playback_stats', {
+          chunks: stats.chunks,
+          playedMs: stats.completed_played_ms,
+          droppedChunks: stats.dropped_chunks,
+          invalidBytes: stats.invalid_bytes,
+          endReason: stats.end_reason,
+        })
+      },
       onError: this.fail,
       onSuspended: (isAudioSuspended) => {
         this.update({ isAudioSuspended })
@@ -117,6 +136,15 @@ export class VoiceCall {
     if (this.isDisposed) return
     const isBlocked = !this.canSendAudio()
     this.audio.setCaptureEnabled(!isBlocked)
+    if (isBlocked !== this.isCaptureBlocked) {
+      this.isCaptureBlocked = isBlocked
+      reportVoiceDiagnostic('capture_gate', {
+        enabled: !isBlocked,
+        userMuted: this.state.isMuted,
+        playbackBlocked: this.state.isPlaybackBlocked,
+        microphoneBytes: this.microphoneBytes,
+      })
+    }
     if (this.state.connection === 'authenticated')
       this.transport.sendJson({ type: 'mute', muted: isBlocked })
   }
@@ -134,6 +162,7 @@ export class VoiceCall {
           displayName: message.aiRole.trim(),
         })
         this.syncMute()
+        reportVoiceDiagnostic('authenticated', { audioReady: this.isAudioReady })
         break
       case 'emotion':
         if (this.state.stage === 'active') this.audio.playback.begin()
@@ -223,6 +252,7 @@ export class VoiceCall {
       endReason,
     })
     this.cleanup()
+    reportVoiceDiagnostic('call_ended', { endReason, microphoneBytes: this.microphoneBytes })
   }
 
   /** 검증된 안내 문구로 실패를 표시하고 성공 결과 화면으로 이동하지 않습니다. */
