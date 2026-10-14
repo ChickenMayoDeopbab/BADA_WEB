@@ -10,7 +10,6 @@ import feedbackArrow from '@shared/assets/training-records/feedback-arrow.svg'
 import feedbackArrowOpen from '@shared/assets/training-records/feedback-arrow-open.svg'
 import menuDots from '@shared/assets/training-records/menu-dots.svg'
 import rowArrow from '@shared/assets/training-records/row-arrow.svg'
-import searchIcon from '@shared/assets/training-records/search.svg'
 import summaryArrow from '@shared/assets/training-records/summary-arrow.svg'
 import timelinePoint from '@shared/assets/training-records/timeline-point.svg'
 import { formatTrainingRecordDateRange } from '../model/formatTrainingRecordDateRange'
@@ -19,8 +18,10 @@ import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
 import { AudioPreview } from './AudioPreview'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
-import { ServicePageContent } from '@shared/ui'
+import { ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
 import { useSearchParams } from 'react-router-dom'
+
+const periodTabs = trainingPeriodOptions.map(({ id, label }) => ({ value: id, label }))
 
 const formatSummaryDuration = (durationSeconds: number) => {
   const hours = Math.floor(durationSeconds / 3600)
@@ -422,15 +423,11 @@ export const TrainingRecordsView = () => {
     handleApplyPeriodRange(nextPeriod)
   }
 
-  // 선택된 기간 탭의 인디케이터 위치를 계산합니다.
-  const activePeriodIndex = trainingPeriodOptions.findIndex(
-    (periodOption) => periodOption.id === period,
-  )
   const groupedRecords = groupRecordsByDate(paginatedRecords)
 
   return (
     <ServicePageContent className="overflow-hidden">
-      <div className="flex w-full flex-col gap-[18px]">
+      <div className="gap-4 flex w-full flex-col">
         <header className="gap-3 flex items-center">
           <h1 className="text-title1 font-bold text-label-normal">훈련 기록</h1>
           <p className="text-body font-medium text-neutral-60">
@@ -438,53 +435,22 @@ export const TrainingRecordsView = () => {
           </p>
         </header>
 
-        <div className="gap-6 h-12 flex items-center justify-between">
-          <div
-            className="pb-2 relative flex items-center gap-[15px]"
-            role="tablist"
-            aria-label="훈련 기록 기간"
-          >
-            {trainingPeriodOptions.map((periodOption) => {
-              const isActive = periodOption.id === period
-
-              return (
-                <button
-                  key={periodOption.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={() => handleSelectPeriod(periodOption.id)}
-                  className={`ease-out w-[42px] text-center text-title2 font-bold transition-colors duration-[420ms] motion-reduce:transition-none ${
-                    isActive ? 'text-primary-normal' : 'text-neutral-70 hover:text-label-neutral'
-                  }`}
-                >
-                  {periodOption.label}
-                </button>
-              )
-            })}
-            <span
-              className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute w-[42px] bg-primary-normal transition-[transform,width] duration-[420ms] motion-reduce:transition-none"
-              style={{ transform: `translateX(${activePeriodIndex * 57}px)` }}
-              aria-hidden="true"
-            />
-          </div>
-
-          <label className="h-12 px-2.5 flex w-[300px] items-center justify-between overflow-hidden rounded-component bg-fill-alternative">
-            <span className="sr-only">훈련 기록 검색</span>
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(event) => handleSearchQueryChange(event.target.value)}
-              placeholder="제목 또는 설명으로 검색"
-              className="min-w-0 flex-1 bg-transparent text-headline2 font-medium text-label-neutral outline-none placeholder:text-neutral-70"
-            />
-            <span className="size-10 flex shrink-0 items-center justify-center">
-              <img src={searchIcon} alt="" />
-            </span>
-          </label>
+        <div className="h-12 gap-6 max-sm:h-auto max-sm:flex-col max-sm:items-stretch max-sm:gap-4 flex items-center justify-between">
+          <ServiceTabs
+            items={periodTabs}
+            value={period}
+            label="훈련 기록 기간"
+            onChange={handleSelectPeriod}
+          />
+          <ServiceSearchField
+            label="훈련 기록 검색"
+            value={searchQuery}
+            onChange={(event) => handleSearchQueryChange(event.target.value)}
+            placeholder="제목 또는 설명으로 검색"
+          />
         </div>
 
-        <section className="px-7 flex h-[136px] items-center justify-between rounded-card border border-line-alternative bg-background-normal">
+        <section className="px-7 flex h-[136px] items-center justify-between rounded-dialog bg-background-normal">
           <div className="gap-2 flex flex-col">
             <button
               type="button"

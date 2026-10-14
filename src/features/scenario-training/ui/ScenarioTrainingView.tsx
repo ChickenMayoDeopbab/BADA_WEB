@@ -20,9 +20,7 @@ import {
   IoTimeOutline,
 } from 'react-icons/io5'
 import type { CSSProperties } from 'react'
-import { ServicePageContent } from '@shared/ui'
-
-const tabGap = 15
+import { ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
 
 const tabs: Array<{ value: ScenarioTab; label: string; width: number }> = [
   { value: 'basic', label: '기본 제공', width: 92 },
@@ -417,11 +415,6 @@ const ScenarioDeleteDialog = ({
 /** Figma 시나리오 훈련 목록과 상세 탐색 화면을 표시합니다. */
 export const ScenarioTrainingView = () => {
   const catalog = useScenarioCatalog()
-  const activeTabIndex = tabs.findIndex((tab) => tab.value === catalog.selectedTab)
-  const activeTab = tabs[activeTabIndex]
-  const activeTabOffset = tabs
-    .slice(0, activeTabIndex)
-    .reduce((offset, tab) => offset + tab.width + tabGap, 0)
 
   return (
     <ServicePageContent>
@@ -432,49 +425,19 @@ export const ScenarioTrainingView = () => {
         </p>
       </header>
 
-      <div className="mt-4 h-12 gap-6 flex items-center justify-between">
-        <nav
-          className="pb-2 relative flex items-center gap-[15px]"
-          aria-label="시나리오 분류"
-          role="tablist"
-        >
-          {tabs.map((tab) => (
-            <button
-              key={tab.value}
-              type="button"
-              role="tab"
-              aria-selected={catalog.selectedTab === tab.value}
-              onClick={() => catalog.handleTabChange(tab.value)}
-              className={`ease-out text-center text-title2 font-bold transition-colors duration-[420ms] motion-reduce:transition-none ${
-                catalog.selectedTab === tab.value
-                  ? 'text-primary-normal'
-                  : 'text-neutral-70 hover:text-label-neutral'
-              }`}
-              style={{ width: tab.width }}
-            >
-              {tab.label}
-            </button>
-          ))}
-          <span
-            className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute bg-primary-normal transition-[transform,width] duration-[420ms] motion-reduce:transition-none"
-            style={{
-              width: activeTab.width,
-              transform: `translateX(${activeTabOffset}px)`,
-            }}
-            aria-hidden="true"
-          />
-        </nav>
-
-        <label className="h-12 gap-2 px-4 flex w-[300px] items-center rounded-component bg-fill-alternative text-label-alternative focus-within:outline-2 focus-within:outline-primary-normal">
-          <input
-            type="search"
-            value={catalog.searchQuery}
-            onChange={(event) => catalog.setSearchQuery(event.target.value)}
-            placeholder="제목 또는 설명으로 검색"
-            className="min-w-0 flex-1 bg-transparent text-body text-label-normal outline-none placeholder:text-neutral-70"
-          />
-          <IoSearch size={22} aria-hidden="true" />
-        </label>
+      <div className="mt-4 h-12 gap-6 max-sm:h-auto max-sm:flex-col max-sm:items-stretch max-sm:gap-4 flex items-center justify-between">
+        <ServiceTabs
+          items={tabs}
+          value={catalog.selectedTab}
+          label="시나리오 분류"
+          onChange={catalog.handleTabChange}
+        />
+        <ServiceSearchField
+          label="시나리오 검색"
+          value={catalog.searchQuery}
+          onChange={(event) => catalog.setSearchQuery(event.target.value)}
+          placeholder="제목 또는 설명으로 검색"
+        />
       </div>
 
       <section className="mt-4 px-9 py-8 min-h-[calc(100vh-140px)] rounded-dialog bg-background-normal">

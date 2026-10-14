@@ -4,7 +4,7 @@ import scenarioImage from '@shared/assets/community/figma-1.png'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
 import { routePaths } from '@shared/config'
-import { ServicePageContent } from '@shared/ui'
+import { ServicePageContent, ServiceSearchField, ServiceTabs } from '@shared/ui'
 import { getApiErrorMessage } from '@shared/api'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -20,7 +20,6 @@ import {
   FiPause,
   FiPlay,
   FiRotateCw,
-  FiSearch,
   FiSend,
   FiTrash2,
   FiX,
@@ -54,6 +53,11 @@ const reactionMeta: Record<ReactionKind, { emoji: string; label: string }> = {
   empathy: { emoji: '🥺', label: '공감돼요' },
   like: { emoji: '❤️', label: '좋아요' },
 }
+
+const communityTabs = [
+  { value: 'all', label: '전체 글' },
+  { value: 'mine', label: '내 글' },
+] as const
 
 const Profile = ({
   author,
@@ -157,31 +161,22 @@ const CommunityList = () => {
   return (
     <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
-      <div className="mt-5 gap-3 flex items-end justify-between">
-        <div className="gap-4 flex shrink-0">
-          {(['all', 'mine'] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setTab(value)}
-              className={`pb-1 text-title2 font-medium ${tab === value ? 'border-b-2 border-green-40 text-green-40' : 'text-neutral-70'}`}
-            >
-              {value === 'all' ? '전체 글' : '내 글'}
-            </button>
-          ))}
-        </div>
+      <div className="mt-4 h-12 gap-6 max-sm:h-auto max-sm:flex-col max-sm:items-stretch max-sm:gap-4 flex items-center justify-between">
+        <ServiceTabs
+          items={communityTabs}
+          value={tab}
+          label="커뮤니티 글 분류"
+          onChange={setTab}
+        />
         <div className="relative w-[300px] max-w-full">
-          <label className="h-12 gap-2 px-3 flex items-center rounded-component bg-fill-alternative">
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onFocus={() => setFocused(true)}
-              onBlur={() => window.setTimeout(() => setFocused(false), 120)}
-              className="min-w-0 flex-1 bg-transparent text-body outline-none placeholder:text-neutral-60"
-              placeholder="제목 또는 설명으로 검색"
-            />
-            <FiSearch className="size-6 text-label-alternative" />
-          </label>
+          <ServiceSearchField
+            label="커뮤니티 검색"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => window.setTimeout(() => setFocused(false), 120)}
+            placeholder="제목 또는 설명으로 검색"
+          />
           {focused && query && (
             <div className="top-14 absolute z-10 w-full overflow-hidden rounded-control border border-line-alternative bg-background-normal shadow-elevated-card">
               {Array.from({ length: 4 }).map((_, index) => (
@@ -198,7 +193,7 @@ const CommunityList = () => {
           )}
         </div>
       </div>
-      <div className="mt-3 gap-3 pb-16 flex flex-1 flex-col overflow-auto">
+      <div className="mt-4 gap-3 pb-16 flex flex-1 flex-col overflow-auto">
         {isLoading && (
           <p className="py-12 text-center text-label-alternative">게시글을 불러오는 중이에요.</p>
         )}
