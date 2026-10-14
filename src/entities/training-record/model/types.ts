@@ -32,3 +32,16 @@ export interface TrainingPeriodOption {
   label: string
   range: string
 }
+
+export type TrainingSessionType = 'SCENARIO' | 'CUSTOM' | 'WARMUP'
+
+export interface TrainingRecordSummary {
+  recordId: number
+  sessionId: string
+  trainedAt: string
+  scenarioName: string
+  sessionType: TrainingSessionType
+  durationSeconds: number
+  scenarioImage?: string
+  categoryIconUrl?: string
+}

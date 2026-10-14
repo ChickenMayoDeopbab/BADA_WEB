@@ -52,6 +52,17 @@ describe('configureAuthHttpClient', () => {
     expect(adapter.mock.calls[0]?.[0].headers.get('Authorization')).toBe('Bearer access')
   })
 
+  it('adds the current access token to AI server requests', async () => {
+    setAuthTokens({ accessToken: 'access', refreshToken: 'refresh' }, true)
+    const adapter = vi.fn<AxiosAdapter>(async (config) => response(config, { ok: true }))
+    aiHttpClient.defaults.adapter = adapter
+    configureAuthHttpClient(vi.fn())
+
+    await aiHttpClient.get('/api/v1/scenario/recommendation')
+
+    expect(adapter.mock.calls[0]?.[0].headers.get('Authorization')).toBe('Bearer access')
+  })
+
   it('does not add an expired session token to a public login request', async () => {
     setAuthTokens({ accessToken: 'old-access', refreshToken: 'old-refresh' }, true)
     const adapter = vi.fn<AxiosAdapter>(async (config) => response(config, { ok: true }))

@@ -7,7 +7,18 @@ import {
   ResetPasswordPage,
   SignupPage,
 } from '@pages/auth'
+import { CommunityPage } from '@pages/community'
+import { DashboardPage } from '@pages/dashboard'
 import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
+import {
+  ProfileEditPage,
+  ProfileLanguagePage,
+  ProfileNotificationsPage,
+  ProfileOverviewPage,
+  ProfilePrivacyPage,
+  ProfileBlockedUsersPage,
+  ProfileRingtonePage,
+} from '@pages/profile'
 import { TrainingRecordsPage } from '@pages/records'
 import {
   CustomScenarioPage,
@@ -16,8 +27,9 @@ import {
   ScenarioSettingsPage,
   ScenarioTrainingPage,
 } from '@pages/training'
+import { SelfDiagnosisPage } from '@pages/self-diagnosis'
 import { routePaths } from '@shared/config'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 
 const router = createBrowserRouter([
   {
@@ -31,10 +43,6 @@ const router = createBrowserRouter([
   {
     path: routePaths.signup,
     element: <SignupPage />,
-  },
-  {
-    path: routePaths.welcome,
-    element: <PlaceholderPage title="회원가입 완료 화면" />,
   },
   {
     path: routePaths.findId,
@@ -56,7 +64,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: routePaths.dashboard,
-            element: <ServicePlaceholderPage title="대시보드 화면" />,
+            element: <DashboardPage />,
           },
           {
             path: routePaths.training,
@@ -76,7 +84,19 @@ const router = createBrowserRouter([
           },
           {
             path: routePaths.community,
-            element: <ServicePlaceholderPage title="커뮤니티 화면" />,
+            element: <CommunityPage />,
+          },
+          {
+            path: routePaths.communityPost,
+            element: <CommunityPage />,
+          },
+          {
+            path: routePaths.communityPostEdit,
+            element: <CommunityPage />,
+          },
+          {
+            path: routePaths.communityNew,
+            element: <CommunityPage />,
           },
           {
             path: routePaths.notifications,
@@ -84,33 +104,41 @@ const router = createBrowserRouter([
           },
           {
             path: routePaths.profile,
-            element: <ServicePlaceholderPage title="마이페이지 화면" />,
+            element: <ProfileOverviewPage />,
+          },
+          {
+            path: routePaths.profilePrivacy,
+            element: <ProfilePrivacyPage />,
+          },
+          {
+            path: routePaths.profileBlockedUsers,
+            element: <ProfileBlockedUsersPage />,
           },
           {
             path: routePaths.profileEdit,
-            element: <ServicePlaceholderPage title="프로필 수정 화면" />,
+            element: <ProfileEditPage />,
           },
           {
             path: routePaths.profilePhoto,
-            element: <ServicePlaceholderPage title="프로필 사진 변경 화면" />,
+            element: <Navigate to={routePaths.profileEdit} replace />,
           },
           {
             path: routePaths.profileRingtone,
-            element: <ServicePlaceholderPage title="벨소리 설정 화면" />,
+            element: <ProfileRingtonePage />,
           },
           {
             path: routePaths.profileNotifications,
-            element: <ServicePlaceholderPage title="알림 설정 화면" />,
+            element: <ProfileNotificationsPage />,
           },
           {
             path: routePaths.profileLanguage,
-            element: <ServicePlaceholderPage title="언어 설정 화면" />,
-          },
-          {
-            path: routePaths.profileDeleteAccount,
-            element: <ServicePlaceholderPage title="회원 탈퇴 화면" />,
+            element: <ProfileLanguagePage />,
           },
         ],
+      },
+      {
+        path: routePaths.welcome,
+        element: <SelfDiagnosisPage />,
       },
       {
         path: routePaths.trainingCall,

@@ -79,7 +79,7 @@ const SidebarItem = ({
     end={end}
     onClick={onClick}
     className={({ isActive }) =>
-      `h-12 gap-2 px-2 flex w-full items-center rounded-control text-left text-headline2 font-medium transition-colors duration-200 ${
+      `h-12 gap-2 px-2 max-md:h-auto max-md:min-w-0 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:px-1 max-md:py-2 flex w-full items-center rounded-control text-left text-headline2 font-medium transition-colors duration-200 ${
         isActive
           ? hasNeutralActiveState
             ? 'bg-fill-normal text-label-normal'
@@ -89,7 +89,7 @@ const SidebarItem = ({
     }
   >
     <SidebarIcon icon={icon} hasNotificationBadge={label === '알림'} />
-    <span>{label}</span>
+    <span className="max-md:text-caption max-md:whitespace-nowrap">{label}</span>
   </NavLink>
 )
 
@@ -104,19 +104,19 @@ export const AppSidebar = () => {
   }
 
   return (
-    <aside className="top-4 pb-1 pt-7 sticky flex h-[calc(100vh-32px)] min-h-[720px] w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-[0_2px_16px_rgba(0,0,0,0.08)]">
-      <div className="gap-2.5 flex flex-col">
-        <div className="py-5 flex items-center justify-center border-b border-line-alternative">
+    <aside className="top-4 pb-1 pt-7 max-md:inset-x-3 max-md:bottom-3 max-md:top-auto max-md:z-50 max-md:h-auto max-md:min-h-0 max-md:w-auto max-md:p-1 md:sticky fixed flex h-[calc(100vh-32px)] min-h-0 w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+      <div className="gap-2.5 max-md:gap-0 flex flex-col">
+        <div className="py-5 max-md:hidden flex items-center justify-center border-b border-line-alternative">
           <img src={badaLogo} alt="Bada" />
         </div>
-        <nav className="px-3" aria-label="주요 메뉴">
+        <nav className="px-3 max-md:px-0 max-md:flex" aria-label="주요 메뉴">
           {primaryItems.map((item) => (
             <SidebarItem key={item.label} {...item} />
           ))}
         </nav>
       </div>
 
-      <div className="gap-2.5 flex flex-col">
+      <div className="gap-2.5 max-md:hidden flex flex-col">
         <nav className="px-3" aria-label="계정 메뉴">
           {utilityItems.map((item) => (
             <SidebarItem

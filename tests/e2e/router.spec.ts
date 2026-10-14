@@ -10,9 +10,10 @@ test('renders the landing page', async ({ page }) => {
 })
 
 test('renders a service route while the auth guard is disabled', async ({ page }) => {
+  await page.route('**/api/v1/**', (route) => route.abort())
   await page.goto('/dashboard')
 
-  await expect(page.getByRole('heading', { name: '대시보드 화면' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '다시 만나서 반가워요!' })).toBeVisible()
   await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible()
 })
 

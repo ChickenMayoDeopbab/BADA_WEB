@@ -14,17 +14,26 @@ const RECORDS_SYNC_INTERVAL_MS = 5_000
 const TRAINING_RECORDS_QUERY_KEY = ['training-records'] as const
 
 // 훈련 기록 화면의 조회, 검색, 선택, 상세 패널 상태를 관리합니다.
-export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
+export const useTrainingRecords = (dateRange?: TrainingRecordDateRange, initialRecordId?: number) => {
   const queryClient = useQueryClient()
   const [period, setPeriod] = useState<TrainingPeriod>('daily')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null)
-  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [selectedRecordId, setSelectedRecordId] = useState<number | null>(initialRecordId ?? null)
+  const [isDetailOpen, setIsDetailOpen] = useState(initialRecordId !== undefined)
+  const [previousInitialRecordId, setPreviousInitialRecordId] = useState(initialRecordId)
   const [expandedFeedbackId, setExpandedFeedbackId] = useState<string | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
   const detailCloseTimerRef = useRef<number | null>(null)
+
+  if (previousInitialRecordId !== initialRecordId) {
+    setPreviousInitialRecordId(initialRecordId)
+    if (initialRecordId !== undefined) {
+      setSelectedRecordId(initialRecordId)
+      setIsDetailOpen(true)
+    }
+  }
 
   const recordsQuery = useQuery({
     queryKey: TRAINING_RECORDS_QUERY_KEY,
@@ -109,11 +118,16 @@ export const useTrainingRecords = (dateRange?: TrainingRecordDateRange) => {
     [filteredRecordDetailQueries],
   )
   const paginatedRecords = useMemo(
-    () => paginatedListRecords.map((record) => detailedRecordsById.get(record.id) ?? record),
+    () => paginatedListRecords.map((record) => {
+      const detail = detailedRecordsById.get(record.id)
+      return detail ? { ...record, ...detail, thumbnailUrl: detail.thumbnailUrl ?? record.thumbnailUrl } : record
+    }),
     [detailedRecordsById, paginatedListRecords],
   )
   const selectedListRecord = records.find((record) => record.id === selectedRecordId) ?? null
-  const selectedRecord = recordDetailQuery.data ?? selectedListRecord
+  const selectedRecord = recordDetailQuery.data
+    ? { ...recordDetailQuery.data, thumbnailUrl: recordDetailQuery.data.thumbnailUrl ?? selectedListRecord?.thumbnailUrl }
+    : selectedListRecord
   const totalDurationSeconds = filteredRecords.reduce(
     (total, record) => total + record.durationSeconds,
     0,

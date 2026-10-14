@@ -138,6 +138,12 @@
   --color-train-anxiety-8: #e95c3c;
   --color-train-anxiety-9: #df4748;
   --color-train-anxiety-10: #d54254;
+  --color-dashboard-recommend-gradient-start: #f5a266;
+  --color-dashboard-recommend-gradient-end: #ec7c3d;
+  --color-dashboard-warmup-background: #2f6dc9;
+  --color-metric-stability: #62dc75;
+  --color-metric-conversation: #4a86d8;
+  --color-metric-fluency: #d9a94f;
 }
 
 .dark {
