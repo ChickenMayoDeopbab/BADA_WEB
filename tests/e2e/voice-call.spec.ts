@@ -791,3 +791,32 @@ test('shows one changing next-sentence hint from the voice stream beside the lat
   await page.getByRole('button', { name: '통화 종료', exact: true }).click()
   await expect(page).toHaveURL(/\/training\/1\/result$/)
 })
+
+test('renders only spoken WebSocket transcripts and never loads scenario example dialogue during a call', async ({ page }) => {
+  const audit = await prepareCall(page)
+  let exampleRequests = 0
+  await page.route('**/api/v1/scenario/1/example', async (route) => {
+    exampleRequests += 1
+    await route.fulfill({ json: { dialogue: [
+      { speaker: 'ai', text: '표시되면 안 되는 미리 작성된 대화' },
+      { speaker: 'user', text: '실제로 말하지 않은 예시 문장' },
+    ] } })
+  })
+  await startCall(page)
+  await expect(page.getByRole('heading', { name: '상담 직원', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '스크립트 보기', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '실시간 대화 스크립트', exact: true })).toBeVisible()
+  await expect(page.locator('aside li')).toHaveCount(0)
+  await expect(page.getByText('표시되면 안 되는 미리 작성된 대화', { exact: false })).toHaveCount(0)
+  await expect.poll(() => audit.binaryFrames.length).toBeGreaterThan(0)
+  const spokenText = '지금은 내일이 아니라 금요일 오후 세 시에 세 명 예약하고 싶어요.'
+  audit.getSocket().send(JSON.stringify({ type: 'transcript', role: 'user', text: spokenText }))
+  await expect(page.locator('aside li')).toHaveText([`나 : ${spokenText}`])
+  const response = '금요일 오후 세 시, 세 분으로 예약 도와드리겠습니다.'
+  audit.getSocket().send(JSON.stringify({ type: 'transcript', role: 'ai', text: response }))
+  await expect(page.locator('aside li')).toHaveText([`나 : ${spokenText}`, `상대방 : ${response}`])
+  expect(exampleRequests).toBe(0)
+  expect(audit.errors).toEqual([])
+  await page.getByRole('button', { name: '통화 종료', exact: true }).click()
+  await expect(page).toHaveURL(/\/training\/1\/result$/)
+})

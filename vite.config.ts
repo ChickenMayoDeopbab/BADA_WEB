@@ -20,6 +20,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      // 다른 체크아웃이 같은 포트를 쓰면 자동으로 다른 포트에 뜨지 않도록 합니다.
+      port: 5173,
+      strictPort: true,
       proxy: aiApiTarget
         ? {
             '/__bada_ai': {
