@@ -104,7 +104,7 @@ export const AppSidebar = () => {
   }
 
   return (
-    <aside className="top-4 pb-1 pt-7 max-md:inset-x-3 max-md:bottom-3 max-md:top-auto max-md:z-50 max-md:h-auto max-md:min-h-0 max-md:w-auto max-md:p-1 md:sticky fixed flex h-[calc(100vh-32px)] min-h-0 w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+    <aside className="pb-1 pt-7 max-md:fixed max-md:inset-x-3 max-md:bottom-3 max-md:z-50 max-md:h-auto max-md:min-h-0 max-md:w-auto max-md:p-1 min-h-0 flex h-full w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
       <div className="gap-2.5 max-md:gap-0 flex flex-col">
         <div className="py-5 max-md:hidden flex items-center justify-center border-b border-line-alternative">
           <img src={badaLogo} alt="Bada" />
