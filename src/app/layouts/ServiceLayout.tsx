@@ -16,6 +16,7 @@ export const ServiceLayout = () => {
       <AppSidebar />
       <div
         ref={contentRef}
+        data-scroll-lock-target
         className="max-md:pb-24 min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
       >
         <div key={pathname} className="ux-page min-w-0 flex min-h-full flex-col">
