@@ -98,13 +98,6 @@ const SecondaryButton = ({
 )
 
 const quickSettings = [
-  { title: '문의하기', value: '서비스 문의 접수', to: routePaths.profileInquiry },
-  {
-    title: '서비스 관심 등록',
-    value: '유료 서비스 이용 의향',
-    to: routePaths.profilePaymentInterest,
-  },
-  { title: '알림 목록', value: '받은 알림 확인', to: routePaths.notifications },
   { title: '벨소리', value: EMPTY_VALUE, to: routePaths.profileRingtone },
   { title: '알림', value: EMPTY_VALUE, to: routePaths.profileNotifications },
   { title: '개인정보 관리', value: '약관 및 민감정보 동의', to: routePaths.profilePrivacy },

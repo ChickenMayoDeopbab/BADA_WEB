@@ -39,7 +39,7 @@ test('returns direct notification visits to dashboard and in-app visits to their
   await page.getByRole('button', { name: '이전 화면으로' }).click()
   await expect(page).toHaveURL(/\/dashboard$/)
   await page.goto('/profile')
-  await page.getByRole('link', { name: /알림 목록/ }).click()
+  await page.getByRole('link', { name: '알림', exact: true }).click()
   await expect(page).toHaveURL(/\/notifications$/)
   await page.getByRole('button', { name: '이전 화면으로' }).click()
   await expect(page).toHaveURL(/\/profile$/)

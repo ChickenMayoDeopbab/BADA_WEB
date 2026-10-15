@@ -213,9 +213,7 @@ test('provides full recording playback and transcript even without feedback', as
   await expect(page.getByText('오전 10시에 열어요.', { exact: true })).toBeVisible()
 })
 
-test('shows a server-driven notification badge and exposes the notification list on mobile', async ({
-  page,
-}) => {
+test('keeps the notification badge and removes the extra quick settings', async ({ page }) => {
   await prepare(page)
   let unreadCount = 0
   await page.route('**/api/v1/notifications?*', (route) =>
@@ -233,7 +231,7 @@ test('shows a server-driven notification badge and exposes the notification list
   await page.reload()
   await expect(badge).toBeVisible()
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.getByRole('link', { name: /알림 목록/ }).click()
-  await expect(page).toHaveURL(/\/notifications$/)
-  await expect(page.getByRole('heading', { name: '알림', exact: true })).toBeVisible()
+  for (const name of ['알림 목록', '문의하기', '서비스 관심 등록']) {
+    await expect(page.getByRole('link', { name: new RegExp(name) })).toHaveCount(0)
+  }
 })
