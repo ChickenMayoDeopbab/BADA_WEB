@@ -713,7 +713,7 @@ const PostDetail = ({
             >
               <FiRotateCw
                 onAnimationIteration={commentRefresh.handleRotationComplete}
-                className={`size-5 ${commentRefresh.isRefreshing ? 'animate-[comment-refresh_600ms_linear_infinite]' : ''}`}
+                className={`size-5 ${commentRefresh.isRefreshing ? 'animate-[comment-refresh_450ms_linear_infinite]' : ''}`}
               />
             </button>
           </div>

@@ -109,15 +109,20 @@ test('logout prevents history navigation, direct URL access and reload from reop
 }) => {
   await authenticate(page)
   await page.route('**/api/v1/**', (route) => route.fulfill({ json: { data: {} } }))
+  await page.route('**/api/v1/notifications?*', (route) =>
+    route.fulfill({
+      json: { data: { notifications: { content: [], number: 0, last: true }, unreadCount: 0 } },
+    }),
+  )
   await page.route('**/api/v1/auth/signout', (route) => route.fulfill({ json: { status: 200 } }))
   await page.goto('/notifications?first=1')
-  await expect(page.getByRole('heading', { name: '알림 화면' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '알림', exact: true })).toBeVisible()
   await page.goto('/notifications?second=1')
   await page.getByRole('button', { name: '로그아웃', exact: true }).click()
   await expect(page).toHaveURL(/\/$/)
   await page.goBack()
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { name: '알림 화면' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: '알림', exact: true })).toHaveCount(0)
   await page.goto('/profile')
   await expect(page).toHaveURL(/\/$/)
   await page.reload()
@@ -135,8 +140,13 @@ test('logout prevents history navigation, direct URL access and reload from reop
 test('logout in another tab removes the active protected screen', async ({ page, context }) => {
   await authenticate(page)
   await page.route('**/api/v1/**', (route) => route.fulfill({ json: { data: {} } }))
+  await page.route('**/api/v1/notifications?*', (route) =>
+    route.fulfill({
+      json: { data: { notifications: { content: [], number: 0, last: true }, unreadCount: 0 } },
+    }),
+  )
   await page.goto('/notifications')
-  await expect(page.getByRole('heading', { name: '알림 화면' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '알림', exact: true })).toBeVisible()
   const otherTab = await context.newPage()
   await otherTab.goto('/')
   await otherTab.evaluate(() => {
@@ -150,8 +160,13 @@ test('logout in another tab removes the active protected screen', async ({ page,
 test('navigating after tokens are removed in the same tab returns to landing', async ({ page }) => {
   await authenticate(page)
   await page.route('**/api/v1/**', (route) => route.fulfill({ json: { data: {} } }))
+  await page.route('**/api/v1/notifications?*', (route) =>
+    route.fulfill({
+      json: { data: { notifications: { content: [], number: 0, last: true }, unreadCount: 0 } },
+    }),
+  )
   await page.goto('/notifications')
-  await expect(page.getByRole('heading', { name: '알림 화면' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '알림', exact: true })).toBeVisible()
   await page.evaluate(() => {
     localStorage.removeItem('bada.accessToken')
     localStorage.removeItem('bada.refreshToken')

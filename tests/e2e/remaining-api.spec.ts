@@ -140,6 +140,7 @@ test('reports posts, comments and replies using each content ID and allows retry
   })
   await refreshButton.click()
   await expect(refreshButton).toHaveAttribute('aria-busy', 'true')
+  await expect(refreshIcon).toHaveCSS('animation-duration', '0.45s')
   await expect(refreshIcon).toHaveAttribute('data-completed-rotation', 'true')
   await expect(refreshButton).toHaveAttribute('aria-busy', 'false')
   for (const name of ['작성자', '댓글작성자', '답글작성자']) {

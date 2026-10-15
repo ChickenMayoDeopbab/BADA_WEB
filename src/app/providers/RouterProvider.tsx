@@ -10,7 +10,8 @@ import {
 } from '@pages/auth'
 import { CommunityPage } from '@pages/community'
 import { DashboardPage } from '@pages/dashboard'
-import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
+import { PlaceholderPage } from '@pages/placeholders'
+import { NotificationsPage } from '@pages/notifications'
 import {
   ProfileEditPage,
   ProfileLanguagePage,
@@ -108,7 +109,7 @@ const applicationRoutes: RouteObject[] = [
           },
           {
             path: routePaths.notifications,
-            element: <ServicePlaceholderPage title="알림 화면" />,
+            element: <NotificationsPage />,
           },
           {
             path: routePaths.profile,
