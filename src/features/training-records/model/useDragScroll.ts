@@ -21,7 +21,13 @@ export const useDragScroll = () => {
   const handlePointerDown: PointerEventHandler<HTMLDivElement> = (event) => {
     const target = event.target as HTMLElement
 
-    if (event.pointerType !== 'mouse' || event.button !== 0 || target.closest('button')) {
+    if (
+      event.pointerType !== 'mouse' ||
+      event.button !== 0 ||
+      target.closest(
+        'button, a, input, textarea, select, summary, audio, video, [role="button"], .select-text',
+      )
+    ) {
       return
     }
 

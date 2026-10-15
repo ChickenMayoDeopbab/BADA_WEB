@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { useSelfDiagnosis } from '../model/useSelfDiagnosis'
 import { DiagnosisButton } from './DiagnosisButton'
 import { IntroCard } from './IntroCard'
@@ -10,6 +11,8 @@ import hourglass from '@shared/assets/self-diagnosis/hourglass.svg'
 
 // 자가진단의 시작부터 결과까지 단계에 맞는 카드를 보여줍니다.
 export const SelfDiagnosisFlow = () => {
+  const { t } = useTranslation()
+
   const diagnosis = useSelfDiagnosis()
   const { step, consentStatus, result } = diagnosis
 
@@ -20,21 +23,21 @@ export const SelfDiagnosisFlow = () => {
       {step === 'submitting' && (
         <StatusCard
           icon={hourglass}
-          title="콜포비아 레벨을 계산 중이에요."
-          description="잠시만 기다려 주세요."
+          title={t('콜포비아 레벨을 계산 중이에요.')}
+          description={t('잠시만 기다려 주세요.')}
         />
       )}
       {step === 'done' && (
         <StatusCard
           icon={checkCircle}
           iconClassName="size-24"
-          title="콜포비아 레벨의 계산이 끝났어요."
-          description="함께 결과를 확인해볼까요?"
+          title={t('콜포비아 레벨의 계산이 끝났어요.')}
+          description={t('함께 결과를 확인해볼까요?')}
         />
       )}
       {step === 'error' && (
-        <StatusCard title="레벨 계산에 실패했어요." description={diagnosis.errorMessage}>
-          <DiagnosisButton label="다시 시도하기" onClick={diagnosis.retrySubmit} />
+        <StatusCard title={t('레벨 계산에 실패했어요.')} description={diagnosis.errorMessage}>
+          <DiagnosisButton label={t('다시 시도하기')} onClick={diagnosis.retrySubmit} />
         </StatusCard>
       )}
       {step === 'result' && result && (

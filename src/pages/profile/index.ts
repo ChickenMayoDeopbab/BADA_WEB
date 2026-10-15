@@ -8,3 +8,5 @@ export {
 } from './ui/ProfilePages'
 export { ProfilePrivacyPage } from './ui/ProfilePrivacyPage'
 export { ProfileBlockedUsersPage } from './ui/ProfileBlockedUsersPage'
+
+export { ProfileInquiryPage, ProfilePaymentInterestPage } from './ui/ProfileSupportPages'

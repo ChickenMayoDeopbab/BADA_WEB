@@ -213,7 +213,7 @@ test('the sidebar retains the session after failed signout and clears it after r
     'test-access-token',
   )
   await page.getByRole('button', { name: '로그아웃', exact: true }).click()
-  await expect(page.getByRole('heading', { name: '랜딩 페이지' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '전화가 편해지는 연습, Bada' })).toBeVisible()
   expect(await page.evaluate(() => localStorage.getItem('bada.accessToken'))).toBeNull()
   expect(await page.evaluate(() => localStorage.getItem('bada.refreshToken'))).toBeNull()
 })

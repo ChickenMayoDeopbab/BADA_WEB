@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { ConfirmDialog } from '@shared/ui'
 import { PROFILE_IMAGE_SECTIONS } from '../model/legalDocuments'
 import type { useProfileImageConsent } from '../model/useProfileImageConsent'
@@ -7,17 +8,19 @@ export const ProfileImageConsentDialog = ({
   consent,
 }: {
   consent: ReturnType<typeof useProfileImageConsent>
-}) =>
-  consent.isDialogOpen ? (
+}) => {
+  const { t } = useTranslation()
+  return consent.isDialogOpen ? (
     <ConfirmDialog
-      title="프로필 이미지 처리에 동의할까요?"
+      title={t('프로필 이미지 처리에 동의할까요?')}
       description={PROFILE_IMAGE_SECTIONS.map(
         (section) => `${section.title}: ${section.body}`,
       ).join('\n\n')}
-      confirmLabel="동의하고 저장"
+      confirmLabel={t('동의하고 저장')}
       pending={consent.isAccepting}
       error={consent.error}
       onClose={consent.handleCancel}
       onConfirm={() => void consent.handleConfirm()}
     />
   ) : null
+}

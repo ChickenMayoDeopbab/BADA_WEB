@@ -2,6 +2,9 @@ import { TrainPlayback, TRAIN_SAMPLE_RATE, type PlaybackStats } from './trainPla
 import { reportVoiceDiagnostic } from './voiceDiagnostics'
 
 interface VoiceAudioOptions {
+  onRecordingChange?: (isRecording: boolean) => void
+  onRecordingComplete?: (blob: Blob) => void
+  onRecordingError?: () => void
   onPcm: (data: ArrayBuffer) => void
   onBlocked: (blocked: boolean) => void
   onComplete: (turnId: number) => void
@@ -19,6 +22,9 @@ export class VoiceAudio {
   private input: MediaStreamAudioSourceNode | null = null
   private worklet: AudioWorkletNode | null = null
   private sources = new Set<AudioBufferSourceNode>()
+  private recorder: MediaRecorder | null = null
+  private recordingDestination: MediaStreamAudioDestinationNode | null = null
+  private recordingGain: GainNode | null = null
   private nextTime = 0
   private isDisposed = false
   private isCaptureEnabled = false
@@ -109,7 +115,64 @@ export class VoiceAudio {
   setCaptureEnabled = (isEnabled: boolean) => {
     if (isEnabled === this.isCaptureEnabled) return
     this.isCaptureEnabled = isEnabled
+    if (this.recordingGain) this.recordingGain.gain.value = isEnabled ? 1 : 0
     this.worklet?.port.postMessage({ enabled: isEnabled })
+  }
+
+  /** 마이크와 AI 출력을 혼합하고 사용자가 선택한 구간을 로컬 파일로 저장합니다. */
+  toggleRecording = () => {
+    if (this.recorder) {
+      this.stopRecording()
+      return
+    }
+    const context = this.context
+    if (!context || !this.input || this.isDisposed || typeof MediaRecorder === 'undefined') {
+      this.options.onRecordingError?.()
+      return
+    }
+    try {
+      if (!this.recordingDestination) {
+        this.recordingDestination = context.createMediaStreamDestination()
+        this.recordingGain = context.createGain()
+        this.recordingGain.gain.value = this.isCaptureEnabled ? 1 : 0
+        this.input.connect(this.recordingGain)
+        this.recordingGain.connect(this.recordingDestination)
+        this.sources.forEach((source) => source.connect(this.recordingDestination!))
+      }
+      const mimeType = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find((type) =>
+        MediaRecorder.isTypeSupported(type),
+      )
+      const recorder = new MediaRecorder(
+        this.recordingDestination.stream,
+        mimeType ? { mimeType } : undefined,
+      )
+      const chunks: Blob[] = []
+      recorder.ondataavailable = ({ data }) => {
+        if (data.size) chunks.push(data)
+      }
+      recorder.onstop = () => {
+        if (chunks.length)
+          this.options.onRecordingComplete?.(new Blob(chunks, { type: recorder.mimeType }))
+        else this.options.onRecordingError?.()
+      }
+      recorder.onerror = () => {
+        this.stopRecording()
+        this.options.onRecordingError?.()
+      }
+      recorder.start(1000)
+      this.recorder = recorder
+      this.options.onRecordingChange?.(true)
+    } catch {
+      this.options.onRecordingError?.()
+    }
+  }
+
+  /** 종료 시 마지막 데이터 청크를 받기 위해 녹음기를 먼저 정지합니다. */
+  private stopRecording = () => {
+    const recorder = this.recorder
+    this.recorder = null
+    if (recorder && recorder.state !== 'inactive') recorder.stop()
+    if (recorder) this.options.onRecordingChange?.(false)
   }
 
   /** 자동 재생 제한 또는 장치 인터럽트 후 사용자 제스처로 오디오를 재개합니다. */
@@ -128,6 +191,7 @@ export class VoiceAudio {
     const source = context.createBufferSource()
     source.buffer = buffer
     source.connect(context.destination)
+    if (this.recordingDestination) source.connect(this.recordingDestination)
     this.sources.add(source)
     source.onended = () => {
       if (!this.sources.delete(source)) return
@@ -157,6 +221,9 @@ export class VoiceAudio {
   /** 권한 응답이 늦게 도착하더라도 트랙과 오디오 그래프를 모두 정리합니다. */
   dispose = () => {
     if (this.isDisposed) return
+    this.stopRecording()
+    this.recordingGain?.disconnect()
+    this.recordingDestination?.stream.getTracks().forEach((track) => track.stop())
     this.isDisposed = true
     this.isCaptureEnabled = false
     this.playback.dispose()

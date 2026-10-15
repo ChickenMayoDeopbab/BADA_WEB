@@ -80,7 +80,7 @@ test('rejected credentials silently redirect to landing without ever mounting pr
   })
   await page.goto('/records')
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { name: '랜딩 페이지' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '전화가 편해지는 연습, Bada' })).toBeVisible()
   await expect(page.getByText('인증이 필요합니다.')).toHaveCount(0)
   expect(
     await page.evaluate(() => document.documentElement.dataset.privateContentRendered),
@@ -110,7 +110,7 @@ test('guests always return to landing from protected and unknown URLs', async ({
   ]) {
     await page.goto(path)
     await expect(page).toHaveURL(/\/$/)
-    await expect(page.getByRole('heading', { name: '랜딩 페이지' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '전화가 편해지는 연습, Bada' })).toBeVisible()
     await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toHaveCount(0)
   }
   expect(protectedRequests).toEqual([])
@@ -126,7 +126,7 @@ test('login and account recovery routes remain available without a token', async
   ]) {
     await page.goto(path)
     await expect(page).toHaveURL(new RegExp(path.split('?')[0]))
-    await expect(page.getByRole('heading', { name: '랜딩 페이지' })).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: '전화가 편해지는 연습, Bada' })).toHaveCount(0)
   }
 })
 
@@ -152,7 +152,7 @@ test('logout prevents history navigation, direct URL access and reload from reop
   await page.goto('/profile')
   await expect(page).toHaveURL(/\/$/)
   await page.reload()
-  await expect(page.getByRole('heading', { name: '랜딩 페이지' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '전화가 편해지는 연습, Bada' })).toBeVisible()
   expect(
     await page.evaluate(() => [
       localStorage.getItem('bada.accessToken'),
@@ -180,7 +180,7 @@ test('logout in another tab removes the active protected screen', async ({ page,
     localStorage.removeItem('bada.refreshToken')
   })
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { name: '랜딩 페이지' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '전화가 편해지는 연습, Bada' })).toBeVisible()
 })
 
 test('navigating after tokens are removed in the same tab returns to landing', async ({ page }) => {

@@ -6,3 +6,5 @@ export { CustomScenarioView } from './ui/CustomScenarioView'
 export { copySharedScenario } from './api/scenarioTrainingApi'
 export { useCopySharedScenario } from './model/useCopySharedScenario'
 export { getScenarioCallRouteKey } from './model/callRouting'
+
+export { WarmupView } from './ui/WarmupView'

@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 interface ActionDropdownProps {
@@ -18,6 +19,8 @@ export const ActionDropdown = ({
   triggerClassName = 'size-8 flex items-center justify-center rounded-pill text-label-alternative hover:bg-fill-normal',
   placementClassName = 'right-0 top-8',
 }: ActionDropdownProps) => {
+  const { t } = useTranslation()
+
   const [isOpen, setIsOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
   const trigger = useRef<HTMLButtonElement>(null)
@@ -106,7 +109,7 @@ export const ActionDropdown = ({
         >
           {items.map((item) => (
             <button
-              key={item.label}
+              key={t(item.label)}
               type="button"
               role="menuitem"
               tabIndex={-1}
@@ -118,7 +121,7 @@ export const ActionDropdown = ({
               }}
               className={`px-3 py-2 min-h-10 block w-full text-left text-label hover:bg-fill-normal disabled:opacity-50 ${item.isDanger ? 'text-status-error' : 'text-label-normal'}`}
             >
-              {item.label}
+              {t(item.label)}
             </button>
           ))}
         </div>

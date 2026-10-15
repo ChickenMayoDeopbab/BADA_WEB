@@ -64,6 +64,7 @@ interface TrainingRecordDetailResponse extends TrainingRecordResponse {
   recordingUrl?: string
   anxietyScore?: number
   positiveFeedbacks?: PositiveFeedbackResponse[]
+  transcript?: Array<{ role: 'ai' | 'user'; text: string }>
 }
 
 interface TrainingRecordPageResponse {
@@ -164,6 +165,7 @@ export const mapTrainingRecordDetail = (record: TrainingRecordDetailResponse): T
     ...mapTrainingRecord(record),
     anxietyScore: record.anxietyScore,
     recordingUrl,
+    transcript: record.transcript ?? [],
     feedbackCount,
     feedbacks,
   }

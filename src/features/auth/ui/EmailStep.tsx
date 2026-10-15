@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import type { SignupState } from '../model/useSignup'
 import { AuthButton } from './AuthButton'
 import { AuthCard } from './AuthCard'
@@ -9,10 +10,12 @@ type EmailStepProps = {
 
 // 회원가입 첫 단계로 사용할 이메일을 인증합니다.
 export const EmailStep = ({ signup }: EmailStepProps) => {
+  const { t } = useTranslation()
+
   const { emailVerification } = signup
 
   return (
-    <AuthCard title="회원가입 · 이메일" description="사용할 이메일을 인증해 주세요.">
+    <AuthCard title={t('회원가입 · 이메일')} description={t('사용할 이메일을 인증해 주세요.')}>
       <form
         className="gap-8 flex w-full flex-col"
         onSubmit={(event) => {
@@ -23,8 +26,8 @@ export const EmailStep = ({ signup }: EmailStepProps) => {
       >
         <div className="gap-3 flex w-full flex-col">
           <AuthTextField
-            label="이메일"
-            placeholder="이메일을 입력하세요."
+            label={t('이메일')}
+            placeholder={t('이메일을 입력하세요.')}
             type="email"
             autoComplete="email"
             value={emailVerification.email}
@@ -33,8 +36,8 @@ export const EmailStep = ({ signup }: EmailStepProps) => {
             success={emailVerification.isSent ? '인증코드가 전송되었습니다.' : ''}
           />
           <AuthTextField
-            label="인증번호"
-            placeholder="인증번호를 입력하세요."
+            label={t('인증번호')}
+            placeholder={t('인증번호를 입력하세요.')}
             inputMode="numeric"
             autoComplete="one-time-code"
             value={emailVerification.authCode}
@@ -52,7 +55,7 @@ export const EmailStep = ({ signup }: EmailStepProps) => {
           <AuthButton
             type="submit"
             variant="secondary"
-            label="다음"
+            label={t('다음')}
             isLoading={emailVerification.isVerifying}
           />
         </div>

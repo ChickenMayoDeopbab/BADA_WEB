@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { useBlockUser } from '@entities/user-block'
 import { ActionDropdown, ConfirmDialog } from '@shared/ui'
 import { useState } from 'react'
@@ -17,6 +18,8 @@ export const CommunityContentMenu = ({
   onReport?: () => void
   reportTarget?: '게시글' | '댓글' | '답글'
 }) => {
+  const { t } = useTranslation()
+
   const [confirming, setConfirming] = useState(false)
   const block = useBlockUser()
   return (
@@ -36,17 +39,19 @@ export const CommunityContentMenu = ({
       />
       {block.isError && (
         <p role="alert" className="text-caption text-status-error">
-          차단하지 못했습니다. 다시 시도해 주세요.
+          {t('차단하지 못했습니다. 다시 시도해 주세요.')}
         </p>
       )}
       {confirming && (
         <ConfirmDialog
           title={`${name}님을 차단할까요?`}
-          description="차단하면 이 사용자의 게시글과 댓글이 표시되지 않습니다. 마이페이지의 차단 사용자 관리에서 언제든 해제할 수 있습니다."
-          confirmLabel="차단하기"
+          description={t(
+            '차단하면 이 사용자의 게시글과 댓글이 표시되지 않습니다. 마이페이지의 차단 사용자 관리에서 언제든 해제할 수 있습니다.',
+          )}
+          confirmLabel={t('차단하기')}
           danger
           pending={block.isPending}
-          error={block.isError ? '차단하지 못했습니다. 다시 시도해 주세요.' : undefined}
+          error={block.isError ? t('차단하지 못했습니다. 다시 시도해 주세요.') : undefined}
           onClose={() => setConfirming(false)}
           onConfirm={() =>
             block.mutate(id, {

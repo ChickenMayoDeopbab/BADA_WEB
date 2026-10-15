@@ -240,6 +240,9 @@ describe('Profile pages', () => {
     const english = screen.getByRole('button', { name: /English/ })
     fireEvent.click(english)
 
-    expect(within(english).getByText('선택됨')).toBeInTheDocument()
+    expect(within(english).getByText('Selected')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Language settings' })).toBeInTheDocument()
+    expect(localStorage.getItem('bada:display-language')).toBe('en')
+    fireEvent.click(screen.getByRole('button', { name: /한국어/ }))
   })
 })

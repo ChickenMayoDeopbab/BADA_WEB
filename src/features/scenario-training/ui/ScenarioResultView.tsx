@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { trainingResultMessages, useTrainingResult } from '../model/useTrainingResult'
 import faceSmile from '@shared/assets/scenario-training/face-smile-1.svg'
 import faceThinking from '@shared/assets/scenario-training/face-thinking-1.svg'
@@ -26,21 +27,23 @@ const scoreColors = [
 
 /** 앱과 같은 종료 안내 타이핑·헤더 이동·불안 점수 입력 흐름을 표시합니다. */
 export const ScenarioResultView = () => {
+  const { t } = useTranslation()
+
   const result = useTrainingResult()
 
   if (!result.canRecordScore) {
     return (
       <main className="gap-5 p-8 flex min-h-screen flex-col items-center justify-center bg-background-normal text-center">
-        <h1 className="text-title1 font-bold text-label-normal">훈련이 종료됐어요.</h1>
+        <h1 className="text-title1 font-bold text-label-normal">{t('훈련이 종료됐어요.')}</h1>
         <p className="text-body text-label-alternative">
-          이번 통화는 불안 점수를 기록할 수 없어요. 훈련 기록에서 통화 내용을 확인해 주세요.
+          {t('이번 통화는 불안 점수를 기록할 수 없어요. 훈련 기록에서 통화 내용을 확인해 주세요.')}
         </p>
         <button
           type="button"
           onClick={() => void result.handleSubmit()}
           className="px-6 py-3 rounded-component bg-primary-normal text-body font-bold text-label-button-text"
         >
-          기록 확인하기
+          {t('기록 확인하기')}
         </button>
       </main>
     )
@@ -100,8 +103,8 @@ export const ScenarioResultView = () => {
               })}
             </div>
             <div className="mt-3 flex justify-between text-caption text-label-alternative">
-              <span>1 (편안함)</span>
-              <span>10 (매우 불안)</span>
+              <span>{t('1 (편안함)')}</span>
+              <span>{t('10 (매우 불안)')}</span>
             </div>
           </div>
 
@@ -127,7 +130,7 @@ export const ScenarioResultView = () => {
             onClick={result.handleShowScore}
             className="bottom-12 gap-1 absolute left-1/2 flex -translate-x-1/2 items-center text-caption text-label-alternative transition-opacity hover:opacity-70"
           >
-            건너뛰기
+            {t('건너뛰기')}
             <IoChevronForward size={13} aria-hidden="true" />
           </button>
         )

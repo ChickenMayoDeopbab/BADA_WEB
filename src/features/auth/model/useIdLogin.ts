@@ -9,13 +9,17 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 type LoginLocationState = {
   from?: string
+  username?: string
+  signupComplete?: boolean
 }
 
 // 아이디 로그인 폼의 입력, 검증, 제출 상태를 관리합니다.
 export const useIdLogin = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const [username, setUsername] = useState('')
+  const [username, setUsername] = useState(
+    (location.state as LoginLocationState | null)?.username ?? '',
+  )
   const [password, setPassword] = useState('')
   const [usernameError, setUsernameError] = useState('')
   const [passwordError, setPasswordError] = useState('')
@@ -61,6 +65,7 @@ export const useIdLogin = () => {
   }
 
   return {
+    signupComplete: Boolean((location.state as LoginLocationState | null)?.signupComplete),
     username,
     password,
     usernameError,

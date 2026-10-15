@@ -94,7 +94,7 @@ export const createCustomScenario = async (request: CreateCustomScenarioRequest)
       call_purpose: request.callPurpose.trim(),
       personality: request.personality ?? 'NORMAL',
       difficulty: request.difficulty ?? 'medium',
-      is_warmup: false,
+      is_warmup: request.isWarmup ?? false,
     },
     { timeout: 120_000 },
   )

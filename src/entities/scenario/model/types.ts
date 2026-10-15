@@ -1,7 +1,7 @@
 export type ScenarioCategory = 'work' | 'daily' | 'school' | 'other'
 export type ScenarioDifficulty = 'high' | 'medium' | 'low'
 export type ScenarioPersonality = 'KIND' | 'NORMAL' | 'TOUGH' | 'RUDE'
-export type ScenarioSessionType = 'SCENARIO' | 'CUSTOM'
+export type ScenarioSessionType = 'SCENARIO' | 'CUSTOM' | 'WARMUP'
 
 export interface Scenario {
   scenarioId: number

@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { useResetPassword, type PasswordField } from '../model/useResetPassword'
 import { AuthButton } from './AuthButton'
 import { AuthCard } from './AuthCard'
@@ -20,6 +21,8 @@ const passwordPlaceholders: Record<PasswordField, string> = {
 
 // 본인 인증, 새 비밀번호 입력, 변경 완료 화면을 순서대로 보여줍니다.
 export const ResetPasswordFlow = () => {
+  const { t } = useTranslation()
+
   const resetPassword = useResetPassword()
 
   if (resetPassword.step === 'complete') {
@@ -28,15 +31,15 @@ export const ResetPasswordFlow = () => {
         <AuthCard
           variant="plain"
           align="center"
-          title="비밀번호 재설정"
-          description="비밀번호가 성공적으로 변경되었습니다!"
+          title={t('비밀번호 재설정')}
+          description={t('비밀번호가 성공적으로 변경되었습니다!')}
           className="min-h-[430px]"
         >
           <p className="mt-3.5 text-center text-body text-label-alternative">
-            새 비밀번호로 다시 로그인해 주세요.
+            {t('새 비밀번호로 다시 로그인해 주세요.')}
           </p>
           <div className="mt-[62px]">
-            <AuthButton label="로그인 하러가기" onClick={resetPassword.goToLogin} />
+            <AuthButton label={t('로그인 하러가기')} onClick={resetPassword.goToLogin} />
           </div>
         </AuthCard>
       </AuthLayout>
@@ -48,8 +51,8 @@ export const ResetPasswordFlow = () => {
       <AuthLayout>
         <AuthCard
           variant="plain"
-          title="비밀번호 재설정"
-          description="새로 사용할 비밀번호를 입력해 주세요."
+          title={t('비밀번호 재설정')}
+          description={t('새로 사용할 비밀번호를 입력해 주세요.')}
           className="min-h-[690px]"
         >
           <form
@@ -84,12 +87,12 @@ export const ResetPasswordFlow = () => {
             <div className="gap-4 mt-[38px] flex flex-col">
               <AuthButton
                 type="submit"
-                label="비밀번호 재설정"
+                label={t('비밀번호 재설정')}
                 isLoading={resetPassword.isSubmitting}
               />
               <AuthButton
                 variant="secondary"
-                label="이전으로"
+                label={t('이전으로')}
                 onClick={resetPassword.goToVerifyStep}
               />
             </div>
@@ -103,8 +106,8 @@ export const ResetPasswordFlow = () => {
     <AuthLayout>
       <AuthCard
         variant="plain"
-        title="비밀번호 재설정"
-        description="가입 이메일을 인증해 주세요."
+        title={t('비밀번호 재설정')}
+        description={t('가입 이메일을 인증해 주세요.')}
         className="min-h-[612px]"
       >
         <form
@@ -121,12 +124,12 @@ export const ResetPasswordFlow = () => {
           <div className="gap-4 mt-[38px] flex flex-col">
             <AuthButton
               type="submit"
-              label="다음으로"
+              label={t('다음으로')}
               isLoading={resetPassword.emailVerification.isVerifying}
             />
             <AuthButton
               variant="secondary"
-              label="아이디 찾기"
+              label={t('아이디 찾기')}
               onClick={resetPassword.goToFindId}
             />
           </div>

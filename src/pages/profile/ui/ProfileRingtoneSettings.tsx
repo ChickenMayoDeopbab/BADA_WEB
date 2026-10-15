@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { useRingtoneSettings } from '../model/useRingtoneSettings'
 import { routePaths } from '@shared/config'
 import { ConfirmDialog } from '@shared/ui'
@@ -7,6 +8,8 @@ import { Link } from 'react-router-dom'
 
 /** 서버에 보관된 기본·사용자 벨소리 선택과 미리듣기 작업을 표시합니다. */
 export const ProfileRingtoneSettings = () => {
+  const { t } = useTranslation()
+
   const settings = useRingtoneSettings()
   const inputRef = useRef<HTMLInputElement>(null)
   const groupId = useId()
@@ -17,20 +20,22 @@ export const ProfileRingtoneSettings = () => {
 
   return (
     <section className="p-7 max-sm:p-4 max-w-[1024px] rounded-card border border-line-alternative bg-background-normal shadow-subtle-card">
-      <h2 className="text-headline1 font-bold text-label-normal">벨소리 설정</h2>
+      <h2 className="text-headline1 font-bold text-label-normal">{t('벨소리 설정')}</h2>
       <p className="mt-1 text-label text-label-alternative">
-        훈련 중 사용할 벨소리를 선택하거나 직접 추가하세요.
+        {t('훈련 중 사용할 벨소리를 선택하거나 직접 추가하세요.')}
       </p>
       <p className="mt-1 text-caption text-label-alternative">
-        최대 {settings.maxUploadSizeMb}MB의 오디오 파일을 추가할 수 있어요.
+        {t('최대')}
+        {settings.maxUploadSizeMb}
+        {t('MB의 오디오 파일을 추가할 수 있어요.')}
       </p>
       <div className="mt-5 gap-3 flex items-center justify-between">
-        <p className="text-body font-bold text-label-normal">벨소리 목록</p>
+        <p className="text-body font-bold text-label-normal">{t('벨소리 목록')}</p>
         <input
           ref={inputRef}
           type="file"
           accept="audio/*"
-          aria-label="벨소리 파일"
+          aria-label={t('벨소리 파일')}
           className="hidden"
           disabled={settings.isBusy}
           onChange={(event) => {
@@ -50,7 +55,7 @@ export const ProfileRingtoneSettings = () => {
       </div>
       {settings.isLoading && (
         <p role="status" className="mt-4 text-label text-label-alternative">
-          벨소리를 불러오는 중이에요.
+          {t('벨소리를 불러오는 중이에요.')}
         </p>
       )}
       {settings.errorMessage && (
@@ -61,12 +66,12 @@ export const ProfileRingtoneSettings = () => {
             onClick={settings.handleRetry}
             className="mt-2 text-label font-bold text-primary-normal"
           >
-            다시 불러오기
+            {t('다시 불러오기')}
           </button>
         </div>
       )}
       <fieldset disabled={settings.isBusy || settings.isLoading} className="mt-3 space-y-3">
-        <legend className="sr-only">통화 훈련 벨소리</legend>
+        <legend className="sr-only">{t('통화 훈련 벨소리')}</legend>
         {options.map((option) => (
           <div
             key={option.fileId ?? 'default'}
@@ -83,7 +88,7 @@ export const ProfileRingtoneSettings = () => {
               />
               <span
                 aria-hidden="true"
-                className={`size-5 shrink-0 rounded-pill border transition-colors duration-300 motion-reduce:transition-none peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-normal ${settings.selectedId === option.fileId ? 'border-primary-normal bg-primary-normal' : 'border-line-normal bg-background-normal'}`}
+                className={`size-5 shrink-0 rounded-pill border transition-colors duration-300 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-normal motion-reduce:transition-none ${settings.selectedId === option.fileId ? 'border-primary-normal bg-primary-normal' : 'border-line-normal bg-background-normal'}`}
               />
               <span className="min-w-0">
                 <span className="block text-body font-bold break-all text-label-normal">
@@ -122,14 +127,14 @@ export const ProfileRingtoneSettings = () => {
         ))}
       </fieldset>
       {settings.hasLoadedList && settings.ringtones.length === 0 && (
-        <p className="mt-4 text-label text-label-alternative">추가한 벨소리가 없어요.</p>
+        <p className="mt-4 text-label text-label-alternative">{t('추가한 벨소리가 없어요.')}</p>
       )}
       <div className="mt-8 gap-3 pt-5 flex items-center justify-end border-t border-line-alternative">
         <Link
           to={routePaths.profile}
           className="h-12 px-6 flex items-center rounded-component border border-line-neutral text-body font-bold text-label-normal"
         >
-          취소
+          {t('취소')}
         </Link>
         <button
           type="button"
@@ -137,14 +142,14 @@ export const ProfileRingtoneSettings = () => {
           disabled={!settings.canSave || settings.isBusy}
           className="h-12 px-6 rounded-component bg-primary-normal text-body font-bold text-label-strong disabled:opacity-50"
         >
-          {settings.isSaving ? '저장 중...' : '저장'}
+          {settings.isSaving ? '저장 중...' : t('저장')}
         </button>
       </div>
       {settings.deletingId !== null && (
         <ConfirmDialog
-          title="벨소리를 삭제할까요?"
-          description="추가한 벨소리 파일이 삭제됩니다."
-          confirmLabel="삭제"
+          title={t('벨소리를 삭제할까요?')}
+          description={t('추가한 벨소리 파일이 삭제됩니다.')}
+          confirmLabel={t('삭제')}
           danger
           pending={settings.isDeleting}
           error={settings.deleteError}

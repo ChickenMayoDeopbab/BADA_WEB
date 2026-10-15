@@ -1,5 +1,6 @@
 import {
   getNotifications,
+  notificationQueryKeys,
   markNotificationRead,
   type AppNotification,
   type NotificationFilter,
@@ -12,7 +13,6 @@ import { useNavigate } from 'react-router-dom'
 import { getNotificationDestination } from './notificationPresentation'
 
 const notificationKeys = {
-  all: ['notifications', 'list'] as const,
   list: (filter: NotificationFilter) => ['notifications', 'list', filter] as const,
 }
 
@@ -51,7 +51,7 @@ export const useNotifications = () => {
     try {
       if (!notification.read) {
         await read.mutateAsync(notification.notificationId)
-        await queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+        await queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all })
       }
       if (!isActive.current) return
       const destination = getNotificationDestination(notification)

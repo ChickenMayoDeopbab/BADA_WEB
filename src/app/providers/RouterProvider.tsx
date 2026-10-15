@@ -13,6 +13,8 @@ import { DashboardPage } from '@pages/dashboard'
 import { PlaceholderPage } from '@pages/placeholders'
 import { NotificationsPage } from '@pages/notifications'
 import {
+  ProfileInquiryPage,
+  ProfilePaymentInterestPage,
   ProfileEditPage,
   ProfileLanguagePage,
   ProfileNotificationsPage,
@@ -23,6 +25,7 @@ import {
 } from '@pages/profile'
 import { TrainingRecordsPage } from '@pages/records'
 import {
+  WarmupPage,
   CustomScenarioPage,
   ScenarioCallPage,
   ScenarioResultPage,
@@ -53,7 +56,7 @@ const ProtectedRoutes = () => {
 const applicationRoutes: RouteObject[] = [
   {
     path: routePaths.landing,
-    element: <PlaceholderPage title="랜딩 페이지" />,
+    element: <PlaceholderPage title="전화가 편해지는 연습, Bada" />,
   },
   {
     path: routePaths.login,
@@ -89,6 +92,9 @@ const applicationRoutes: RouteObject[] = [
             path: routePaths.training,
             element: <ScenarioTrainingPage />,
           },
+          { path: routePaths.trainingWarmup, element: <WarmupPage /> },
+          { path: routePaths.profileInquiry, element: <ProfileInquiryPage /> },
+          { path: routePaths.profilePaymentInterest, element: <ProfilePaymentInterestPage /> },
           {
             path: routePaths.trainingCustomNew,
             element: <CustomScenarioPage />,

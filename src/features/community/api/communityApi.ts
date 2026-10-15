@@ -65,6 +65,7 @@ interface PostDetailResponse extends Omit<PostSummaryResponse, 'content_preview'
 }
 interface PostListResponse {
   posts: PostSummaryResponse[]
+  has_next?: boolean
 }
 interface CommentResponse {
   comment_id: number
@@ -220,23 +221,37 @@ const mapComment = (comment: CommentResponse): CommunityComment => ({
   })),
 })
 
-export const getCommunityPosts = async (mine: boolean, query: string) => {
+/** 서버 페이지와 다음 페이지 여부를 반환합니다. */
+export const getCommunityPosts = async (
+  mine: boolean,
+  query: string,
+  page = 1,
+  signal?: AbortSignal,
+) => {
   const endpoint = mine ? '/api/v1/community/me/posts' : '/api/v1/community/posts'
-  const response = await aiHttpClient.get<PostListResponse>(endpoint, {
-    params: { page: 1, size: 50, ...(query && !mine ? { q: query } : {}) },
-  })
-  const imageValues = [...new Set(response.data.posts.map((post) => post.author.profile_image_url))]
+  const loadPage = async (pageNumber: number) =>
+    (
+      await aiHttpClient.get<PostListResponse>(endpoint, {
+        params: { page: pageNumber, size: 50, ...(query && !mine ? { q: query } : {}) },
+        signal,
+      })
+    ).data
+  const response = await loadPage(page)
+  const posts = response.posts
+  const hasNextPage = Boolean(response.has_next)
+  const imageValues = [...new Set(posts.map((post) => post.author.profile_image_url))]
   const resolvedImages = new Map(
     await Promise.all(
-      imageValues.map(
-        async (imageValue) => [imageValue, await resolveProfileImageUrl(imageValue)] as const,
-      ),
+      imageValues.map(async (value) => [value, await resolveProfileImageUrl(value)] as const),
     ),
   )
-
-  return response.data.posts.map((post) =>
-    mapPost(post, resolvedImages.get(post.author.profile_image_url) ?? null),
-  )
+  return {
+    posts: posts.map((post) =>
+      mapPost(post, resolvedImages.get(post.author.profile_image_url) ?? null),
+    ),
+    hasNextPage,
+    page,
+  }
 }
 export const getCommunityPost = async (postId: number) => {
   const post = (await aiHttpClient.get<PostDetailResponse>(`/api/v1/community/posts/${postId}`))
