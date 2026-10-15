@@ -974,6 +974,7 @@ test('records mixed call audio to a real file and flushes another recording when
   const saved = page.waitForEvent('download')
   await page.getByRole('button', { name: '녹음 저장', exact: true }).click()
   const recording = await saved
+  await expect(page.getByText('녹음 파일 저장을 시작했어요.', { exact: true })).toHaveCount(0)
   expect(recording.suggestedFilename()).toMatch(/^bada-call-browser-session-1\.(webm|m4a)$/)
   await recording.saveAs(testInfo.outputPath(recording.suggestedFilename()))
   const { stat } = await import('node:fs/promises')
