@@ -1,29 +1,28 @@
-import { Link } from 'react-router-dom'
 import { routePaths } from '@shared/config'
+import { ErrorScreen } from '@shared/ui'
 
-/** 예상하지 못한 화면 오류에서도 새로고침 또는 대시보드로 복귀할 수 있습니다. */
-export const RouteErrorPage = () => {
-  return (
-    <main className="gap-5 p-6 flex min-h-screen flex-col items-center justify-center bg-background-alternative text-center">
-      <div role="alert">
-        <h1 className="text-title1 font-bold text-label-normal">{'화면을 불러오지 못했어요.'}</h1>
-        <p className="mt-3 text-body text-label-alternative">{'잠시 후 다시 시도해 주세요.'}</p>
-      </div>
-      <div className="gap-3 flex">
+/** 렌더링 오류를 숨기고 문서를 다시 로드하거나 안전한 첫 화면으로 복구합니다. */
+export const RouteErrorPage = () => (
+  <ErrorScreen
+    variant="error"
+    title="화면을 불러오지 못했어요."
+    description="잠시 연결이 끊긴 것 같아요. 다시 시도하거나 홈으로 돌아가 주세요."
+    actions={
+      <>
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="px-5 py-3 rounded-component bg-primary-normal text-body font-bold"
+          className="px-6 py-3 rounded-control bg-primary-normal text-body font-bold text-label-normal transition-opacity hover:opacity-80"
         >
-          {'다시 시도하기'}
+          다시 시도하기
         </button>
-        <Link
-          to={routePaths.dashboard}
-          className="px-5 py-3 rounded-component bg-fill-neutral text-body text-label-normal"
+        <a
+          href={routePaths.landing}
+          className="px-6 py-3 rounded-control border border-line-neutral text-body font-medium text-label-normal transition-colors hover:bg-fill-normal"
         >
-          {'대시보드로 이동'}
-        </Link>
-      </div>
-    </main>
-  )
-}
+          홈으로 돌아가기
+        </a>
+      </>
+    }
+  />
+)

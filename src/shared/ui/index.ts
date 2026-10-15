@@ -17,3 +17,4 @@ export { ExperienceProvider } from './ExperienceProvider'
 export { useToast } from './toastContext'
 
 export { PrimaryButton } from './PrimaryButton'
+export { ErrorScreen } from './ErrorScreen'

@@ -22,6 +22,11 @@ test('shows a verified 404 with a dashboard action while guests still return to 
     'href',
     '/dashboard',
   )
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expect(page.getByRole('heading', { name: '페이지를 찾을 수 없습니다.' })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.getByRole('link', { name: '홈으로 돌아가기' }).click()
+  await expect(page).toHaveURL(/\/$/)
   await page.evaluate(() => {
     localStorage.removeItem('bada.accessToken')
     localStorage.removeItem('bada.refreshToken')
