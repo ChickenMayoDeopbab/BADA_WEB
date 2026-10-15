@@ -2,7 +2,7 @@ import { useTranslation } from '@shared/lib'
 import { Link } from 'react-router-dom'
 import type { ScenarioPersonality } from '@entities/scenario'
 import { routePaths } from '@shared/config'
-import { PrimaryButton, ServicePageContent } from '@shared/ui'
+import { ConfirmDialog, PrimaryButton, ServicePageContent } from '@shared/ui'
 import { useWarmup } from '../model/useWarmup'
 
 /** 간단한 통화 조건으로 30초 워밍업을 시작합니다. */
@@ -77,6 +77,19 @@ export const WarmupView = () => {
           {warmup.isStarting ? t('워밍업 준비 중') : t('30초 워밍업 시작')}
         </PrimaryButton>
       </form>
+      {warmup.consent.isDialogOpen && (
+        <ConfirmDialog
+          title={t('민감정보 처리 동의가 필요해요')}
+          description={t(
+            '통화불안 진단 답변과 점수, 음성 분석 결과, 훈련 분석 및 피드백을 제공하기 위해 민감정보를 처리합니다. 동의하지 않아도 일반 서비스는 이용할 수 있어요.',
+          )}
+          confirmLabel={t('동의하기')}
+          pending={warmup.consent.isSaving}
+          error={warmup.consent.error}
+          onClose={warmup.consent.handleDecline}
+          onConfirm={() => void warmup.consent.handleAccept()}
+        />
+      )}
     </ServicePageContent>
   )
 }

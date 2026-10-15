@@ -5,6 +5,19 @@ import { authenticate } from './authFixture'
 const prepare = async (page: Page) => {
   await page.route('**/api/v1/**', (route) => route.fulfill({ json: { data: {} } }))
   await authenticate(page)
+  await page.route('**/api/v1/legal-consents/status', (route) =>
+    route.fulfill({
+      json: {
+        data: {
+          termsOfServiceAgreed: true,
+          privacyPolicyAcknowledged: true,
+          sensitiveInformationAgreed: true,
+          profileImageAgreed: false,
+          legalActionRequired: false,
+        },
+      },
+    }),
+  )
 }
 
 test('retains a failed inquiry, retries it, then shows confirmed receipt', async ({ page }) => {

@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios'
+import { useWarmupConsent } from './useWarmupConsent'
 import { useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
@@ -19,10 +21,12 @@ export const useWarmup = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const isCurrent = useRouteLifetime()
+  const consent = useWarmupConsent()
   const canStart = target.trim().length >= 2 && purpose.trim().length >= 5
   const start = useMutation({
     retry: false,
     mutationFn: async () => {
+      if (!(await consent.ensureConsent()) || !isCurrent()) return null
       const key = JSON.stringify([target.trim(), purpose.trim(), personality])
       const scenario =
         created.current?.key === key
@@ -45,10 +49,23 @@ export const useWarmup = () => {
         difficulty: 'low',
         maxDurationSeconds: 30,
       }
-      const session = await createTrainingSession(sessionConfiguration)
-      return { scenario, session, sessionConfiguration }
+      try {
+        const session = await createTrainingSession(sessionConfiguration)
+        return { scenario, session, sessionConfiguration }
+      } catch (error) {
+        if (
+          !isAxiosError<{ error?: { code?: string } }>(error) ||
+          error.response?.status !== 403 ||
+          error.response.data?.error?.code !== 'LEGAL_CONSENT_001'
+        )
+          throw error
+        if (!(await consent.ensureConsent(true)) || !isCurrent()) return null
+        const session = await createTrainingSession(sessionConfiguration)
+        return { scenario, session, sessionConfiguration }
+      }
     },
     onSuccess: (state) => {
+      if (!state) return
       void queryClient.invalidateQueries({ queryKey: ['scenarios'] })
       if (isCurrent())
         navigate(`/training/${state.scenario.scenarioId}/call`, {
@@ -57,6 +74,7 @@ export const useWarmup = () => {
     },
   })
   return {
+    consent,
     target,
     purpose,
     personality,
