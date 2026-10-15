@@ -17,7 +17,6 @@ import { formatTrainingRecordDateRange } from '../model/formatTrainingRecordDate
 import { useDragScroll } from '../model/useDragScroll'
 import { useTrainingRecordCalendar } from '../model/useTrainingRecordCalendar'
 import { useTrainingRecords } from '../model/useTrainingRecords'
-import { useFullRecording } from '../model/useFullRecording'
 import { AudioPreview } from './AudioPreview'
 import { TrainingRecordCalendar } from './TrainingRecordCalendar'
 import {
@@ -264,11 +263,6 @@ const RecordDetailPanel = ({
   isRetrying,
 }: RecordDetailPanelProps) => {
   const { scrollRef, isDragging, dragScrollHandlers } = useDragScroll()
-  const fullRecordingRef = useFullRecording(
-    isAudioPlaying,
-    isOpen && !isLoading && !errorMessage,
-    record.recordingUrl,
-  )
 
   const dialogRef = useDialogFocus(isOpen, onClose)
 
@@ -351,9 +345,6 @@ const RecordDetailPanel = ({
           </section>
 
           <section className="p-5 min-h-0 relative flex flex-1 flex-col overflow-hidden rounded-component bg-fill-field">
-            <p className="mb-2.5 text-label font-medium text-label-alternative">
-              {'통화 타임라인'}
-            </p>
             <div
               ref={scrollRef}
               className={`gap-4 min-h-0 -mr-3 pr-3 relative flex flex-1 flex-col overflow-y-auto overscroll-contain select-none ${
@@ -361,35 +352,6 @@ const RecordDetailPanel = ({
               }`}
               {...dragScrollHandlers}
             >
-              {isOpen && !isLoading && !errorMessage && record.recordingUrl && (
-                <div className="p-4 rounded-component bg-background-normal">
-                  <p className="mb-2 text-label font-bold text-label-normal">{'전체 통화 녹음'}</p>
-                  <audio
-                    ref={fullRecordingRef}
-                    aria-label={'전체 통화 녹음 재생'}
-                    controls
-                    preload="none"
-                    src={record.recordingUrl}
-                    className="w-full"
-                    onPlay={() => {
-                      if (isAudioPlaying) onToggleAudio()
-                    }}
-                  />
-                </div>
-              )}
-              {!isLoading && !errorMessage && Boolean(record.transcript?.length) && (
-                <details className="p-4 rounded-component bg-background-normal text-label text-label-normal">
-                  <summary className="cursor-pointer font-bold">{'전체 대화 보기'}</summary>
-                  <ol className="mt-3 space-y-3 select-text">
-                    {record.transcript?.map((line, index) => (
-                      <li key={index}>
-                        <strong>{line.role === 'user' ? '나' : '상대방'}</strong>
-                        <p className="whitespace-pre-wrap">{line.text}</p>
-                      </li>
-                    ))}
-                  </ol>
-                </details>
-              )}
               {isLoading && (
                 <LoadingRegion label={'상세 기록을 불러오는 중'}>
                   <Skeleton className="h-24" />
