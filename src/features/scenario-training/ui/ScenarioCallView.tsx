@@ -1,3 +1,4 @@
+import { MeditationPlayer } from './MeditationPlayer'
 import { useDialogFocus } from '@shared/lib'
 import { useScenarioCall, type ScenarioCallOptions } from '../model/useScenarioCall'
 import { useCallScriptScroll } from '../model/useCallScriptScroll'
@@ -115,27 +116,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
   }
 
   if (call.stage === 'meditationVideo') {
-    return (
-      <main className="gap-5 p-5 flex min-h-screen flex-col items-center justify-center bg-background-normal">
-        <h1 className="text-title2 font-bold text-label-normal">{'잠시 호흡을 가다듬어 보세요'}</h1>
-        <video
-          className="max-w-4xl w-full rounded-dialog"
-          src="/media/meditate.mp4"
-          controls
-          autoPlay
-          playsInline
-          onEnded={call.handleStartCall}
-          aria-label={'통화 전 명상 영상'}
-        />
-        <button
-          type="button"
-          onClick={call.handleStartCall}
-          className="px-6 py-3 rounded-control bg-primary-normal text-body font-bold text-label-button-text"
-        >
-          {'명상을 마치고 통화 시작'}
-        </button>
-      </main>
-    )
+    return <MeditationPlayer onFinish={call.handleStartCall} />
   }
 
   if (

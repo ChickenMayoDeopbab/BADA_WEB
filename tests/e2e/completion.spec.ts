@@ -75,7 +75,9 @@ test('registers payment interest once, without a payment, and reloads the stored
   expect(registrations).toBe(1)
 })
 
-test('creates a 30-second WARMUP session and opens the app meditation video', async ({ page }) => {
+test('creates a 30-second WARMUP session and opens YouTube without playback controls', async ({
+  page,
+}) => {
   await prepare(page)
   await page.route('**/api/v1/scenario/custom', (route) => {
     expect(route.request().postDataJSON()).toMatchObject({
@@ -110,11 +112,24 @@ test('creates a 30-second WARMUP session and opens the app meditation video', as
   await page.getByRole('textbox', { name: '통화 목적', exact: true }).fill('카페 영업시간 물어보기')
   await page.getByRole('button', { name: '30초 워밍업 시작' }).click()
   await expect(page).toHaveURL(/\/training\/81\/call$/)
+  await page.route('https://www.youtube-nocookie.com/embed/**', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: '<html><body style="margin:0;background:black"></body></html>',
+    }),
+  )
   await page.getByRole('button', { name: '명상하기', exact: true }).click()
-  const video = page.locator('video')
+  const video = page.getByTitle('통화 전 명상 영상')
   await expect(video).toBeVisible()
-  await expect(video).toHaveAttribute('src', '/media/meditate.mp4')
-  await expect(page.getByRole('button', { name: '명상을 마치고 통화 시작' })).toBeVisible()
+  const source = new URL((await video.getAttribute('src'))!)
+  expect(source.hostname).toBe('www.youtube-nocookie.com')
+  expect(source.pathname).toBe('/embed/z6b5nLI6BqI')
+  expect(source.searchParams.get('controls')).toBe('0')
+  expect(source.searchParams.get('autoplay')).toBe('1')
+  await expect(page.getByRole('button', { name: '명상 끝내고 전화하기' })).toBeVisible()
+  expect(
+    await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
+  ).toBe(true)
 })
 
 test('keeps Korean display and removes language settings even with an old saved preference', async ({

@@ -993,3 +993,32 @@ test('records mixed call audio to a real file and flushes another recording when
     .toBe(true)
   expect(audit.errors).toEqual([])
 })
+
+test('finishes a fixed YouTube meditation screen into a call and restores page scrolling', async ({
+  page,
+}) => {
+  const audit = await prepareCall(page)
+  await page.route('https://www.youtube-nocookie.com/embed/**', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: '<html><body style="margin:0;background:black"></body></html>',
+    }),
+  )
+  await page.goto('/training/1/settings')
+  await page.getByRole('button', { name: '다음으로', exact: true }).click()
+  await page.getByRole('button', { name: '설정 완료하기', exact: true }).click()
+  await page.getByRole('button', { name: '전화 받기', exact: true }).click()
+  await page.getByRole('button', { name: '명상하기', exact: true }).click()
+  await expect(page.getByTitle('통화 전 명상 영상')).toBeVisible()
+  await expect(page.locator('html')).toHaveCSS('overflow', 'hidden')
+  await expect(page.locator('video')).toHaveCount(0)
+  await page.setViewportSize({ width: 390, height: 844 })
+  const bounds = await page.getByTitle('통화 전 명상 영상').boundingBox()
+  expect(bounds?.height).toBe(844)
+  await page.getByRole('button', { name: '명상 끝내고 전화하기' }).click()
+  await expect(page.getByRole('heading', { name: '상담 직원', exact: true })).toBeVisible()
+  await expect(page.getByTitle('통화 전 명상 영상')).toHaveCount(0)
+  await expect(page.locator('html')).not.toHaveCSS('overflow', 'hidden')
+  await page.getByRole('button', { name: '통화 종료', exact: true }).click()
+  expect(audit.errors).toEqual([])
+})
