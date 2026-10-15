@@ -1,0 +1,318 @@
+import {
+  ContentSkeleton,
+  StatusState,
+  LoadingSpinner,
+  ServicePageContent,
+  BackIcon,
+} from '@shared/ui'
+import { useTrainingSettings } from '../model/useTrainingSettings'
+import type { ScenarioDifficulty, ScenarioPersonality } from '@entities/scenario'
+import { useMinutePicker, minuteValues } from '../model/useMinutePicker'
+
+const difficultyOptions: Array<{ value: ScenarioDifficulty; label: string }> = [
+  { value: 'low', label: '하' },
+  { value: 'medium', label: '중' },
+  { value: 'high', label: '상' },
+]
+
+const personalityOptions: Array<{ value: ScenarioPersonality; label: string }> = [
+  { value: 'KIND', label: '친절' },
+  { value: 'NORMAL', label: '보통' },
+  { value: 'TOUGH', label: '까다로움' },
+  { value: 'RUDE', label: '진상' },
+]
+
+interface ScaleFieldProps<Value extends string> {
+  label: string
+  value: Value
+  options: Array<{ value: Value; label: string }>
+  onChange: (value: Value) => void
+}
+
+/** 앱과 동일하게 탭과 드래그를 모두 지원하는 단계 슬라이더를 표시합니다. */
+const ScaleField = <Value extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: ScaleFieldProps<Value>) => {
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((option) => option.value === value),
+  )
+  const progress = options.length === 1 ? 0 : selectedIndex / (options.length - 1)
+
+  return (
+    <fieldset>
+      <legend className="text-headline1 font-bold text-label-normal">{label}</legend>
+      <div className="mt-7">
+        <div className="group/range h-8 relative">
+          <span className="inset-x-0 top-1.5 h-5 absolute rounded-pill bg-fill-neutral" />
+          {options.map((option, index) => (
+            <span
+              key={option.value}
+              className="size-3 absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-pill bg-line-neutral"
+              style={{ left: `calc(16px + (100% - 32px) * ${index / (options.length - 1)})` }}
+            />
+          ))}
+          <span
+            className="top-0 size-8 absolute -translate-x-1/2 rounded-pill bg-background-normal shadow-elevated-card transition-[left] duration-150 group-has-[:focus-visible]/range:ring-2 group-has-[:focus-visible]/range:ring-primary-normal"
+            style={{ left: `calc(16px + (100% - 32px) * ${progress})` }}
+          />
+          <input
+            type="range"
+            min={0}
+            max={options.length - 1}
+            step={1}
+            value={selectedIndex}
+            onChange={(event) => onChange(options[Number(event.target.value)].value)}
+            aria-label={label}
+            aria-valuetext={options[selectedIndex].label}
+            className="inset-0 h-8 absolute z-10 w-full cursor-pointer opacity-0 outline-none focus-visible:outline-none"
+          />
+        </div>
+        <div className="mt-3 flex items-center justify-between">
+          {options.map((option) => {
+            const isSelected = option.value === value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => onChange(option.value)}
+                className={`min-w-10 text-caption transition-colors ${
+                  isSelected ? 'font-bold text-label-normal' : 'font-medium text-label-alternative'
+                }`}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </fieldset>
+  )
+}
+
+interface MinuteColumnProps {
+  label: string
+  selected: number
+  onChange: (minute: number) => void
+}
+
+/** 앱의 0~60분 스크롤 스냅 휠을 웹 상호작용으로 옮깁니다. */
+const MinuteColumn = ({ label, selected, onChange }: MinuteColumnProps) => {
+  const { scrollRef, handleScroll, handleSelect } = useMinutePicker(selected, onChange)
+
+  return (
+    <div className="min-w-0 flex flex-1 flex-col items-center">
+      <p className="mb-3 text-label font-medium text-label-alternative">{label}</p>
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="h-[220px] w-full snap-y snap-proximity [scrollbar-width:none] overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden"
+      >
+        <div className="h-[88px]" aria-hidden="true" />
+        {minuteValues.map((minute) => {
+          const distance = Math.abs(minute - selected)
+          const isSelected = distance === 0
+          return (
+            <button
+              key={minute}
+              type="button"
+              onClick={() => handleSelect(minute)}
+              className={`h-11 flex w-full snap-center items-center justify-center text-center transition-[color,opacity,font-size] ${
+                isSelected
+                  ? 'text-title2 font-bold text-primary-normal'
+                  : distance === 1
+                    ? 'text-headline1 font-medium text-label-alternative opacity-60'
+                    : 'text-headline1 font-medium text-label-alternative opacity-30'
+              }`}
+            >
+              {minute}
+              {'분'}
+            </button>
+          )
+        })}
+        <div className="h-[88px]" aria-hidden="true" />
+      </div>
+    </div>
+  )
+}
+
+interface MinuteRangePickerProps {
+  from: number
+  to: number
+  onChangeFrom: (minute: number) => void
+  onChangeTo: (minute: number) => void
+}
+
+/** 최소·최대 발신 시간을 하나의 선택 영역에서 조절합니다. */
+const MinuteRangePicker = ({ from, to, onChangeFrom, onChangeTo }: MinuteRangePickerProps) => {
+  return (
+    <div className="relative">
+      <span className="inset-x-0 h-11 absolute top-[120px] rounded-component bg-fill-normal" />
+      <div className="relative flex items-end">
+        <MinuteColumn label={'최소'} selected={from} onChange={onChangeFrom} />
+        <span className="px-4 flex h-[220px] items-center text-headline1 font-medium text-label-alternative">
+          ~
+        </span>
+        <MinuteColumn label={'최대'} selected={to} onChange={onChangeTo} />
+      </div>
+    </div>
+  )
+}
+
+/** Figma 2단계 훈련 설정 화면을 표시합니다. */
+export const ScenarioSettingsView = () => {
+  const settings = useTrainingSettings()
+
+  if (settings.isLoading) {
+    return (
+      <ServicePageContent>
+        <h1 className="mb-4 text-title1 font-bold text-label-neutral">{'훈련 설정'}</h1>
+        <ContentSkeleton label={'훈련 설정을 불러오는 중'} />
+      </ServicePageContent>
+    )
+  }
+
+  if (!settings.scenario) {
+    return (
+      <main className="min-w-0 flex flex-1 flex-col items-center justify-center rounded-card bg-background-normal text-center">
+        <h1 className="text-title2 font-bold text-label-normal">{'시나리오를 찾지 못했어요.'}</h1>
+        {settings.errorMessage && (
+          <StatusState
+            isError
+            title={settings.errorMessage}
+            onRetry={() => void settings.retryScenario()}
+            isRetrying={settings.isRetryingScenario}
+          />
+        )}
+        <button
+          type="button"
+          onClick={settings.handleBack}
+          className="mt-6 h-10 px-6 rounded-control bg-primary-normal text-label font-bold text-label-strong"
+        >
+          {'목록으로 돌아가기'}
+        </button>
+      </main>
+    )
+  }
+
+  return (
+    <main className="min-w-0 px-10 pt-6 max-sm:px-4 max-sm:pt-5 gap-4 max-sm:h-auto max-sm:min-h-[calc(100dvh-128px)] flex h-[calc(100dvh-32px)] flex-1 flex-col">
+      <header className="h-11 gap-3.5 flex shrink-0 items-center">
+        <button
+          type="button"
+          onClick={settings.handleBack}
+          aria-label={'이전'}
+          className="size-11 flex items-center justify-center rounded-component bg-background-normal text-label-normal"
+        >
+          <BackIcon />
+        </button>
+        <h1 className="text-title1 font-bold text-label-neutral">{'훈련 설정'}</h1>
+      </header>
+
+      <section className="min-h-0 px-10 py-8 max-sm:p-5 flex flex-1 flex-col rounded-dialog bg-background-normal">
+        <div className="flex w-full flex-1 flex-col">
+          <div
+            className="gap-2 flex"
+            aria-label={`2단계 중 ${settings.step === 'level' ? 1 : 2}단계`}
+          >
+            <span className="h-1 flex-1 rounded-pill bg-primary-normal" />
+            <span
+              className={`h-1 flex-1 rounded-pill ${
+                settings.step === 'time' ? 'bg-primary-normal' : 'bg-fill-alternative'
+              }`}
+            />
+          </div>
+
+          {settings.step === 'level' ? (
+            <div className="mt-10 space-y-10 mx-auto w-full max-w-[640px]">
+              <ScaleField
+                label={'난이도'}
+                value={settings.difficulty}
+                options={difficultyOptions}
+                onChange={settings.setDifficulty}
+              />
+              <ScaleField
+                label={'상대의 태도'}
+                value={settings.personality}
+                options={personalityOptions}
+                onChange={settings.setPersonality}
+              />
+            </div>
+          ) : (
+            <div className="mt-10 mx-auto w-full max-w-[640px]">
+              <MinuteRangePicker
+                from={settings.delayFrom}
+                to={settings.delayTo}
+                onChangeFrom={settings.setDelayFrom}
+                onChangeTo={settings.setDelayTo}
+              />
+              <div className="mt-8 px-3 py-4 rounded-component bg-fill-normal">
+                <p className="text-label font-medium text-label-alternative">
+                  {'• 설정한 시간 범위 안에서 무작위로 전화가 걸려와요.'}
+                </p>
+                {settings.delayTo > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <label className="gap-2 flex items-center text-label text-label-normal">
+                      <input
+                        type="checkbox"
+                        checked={settings.shouldKeepSchedule}
+                        onChange={(event) => settings.setShouldKeepSchedule(event.target.checked)}
+                        className="accent-primary-normal"
+                      />
+                      {'페이지를 벗어나도 예약 유지'}
+                    </label>
+                    <p className="text-caption text-label-alternative">
+                      {settings.shouldKeepSchedule
+                        ? '예약 전화는 기본 난이도로 진행돼요. 상대의 태도는 선택대로 적용돼요. 다시 접속하면 수신 중인 전화를 받을 수 있어요.'
+                        : '선택한 난이도로 진행해요. 전화가 올 때까지 이 페이지를 유지해 주세요.'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="pt-8 mx-auto mt-auto w-full max-w-[640px]">
+            {settings.errorMessage && (
+              <p className="mb-3 text-center text-caption text-status-error">
+                {settings.errorMessage}
+              </p>
+            )}
+            {settings.step === 'time' && (
+              <p
+                className={`mb-3 text-center text-body font-medium ${
+                  settings.isDelayInvalid ? 'text-status-error' : 'text-primary-normal'
+                }`}
+              >
+                {settings.isDelayInvalid
+                  ? '최대 시간은 최소 시간보다 작을 수 없어요.'
+                  : settings.delayFrom === 0 && settings.delayTo === 0
+                    ? '바로 훈련이 시작돼요!'
+                    : `${settings.delayFrom}분~${settings.delayTo}분 사이에 훈련이 시작돼요!`}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={settings.step === 'level' ? settings.handleNext : settings.handleComplete}
+              aria-busy={settings.isCreatingSession}
+              disabled={
+                (settings.step === 'time' && settings.isDelayInvalid) || settings.isCreatingSession
+              }
+              className="h-14 w-full rounded-component bg-primary-normal text-headline2 font-bold text-common-0 disabled:cursor-not-allowed disabled:bg-fill-alternative disabled:text-label-alternative"
+            >
+              {settings.isCreatingSession && <LoadingSpinner className="mr-2" />}
+              {settings.step === 'level'
+                ? '다음으로'
+                : settings.isCreatingSession
+                  ? '처리 중...'
+                  : '설정 완료하기'}
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  )
+}
