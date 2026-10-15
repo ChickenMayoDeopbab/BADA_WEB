@@ -1,9 +1,8 @@
 import type { AppNotification } from '@entities/notification'
-import backIcon from '@shared/assets/notifications/back.svg'
 import emptyIcon from '@shared/assets/notifications/empty.svg'
 import defaultProfile from '@shared/assets/notifications/default-profile.png'
 import trainingProfile from '@shared/assets/notifications/training-profile.png'
-import { ListSkeleton, LoadingSpinner, StatusState } from '@shared/ui'
+import { BackIcon, ListSkeleton, LoadingSpinner, StatusState } from '@shared/ui'
 import { useId } from 'react'
 import { formatNotificationTime, getNotificationTitle } from '../model/notificationPresentation'
 import { useNotifications } from '../model/useNotifications'
@@ -45,12 +44,12 @@ export const NotificationsView = () => {
           type="button"
           onClick={notifications.handleBack}
           aria-label={'이전 화면으로'}
-          className="size-16 flex shrink-0 items-center justify-center rounded-control transition-colors hover:bg-fill-neutral"
+          className="size-10 inline-flex shrink-0 items-center justify-center rounded-control text-headline1 text-label-normal transition-colors hover:bg-fill-normal"
         >
-          <img src={backIcon} alt="" />
+          <BackIcon />
         </button>
         <h1 className="max-md:text-headline1 text-title1 font-bold text-label-neutral">{'알림'}</h1>
-        <span className="size-16 max-md:block hidden" aria-hidden="true" />
+        <span className="size-10 max-md:block hidden" aria-hidden="true" />
       </header>
       <div className="max-w-5xl flex w-full flex-1 flex-col">
         <div
