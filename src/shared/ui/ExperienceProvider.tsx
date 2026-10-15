@@ -51,12 +51,18 @@ export const ExperienceProvider = ({ children }: PropsWithChildren) => {
   return (
     <ToastContext value={notify}>
       {children}
-      <div
-        className="gap-2 right-5 bottom-5 max-md:right-4 max-md:bottom-24 fixed z-[100] flex w-[360px] max-w-[calc(100%-32px)] flex-col"
-        aria-label="작업 결과 알림"
-      >
-        {toasts.map((toast) => (
-          <ToastItem key={toast.id} toast={toast} onDismiss={() => dismiss(toast.id)} />
+      <div aria-label="작업 결과 알림">
+        {(['top-right', 'bottom-right'] as const).map((position) => (
+          <div
+            key={position}
+            className={`gap-2 fixed z-[100] flex w-[360px] max-w-[calc(100%-32px)] flex-col ${position === 'top-right' ? 'right-6 top-6 max-sm:right-4 max-sm:top-4' : 'right-5 bottom-5 max-md:right-4 max-md:bottom-24'}`}
+          >
+            {toasts
+              .filter((toast) => (toast.position ?? 'bottom-right') === position)
+              .map((toast) => (
+                <ToastItem key={toast.id} toast={toast} onDismiss={() => dismiss(toast.id)} />
+              ))}
+          </div>
         ))}
       </div>
     </ToastContext>

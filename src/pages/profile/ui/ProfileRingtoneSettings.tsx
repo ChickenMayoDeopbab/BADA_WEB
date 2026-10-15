@@ -21,6 +21,9 @@ export const ProfileRingtoneSettings = () => {
       <p className="mt-1 text-label text-label-alternative">
         훈련 중 사용할 벨소리를 선택하거나 직접 추가하세요.
       </p>
+      <p className="mt-1 text-caption text-label-alternative">
+        최대 {settings.maxUploadSizeMb}MB의 오디오 파일을 추가할 수 있어요.
+      </p>
       <div className="mt-5 gap-3 flex items-center justify-between">
         <p className="text-body font-bold text-label-normal">벨소리 목록</p>
         <input

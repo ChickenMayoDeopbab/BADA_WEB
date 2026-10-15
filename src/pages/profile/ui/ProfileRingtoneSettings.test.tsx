@@ -107,6 +107,29 @@ afterEach(() => {
 })
 
 describe('서버 벨소리 설정', () => {
+  it('10MB를 초과하면 전송하지 않고 상한 크기의 오디오 파일은 업로드한다', async () => {
+    renderSettings()
+    await screen.findByRole('radio', { name: /내 파도 소리/ })
+    const input = screen.getByLabelText('벨소리 파일')
+    fireEvent.change(input, {
+      target: {
+        files: [
+          new File([new Uint8Array(10 * 1024 * 1024 + 1)], 'large.mp3', { type: 'audio/mpeg' }),
+        ],
+      },
+    })
+    expect(await screen.findByRole('alert')).toHaveTextContent('10MB 이하')
+    expect(post).not.toHaveBeenCalled()
+    expect(screen.getByRole('radio', { name: /내 파도 소리/ })).toBeChecked()
+    fireEvent.change(input, {
+      target: {
+        files: [new File([new Uint8Array(10 * 1024 * 1024)], 'limit.mp3', { type: 'audio/mpeg' })],
+      },
+    })
+    expect(await screen.findByRole('radio', { name: /추가 음원.mp3/ })).toBeChecked()
+    expect(post).toHaveBeenCalledOnce()
+  })
+
   it('저장된 선택을 복원하고 업로드한 음원을 선택한 뒤 저장한다', async () => {
     const { client } = renderSettings()
     expect(await screen.findByRole('radio', { name: /내 파도 소리/ })).toBeChecked()

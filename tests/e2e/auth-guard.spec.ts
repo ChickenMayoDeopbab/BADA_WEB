@@ -1,6 +1,32 @@
 import { expect, test } from '@playwright/test'
 import { authenticate } from './authFixture'
 
+test('stored tokens do not trigger session verification on public routes, but protected routes still verify', async ({
+  page,
+}) => {
+  await authenticate(page)
+  let verificationRequests = 0
+  await page.route('**/api/v1/user/mypage', (route) => {
+    verificationRequests++
+    return route.fulfill({
+      json: { data: { username: 'bada', name: '바다', email: 'bada@example.test' } },
+    })
+  })
+  await page.route('**/api/v1/notifications?*', (route) =>
+    route.fulfill({
+      json: { data: { notifications: { content: [], number: 0, last: true }, unreadCount: 0 } },
+    }),
+  )
+  for (const path of ['/', '/login', '/signup', '/find-id', '/reset-password']) {
+    await page.goto(path)
+    await expect(page.locator('main')).toBeVisible()
+  }
+  expect(verificationRequests).toBe(0)
+  await page.goto('/notifications')
+  await expect(page.getByRole('heading', { name: '알림', exact: true })).toBeVisible()
+  expect(verificationRequests).toBeGreaterThan(0)
+})
+
 test('stored tokens cannot render service content or load its data before server verification completes', async ({
   page,
 }) => {

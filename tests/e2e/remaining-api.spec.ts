@@ -180,7 +180,7 @@ test('reports posts, comments and replies using each content ID and allows retry
       expect(bounds!.y).toBeLessThan(50)
       await expect(toast).toHaveCount(0, { timeout: 4000 })
     } else {
-      await page.getByRole('button', { name: '메시지 닫기' }).click()
+      await page.getByRole('button', { name: '알림 닫기' }).click()
     }
   }
   expect(reports).toEqual([

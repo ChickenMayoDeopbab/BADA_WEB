@@ -7,15 +7,18 @@ import {
 import { RequireAuth } from './RequireAuth'
 import { AuthProvider } from './AuthProvider'
 import { getCurrentUser } from '@entities/user'
+import { refreshAuthTokens } from '../api/authApi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@entities/user', () => ({ getCurrentUser: vi.fn() }))
+vi.mock('../api/authApi', () => ({ refreshAuthTokens: vi.fn() }))
 const user = { username: 'bada', name: '바다', email: 'bada@example.test' }
 beforeEach(() => {
   vi.mocked(getCurrentUser).mockReset().mockResolvedValue(user)
+  vi.mocked(refreshAuthTokens).mockReset()
 })
 
 vi.mock('@shared/config', () => ({
@@ -123,22 +126,31 @@ describe('RequireAuth', () => {
     expect(await screen.findByRole('heading', { name: '대시보드' })).toBeInTheDocument()
   })
 
-  it('서버가 발급한 같은 사용자 토큰 갱신은 진행 중인 화면을 해제하지 않는다', async () => {
+  it('같은 사용자의 토큰 갱신은 화면을 유지하고 사용자 확인을 중복 요청하지 않는다', async () => {
     setAuthTokens({ accessToken: 'old-access', refreshToken: 'old-refresh' }, true)
     renderProtectedRoute()
     await screen.findByRole('heading', { name: '대시보드' })
-    let finish!: (value: typeof user) => void
-    vi.mocked(getCurrentUser).mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          finish = resolve
-        }),
-    )
+    expect(getCurrentUser).toHaveBeenCalledOnce()
     act(() => replaceAuthTokens({ accessToken: 'new-access', refreshToken: 'new-refresh' }))
     expect(screen.getByRole('heading', { name: '대시보드' })).toBeInTheDocument()
     await act(async () => {})
-    await act(async () => finish(user))
+    expect(getCurrentUser).toHaveBeenCalledOnce()
     expect(screen.getByRole('heading', { name: '대시보드' })).toBeInTheDocument()
+  })
+
+  it('초기 인증 도중 만료 토큰을 갱신해도 사용자 확인을 한 번 마친 뒤 화면을 연다', async () => {
+    const token = (expiration: number) =>
+      `header.${btoa(JSON.stringify({ sub: '34', exp: expiration }))}.signature`
+    setAuthTokens({ accessToken: token(1), refreshToken: token(Date.now() / 1000 + 60) }, true)
+    vi.mocked(refreshAuthTokens).mockResolvedValue({
+      accessToken: 'renewed-access',
+      refreshToken: 'renewed-refresh',
+    })
+    renderProtectedRoute()
+    expect(screen.queryByRole('heading', { name: '대시보드' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '대시보드' })).toBeInTheDocument()
+    expect(refreshAuthTokens).toHaveBeenCalledOnce()
+    expect(getCurrentUser).toHaveBeenCalledOnce()
   })
 
   it('서버 인증 실패는 오류 문구를 노출하지 않고 세션을 지운 뒤 랜딩으로 보낸다', async () => {

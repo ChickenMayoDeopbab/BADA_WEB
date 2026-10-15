@@ -3,6 +3,7 @@ import {
   getAuthSessionVersion,
   subscribeAuthSession,
   clearAuthSession,
+  hasAuthSession,
 } from './authSession'
 import { getValidAccessToken } from './getValidAccessToken'
 import type { AuthStatus } from './authContext'
@@ -15,11 +16,12 @@ export const useAuthState = (): AuthStatus => {
   const sessionKey = useSyncExternalStore(subscribeAuthSession, getAuthSessionKey, () => '')
   const queryClient = useQueryClient()
   const sessionVersion = getAuthSessionVersion()
+  const hasSession = Boolean(sessionKey)
   const [verifiedVersion, setVerifiedVersion] = useState<number | null>(null)
   const cachedVersion = useRef<number | null>(null)
 
   useEffect(() => {
-    if (!sessionKey) {
+    if (!hasSession) {
       queryClient.clear()
       return
     }
@@ -29,24 +31,27 @@ export const useAuthState = (): AuthStatus => {
     }
     const controller = new AbortController()
 
+    /** 로그인 주체 변경·로그아웃·만료를 막고 같은 주체의 서버 토큰 갱신은 허용합니다. */
+    const isCurrentSession = () =>
+      !controller.signal.aborted && getAuthSessionVersion() === sessionVersion && hasAuthSession()
+
     /** 만료 토큰 갱신과 서버 사용자 확인을 모두 마친 뒤 보호 화면을 허용합니다. */
     const verifySession = async () => {
       try {
         await getValidAccessToken()
-        if (controller.signal.aborted || getAuthSessionKey() !== sessionKey) return
+        if (!isCurrentSession()) return
         const user = await getCurrentUser(controller.signal)
         if (!user) throw new Error('AUTH_REQUIRED')
-        if (!controller.signal.aborted && getAuthSessionKey() === sessionKey)
-          setVerifiedVersion(sessionVersion)
+        if (isCurrentSession()) setVerifiedVersion(sessionVersion)
       } catch {
-        if (!controller.signal.aborted && getAuthSessionKey() === sessionKey) clearAuthSession()
+        if (isCurrentSession()) clearAuthSession()
       }
     }
 
     void verifySession()
     return () => controller.abort()
-  }, [sessionKey, sessionVersion, queryClient])
+  }, [hasSession, sessionVersion, queryClient])
 
-  if (!sessionKey) return 'unauthenticated'
+  if (!hasSession) return 'unauthenticated'
   return verifiedVersion === sessionVersion ? 'authenticated' : 'checking'
 }

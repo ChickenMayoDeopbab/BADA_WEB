@@ -40,6 +40,16 @@ import {
   type RouteObject,
 } from 'react-router-dom'
 
+/** 보호 경로 전환마다 저장소를 읽고 서버 인증 상태를 공유합니다. */
+const ProtectedRoutes = () => {
+  useLocation()
+  return (
+    <AuthProvider>
+      <RequireAuth />
+    </AuthProvider>
+  )
+}
+
 const applicationRoutes: RouteObject[] = [
   {
     path: routePaths.landing,
@@ -66,7 +76,7 @@ const applicationRoutes: RouteObject[] = [
     element: <OAuthCallbackPage />,
   },
   {
-    element: <RequireAuth />,
+    element: <ProtectedRoutes />,
     children: [
       {
         element: <ServiceLayout />,
@@ -165,18 +175,8 @@ const applicationRoutes: RouteObject[] = [
   },
 ]
 
-/** 경로 전환마다 저장소를 다시 읽으며 앱 전체의 서버 인증 상태를 제공합니다. */
-const AuthRoot = () => {
-  useLocation()
-  return (
-    <AuthProvider>
-      <Outlet />
-    </AuthProvider>
-  )
-}
-
 const router = createBrowserRouter([
-  { element: <AuthRoot />, errorElement: <RouteErrorPage />, children: applicationRoutes },
+  { element: <Outlet />, errorElement: <RouteErrorPage />, children: applicationRoutes },
 ])
 
 export const AppRouter = () => <RouterProvider router={router} />

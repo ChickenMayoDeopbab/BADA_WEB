@@ -94,3 +94,9 @@
 - `GET /api/v1/notifications`의 `filter=ALL|UNREAD`, `page`, `size`와 서버의 `unreadCount`를 사용합니다. 받은 알림의 3일 보관은 서버가 적용합니다.
 - 알림 선택 시 `PATCH /api/v1/notifications/{notificationId}/read` 성공 후 게시글 또는 훈련 목록으로 이동합니다. 실패 시 읽지 않은 상태를 유지하고 재시도할 수 있습니다.
 - 조회 스켈레톤, 조회 재시도, 더 보기, 키보드 필터 전환을 지원합니다.
+
+## 공통 토스트와 인증 확인
+
+- 토스트 훅은 `@shared/ui`의 `useToast` 하나만 사용합니다. `position`과 `duration`을 생략하면 기존 우하단·4500ms 기본값을 적용합니다. 신고 접수는 `{ position: 'top-right', duration: 3000 }`을 지정하며, 공통 `toasts` 설정·중복 방지·마우스/초점 유지 정책을 따릅니다.
+- 서버 인증 확인은 보호 라우트에서만 실행합니다. 같은 사용자의 토큰 갱신은 사용자 확인을 중복 요청하거나 진행 중 화면을 해제하지 않습니다. 새 로그인·로그아웃·다른 탭의 세션 변경·만료는 별도로 반영합니다.
+- 벨소리는 업로드 전에 최대 10MB를 검사하고 화면에 안내합니다. [현재 Spring 설정](https://github.com/ChickenMayoDeopbab/BADA_SPRING_SERVER/blob/6bdec3b00b3700db13ba4125bfa5268e6f9741d8/src/main/resources/application.yaml)의 파일당 10MB·요청당 11MB 상한에 맞췄습니다.

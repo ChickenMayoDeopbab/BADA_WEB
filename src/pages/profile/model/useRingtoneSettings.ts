@@ -14,6 +14,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+// Spring multipart.max-file-size의 10MB 상한과 맞춥니다.
+const MAX_RINGTONE_FILE_SIZE = 10 * 1024 * 1024
+const MAX_RINGTONE_FILE_SIZE_MB = MAX_RINGTONE_FILE_SIZE / (1024 * 1024)
+
 /** 벨소리 조회·업로드·선택·저장과 단일 음원 미리듣기를 관리합니다. */
 export const useRingtoneSettings = () => {
   const navigate = useNavigate()
@@ -100,6 +104,10 @@ export const useRingtoneSettings = () => {
       setErrorMessage('비어 있지 않은 오디오 파일을 선택해 주세요.')
       return
     }
+    if (file.size > MAX_RINGTONE_FILE_SIZE) {
+      setErrorMessage(`벨소리는 ${MAX_RINGTONE_FILE_SIZE_MB}MB 이하의 파일만 추가할 수 있어요.`)
+      return
+    }
     try {
       await upload.mutateAsync(file)
     } catch (error) {
@@ -167,6 +175,7 @@ export const useRingtoneSettings = () => {
   }
 
   return {
+    maxUploadSizeMb: MAX_RINGTONE_FILE_SIZE_MB,
     ringtones: list.data ?? [],
     selectedId,
     previewId,

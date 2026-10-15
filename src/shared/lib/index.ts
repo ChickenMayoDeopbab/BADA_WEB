@@ -1,5 +1,4 @@
 export { getCurrentUserId } from './authToken'
-export { useToast } from './useToast'
 export {
   WEEKDAY_LABELS,
   addDays,

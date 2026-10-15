@@ -7,11 +7,12 @@ export const ToastItem = ({ toast, onDismiss }: { toast: ToastMessage; onDismiss
   const [isHovered, setIsHovered] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const dismiss = useEffectEvent(onDismiss)
+  const duration = toast.duration ?? experienceConfig.durations.toast
   useEffect(() => {
     if (isHovered || isFocused) return
-    const timer = window.setTimeout(() => dismiss(), experienceConfig.durations.toast)
+    const timer = window.setTimeout(() => dismiss(), duration)
     return () => window.clearTimeout(timer)
-  }, [isHovered, isFocused])
+  }, [duration, isHovered, isFocused])
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}

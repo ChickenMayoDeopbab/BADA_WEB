@@ -17,7 +17,6 @@ import {
   LoadingSpinner,
   Skeleton,
   StatusState,
-  Toast,
   BackIcon,
   ServicePageContent,
   ServiceSearchField,
@@ -842,7 +841,6 @@ const PostDetail = ({
           </div>
         </aside>
       </div>
-      <Toast message={reports.toast.message} onDismiss={reports.toast.dismissToast} />
       {reportingTarget && (
         <ReportCommunityContentDialog
           key={`${reportingTarget.type}:${reportingTarget.id}`}
