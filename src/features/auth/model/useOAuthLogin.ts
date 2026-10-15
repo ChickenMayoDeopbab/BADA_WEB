@@ -8,13 +8,12 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 const DEFAULT_OAUTH_ERROR_MESSAGE = '소셜 로그인에 실패했어요. 다시 시도해 주세요.'
+// 앱 링크로 연결되는 서버 기본값 대신 웹 전용 콜백으로 돌아옵니다.
+const OAUTH_REDIRECT_URI = new URL(routePaths.oauthCallback, 'https://chickenmayo.kr').toString()
 
-/**
- * 서버의 소셜 로그인 화면으로 이동합니다.
- * 서버가 허용하지 않은 redirectUri는 Auth-008로 거절되므로 BADA 앱과 같이 서버 기본 리다이렉트를 사용합니다.
- */
+/** 웹 콜백 주소를 지정해 서버의 소셜 로그인 화면으로 이동합니다. */
 export const startOAuthLogin = (provider: OAuthProvider) => {
-  window.location.assign(getOAuthLoginUrl(provider))
+  window.location.assign(getOAuthLoginUrl(provider, OAUTH_REDIRECT_URI))
 }
 
 export type OAuthCallbackStatus = 'loading' | 'error'
