@@ -1,6 +1,5 @@
 export {
   ProfileEditPage,
-  ProfileLanguagePage,
   ProfileNotificationsPage,
   ProfileOverviewPage,
   ProfilePhotoPage,

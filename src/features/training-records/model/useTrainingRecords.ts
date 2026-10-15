@@ -1,4 +1,5 @@
 import { getDrawerCloseDelay } from '@shared/lib'
+import { useToast } from '@shared/ui'
 import {
   deleteTrainingRecord,
   getTrainingRecord,
@@ -20,6 +21,7 @@ export const useTrainingRecords = (
   initialRecordId?: number,
 ) => {
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [period, setPeriod] = useState<TrainingPeriod>('daily')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -59,6 +61,7 @@ export const useTrainingRecords = (
       setSelectedRecordId(null)
       setIsDetailOpen(false)
       setIsMenuOpen(false)
+      toast({ message: '훈련 기록을 삭제했어요.' })
       await queryClient.invalidateQueries({ queryKey: TRAINING_RECORDS_QUERY_KEY, exact: true })
     },
   })

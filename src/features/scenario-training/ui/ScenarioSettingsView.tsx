@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import {
   ContentSkeleton,
   StatusState,
@@ -37,8 +36,6 @@ const ScaleField = <Value extends string>({
   options,
   onChange,
 }: ScaleFieldProps<Value>) => {
-  const { t } = useTranslation()
-
   const selectedIndex = Math.max(
     0,
     options.findIndex((option) => option.value === value),
@@ -49,7 +46,7 @@ const ScaleField = <Value extends string>({
     <fieldset>
       <legend className="text-headline1 font-bold text-label-normal">{label}</legend>
       <div className="mt-7">
-        <div className="h-8 relative focus-within:rounded-pill focus-within:outline-2 focus-within:outline-primary-normal">
+        <div className="group/range h-8 relative">
           <span className="inset-x-0 top-1.5 h-5 absolute rounded-pill bg-fill-neutral" />
           {options.map((option, index) => (
             <span
@@ -59,7 +56,7 @@ const ScaleField = <Value extends string>({
             />
           ))}
           <span
-            className="top-0 size-8 absolute -translate-x-1/2 rounded-pill bg-background-normal shadow-elevated-card transition-[left] duration-150"
+            className="top-0 size-8 absolute -translate-x-1/2 rounded-pill bg-background-normal shadow-elevated-card transition-[left] duration-150 group-has-[:focus-visible]/range:ring-2 group-has-[:focus-visible]/range:ring-primary-normal"
             style={{ left: `calc(16px + (100% - 32px) * ${progress})` }}
           />
           <input
@@ -70,8 +67,8 @@ const ScaleField = <Value extends string>({
             value={selectedIndex}
             onChange={(event) => onChange(options[Number(event.target.value)].value)}
             aria-label={label}
-            aria-valuetext={t(options[selectedIndex].label)}
-            className="peer inset-0 h-8 absolute z-10 w-full cursor-pointer opacity-0"
+            aria-valuetext={options[selectedIndex].label}
+            className="inset-0 h-8 absolute z-10 w-full cursor-pointer opacity-0 outline-none focus-visible:outline-none"
           />
         </div>
         <div className="mt-3 flex items-center justify-between">
@@ -86,7 +83,7 @@ const ScaleField = <Value extends string>({
                   isSelected ? 'font-bold text-label-normal' : 'font-medium text-label-alternative'
                 }`}
               >
-                {t(option.label)}
+                {option.label}
               </button>
             )
           })}
@@ -104,8 +101,6 @@ interface MinuteColumnProps {
 
 /** 앱의 0~60분 스크롤 스냅 휠을 웹 상호작용으로 옮깁니다. */
 const MinuteColumn = ({ label, selected, onChange }: MinuteColumnProps) => {
-  const { t } = useTranslation()
-
   const { scrollRef, handleScroll, handleSelect } = useMinutePicker(selected, onChange)
 
   return (
@@ -134,7 +129,7 @@ const MinuteColumn = ({ label, selected, onChange }: MinuteColumnProps) => {
               }`}
             >
               {minute}
-              {t('분')}
+              {'분'}
             </button>
           )
         })}
@@ -153,16 +148,15 @@ interface MinuteRangePickerProps {
 
 /** 최소·최대 발신 시간을 하나의 선택 영역에서 조절합니다. */
 const MinuteRangePicker = ({ from, to, onChangeFrom, onChangeTo }: MinuteRangePickerProps) => {
-  const { t } = useTranslation()
   return (
     <div className="relative">
       <span className="inset-x-0 h-11 absolute top-[120px] rounded-component bg-fill-normal" />
       <div className="relative flex items-end">
-        <MinuteColumn label={t('최소')} selected={from} onChange={onChangeFrom} />
+        <MinuteColumn label={'최소'} selected={from} onChange={onChangeFrom} />
         <span className="px-4 flex h-[220px] items-center text-headline1 font-medium text-label-alternative">
           ~
         </span>
-        <MinuteColumn label={t('최대')} selected={to} onChange={onChangeTo} />
+        <MinuteColumn label={'최대'} selected={to} onChange={onChangeTo} />
       </div>
     </div>
   )
@@ -170,15 +164,13 @@ const MinuteRangePicker = ({ from, to, onChangeFrom, onChangeTo }: MinuteRangePi
 
 /** Figma 2단계 훈련 설정 화면을 표시합니다. */
 export const ScenarioSettingsView = () => {
-  const { t } = useTranslation()
-
   const settings = useTrainingSettings()
 
   if (settings.isLoading) {
     return (
       <ServicePageContent>
-        <h1 className="mb-4 text-title1 font-bold text-label-neutral">{t('훈련 설정')}</h1>
-        <ContentSkeleton label={t('훈련 설정을 불러오는 중')} />
+        <h1 className="mb-4 text-title1 font-bold text-label-neutral">{'훈련 설정'}</h1>
+        <ContentSkeleton label={'훈련 설정을 불러오는 중'} />
       </ServicePageContent>
     )
   }
@@ -186,9 +178,7 @@ export const ScenarioSettingsView = () => {
   if (!settings.scenario) {
     return (
       <main className="min-w-0 flex flex-1 flex-col items-center justify-center rounded-card bg-background-normal text-center">
-        <h1 className="text-title2 font-bold text-label-normal">
-          {t('시나리오를 찾지 못했어요.')}
-        </h1>
+        <h1 className="text-title2 font-bold text-label-normal">{'시나리오를 찾지 못했어요.'}</h1>
         {settings.errorMessage && (
           <StatusState
             isError
@@ -202,7 +192,7 @@ export const ScenarioSettingsView = () => {
           onClick={settings.handleBack}
           className="mt-6 h-10 px-6 rounded-control bg-primary-normal text-label font-bold text-label-strong"
         >
-          {t('목록으로 돌아가기')}
+          {'목록으로 돌아가기'}
         </button>
       </main>
     )
@@ -214,16 +204,16 @@ export const ScenarioSettingsView = () => {
         <button
           type="button"
           onClick={settings.handleBack}
-          aria-label={t('이전')}
+          aria-label={'이전'}
           className="size-11 flex items-center justify-center rounded-component bg-background-normal text-label-normal"
         >
           <BackIcon />
         </button>
-        <h1 className="text-title1 font-bold text-label-neutral">{t('훈련 설정')}</h1>
+        <h1 className="text-title1 font-bold text-label-neutral">{'훈련 설정'}</h1>
       </header>
 
-      <section className="min-h-0 px-10 py-12 max-sm:p-5 flex flex-1 items-center rounded-dialog bg-background-normal">
-        <div className="mx-auto flex h-full w-[640px] max-w-full flex-col">
+      <section className="min-h-0 px-10 py-8 max-sm:p-5 flex flex-1 flex-col rounded-dialog bg-background-normal">
+        <div className="flex w-full flex-1 flex-col">
           <div
             className="gap-2 flex"
             aria-label={`2단계 중 ${settings.step === 'level' ? 1 : 2}단계`}
@@ -237,22 +227,22 @@ export const ScenarioSettingsView = () => {
           </div>
 
           {settings.step === 'level' ? (
-            <div className="mt-10 space-y-10">
+            <div className="mt-10 space-y-10 mx-auto w-full max-w-[640px]">
               <ScaleField
-                label={t('난이도')}
+                label={'난이도'}
                 value={settings.difficulty}
                 options={difficultyOptions}
                 onChange={settings.setDifficulty}
               />
               <ScaleField
-                label={t('상대의 태도')}
+                label={'상대의 태도'}
                 value={settings.personality}
                 options={personalityOptions}
                 onChange={settings.setPersonality}
               />
             </div>
           ) : (
-            <div className="mt-10">
+            <div className="mt-10 mx-auto w-full max-w-[640px]">
               <MinuteRangePicker
                 from={settings.delayFrom}
                 to={settings.delayTo}
@@ -261,7 +251,7 @@ export const ScenarioSettingsView = () => {
               />
               <div className="mt-8 px-3 py-4 rounded-component bg-fill-normal">
                 <p className="text-label font-medium text-label-alternative">
-                  {t('• 설정한 시간 범위 안에서 무작위로 전화가 걸려와요.')}
+                  {'• 설정한 시간 범위 안에서 무작위로 전화가 걸려와요.'}
                 </p>
                 {settings.delayTo > 0 && (
                   <div className="mt-3 space-y-2">
@@ -272,7 +262,7 @@ export const ScenarioSettingsView = () => {
                         onChange={(event) => settings.setShouldKeepSchedule(event.target.checked)}
                         className="accent-primary-normal"
                       />
-                      {t('페이지를 벗어나도 예약 유지')}
+                      {'페이지를 벗어나도 예약 유지'}
                     </label>
                     <p className="text-caption text-label-alternative">
                       {settings.shouldKeepSchedule
@@ -285,7 +275,7 @@ export const ScenarioSettingsView = () => {
             </div>
           )}
 
-          <div className="pt-6 mt-auto">
+          <div className="pt-8 mx-auto mt-auto w-full max-w-[640px]">
             {settings.errorMessage && (
               <p className="mb-3 text-center text-caption text-status-error">
                 {settings.errorMessage}
@@ -315,7 +305,7 @@ export const ScenarioSettingsView = () => {
             >
               {settings.isCreatingSession && <LoadingSpinner className="mr-2" />}
               {settings.step === 'level'
-                ? t('다음으로')
+                ? '다음으로'
                 : settings.isCreatingSession
                   ? '처리 중...'
                   : '설정 완료하기'}

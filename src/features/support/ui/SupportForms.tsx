@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { Link } from 'react-router-dom'
 import { routePaths } from '@shared/config'
 import { PrimaryButton, StatusState, LoadingSpinner } from '@shared/ui'
@@ -9,16 +8,14 @@ const fieldClass =
 
 /** 서버로 전달할 문의 입력과 접수 결과를 표시합니다. */
 export const InquiryForm = () => {
-  const { t } = useTranslation()
-
   const form = useInquiry()
   if (form.isSuccess)
     return (
       <section role="status" className="space-y-4 p-6 rounded-card bg-background-normal">
-        <h2 className="text-title2 font-bold text-label-normal">{t('문의를 접수했어요.')}</h2>
-        <p className="text-body text-label-alternative">{t('보내주신 내용을 확인하겠습니다.')}</p>
+        <h2 className="text-title2 font-bold text-label-normal">{'문의를 접수했어요.'}</h2>
+        <p className="text-body text-label-alternative">{'보내주신 내용을 확인하겠습니다.'}</p>
         <Link className="text-label text-primary-normal" to={routePaths.profile}>
-          {t('마이페이지로 돌아가기')}
+          {'마이페이지로 돌아가기'}
         </Link>
       </section>
     )
@@ -31,7 +28,7 @@ export const InquiryForm = () => {
       }}
     >
       <label className="space-y-2 block text-label text-label-normal">
-        <span>{t('제목')}</span>
+        <span>{'제목'}</span>
         <input
           className={fieldClass}
           value={form.title}
@@ -42,7 +39,7 @@ export const InquiryForm = () => {
         />
       </label>
       <label className="space-y-2 block text-label text-label-normal">
-        <span>{t('문의 내용')}</span>
+        <span>{'문의 내용'}</span>
         <textarea
           className={`${fieldClass} min-h-60 resize-y`}
           value={form.content}
@@ -61,7 +58,7 @@ export const InquiryForm = () => {
         </p>
       )}
       <PrimaryButton type="submit" disabled={!form.canSubmit || form.isSending}>
-        {form.isSending ? t('전송 중') : t('문의 보내기')}
+        {form.isSending ? '전송 중' : '문의 보내기'}
       </PrimaryButton>
     </form>
   )
@@ -69,22 +66,20 @@ export const InquiryForm = () => {
 
 /** 실제 결제가 발생하지 않는 관심 등록과 서버에 저장된 상태를 표시합니다. */
 export const PaymentInterestForm = () => {
-  const { t } = useTranslation()
-
   const interest = usePaymentInterest()
   return (
     <section className="max-w-3xl space-y-5 p-6 rounded-card bg-background-normal">
-      <h2 className="text-title2 font-bold text-label-normal">{t('유료 서비스 이용 의향')}</h2>
+      <h2 className="text-title2 font-bold text-label-normal">{'유료 서비스 이용 의향'}</h2>
       <p className="text-body text-label-alternative">
-        {t(
-          '더 나은 훈련 기능을 준비하고 있어요. 유료 서비스 이용에 관심이 있다면 알려주세요. 관심을 등록해도 결제되거나 요금이 청구되지 않아요.',
-        )}
+        {
+          '더 나은 훈련 기능을 준비하고 있어요. 유료 서비스 이용에 관심이 있다면 알려주세요. 관심을 등록해도 결제되거나 요금이 청구되지 않아요.'
+        }
       </p>
       {interest.isLoading ? (
         <LoadingSpinner />
       ) : interest.isRegistered ? (
         <p role="status" className="text-body font-bold text-primary-normal">
-          {t('관심 등록을 완료했어요.')}
+          {'관심 등록을 완료했어요.'}
         </p>
       ) : (
         <PrimaryButton
@@ -92,7 +87,7 @@ export const PaymentInterestForm = () => {
           disabled={!interest.hasStatus || interest.isSaving}
           onClick={interest.register}
         >
-          {interest.isSaving ? t('등록 중') : t('관심 등록하기')}
+          {interest.isSaving ? '등록 중' : '관심 등록하기'}
         </PrimaryButton>
       )}
       {interest.error && (

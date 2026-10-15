@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import type { CommunityAttachment, CommunityPost, ReactionKind } from '@entities/community'
 import { CommunityContentMenu } from './CommunityContentMenu'
 import { ReportCommunityContentDialog } from './ReportCommunityContentDialog'
@@ -110,12 +109,11 @@ const Profile = ({
 }
 
 const CommunityHeader = () => {
-  const { t } = useTranslation()
   return (
     <header className="gap-x-3 gap-y-1 flex flex-wrap items-center">
-      <h1 className="shrink-0 text-title1 font-bold text-label-normal">{t('커뮤니티')}</h1>
+      <h1 className="shrink-0 text-title1 font-bold text-label-normal">{'커뮤니티'}</h1>
       <p className="text-body font-medium text-neutral-60">
-        {t('서로의 경험과 팁, 도움됐던 시나리오를 공유해요!')}
+        {'서로의 경험과 팁, 도움됐던 시나리오를 공유해요!'}
       </p>
     </header>
   )
@@ -123,9 +121,8 @@ const CommunityHeader = () => {
 
 /** 조회 중에는 게시글 본문과 댓글 사이드 영역의 실제 배치를 유지합니다. */
 const CommunityDetailSkeleton = () => {
-  const { t } = useTranslation()
   return (
-    <LoadingRegion label={t('게시글을 불러오는 중')} className="mt-4">
+    <LoadingRegion label={'게시글을 불러오는 중'} className="mt-4">
       <Skeleton className="h-10 w-24" />
       <div className="gap-4 mt-4 max-lg:grid-cols-1 grid grid-cols-[minmax(0,1fr)_230px]">
         <div className="space-y-5 p-5 min-h-[580px] rounded-component bg-background-normal">
@@ -157,21 +154,19 @@ const CommunityRefreshNotice = ({
   isFetching: boolean
   onRetry: () => void
 }) => {
-  const { t } = useTranslation()
-
   if (!isError) return null
   return (
     <section
       role="alert"
-      aria-label={t('게시글 새로고침 오류')}
+      aria-label={'게시글 새로고침 오류'}
       className="gap-3 mt-4 p-4 max-sm:flex-col max-sm:items-start flex items-center justify-between rounded-component border border-line-alternative bg-fill-normal"
     >
       <div>
         <p className="text-body font-medium text-label-normal">
-          {t('최신 게시글을 불러오지 못했어요.')}
+          {'최신 게시글을 불러오지 못했어요.'}
         </p>
         <p className="mt-1 text-label text-label-alternative">
-          {t('이전에 불러온 내용을 표시하고 있어요. 다시 불러와 주세요.')}
+          {'이전에 불러온 내용을 표시하고 있어요. 다시 불러와 주세요.'}
         </p>
       </div>
       <button
@@ -182,7 +177,7 @@ const CommunityRefreshNotice = ({
         className="gap-2 px-4 py-2 flex shrink-0 items-center rounded-control bg-fill-neutral text-label font-bold text-label-normal disabled:opacity-50"
       >
         {isFetching && <LoadingSpinner />}
-        {t('다시 불러오기')}
+        {'다시 불러오기'}
       </button>
     </section>
   )
@@ -238,8 +233,6 @@ const Reactions = ({
 }
 
 const CommunityList = () => {
-  const { t } = useTranslation()
-
   const navigate = useNavigate()
   const [tab, setTab] = useState<'all' | 'mine'>('all')
   const [query, setQuery] = useState('')
@@ -262,24 +255,24 @@ const CommunityList = () => {
         <ServiceTabs
           items={communityTabs}
           value={tab}
-          label={t('커뮤니티 글 분류')}
+          label={'커뮤니티 글 분류'}
           onChange={setTab}
         />
         <div className="relative w-[300px] max-w-full">
           <ServiceSearchField
-            label={t('커뮤니티 검색')}
+            label={'커뮤니티 검색'}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={t('제목 또는 설명으로 검색')}
+            placeholder={'제목 또는 설명으로 검색'}
           />
         </div>
       </div>
       <div className="mt-4 gap-3 pb-16 flex flex-1 flex-col overflow-auto">
-        {isLoading && <ListSkeleton count={5} label={t('게시글을 불러오는 중')} />}
+        {isLoading && <ListSkeleton count={5} label={'게시글을 불러오는 중'} />}
         {isError && (
           <StatusState
             isError
-            title={t('게시글을 불러오지 못했어요.')}
+            title={'게시글을 불러오지 못했어요.'}
             onRetry={() => void refetch()}
             isRetrying={isFetching}
           />
@@ -289,21 +282,19 @@ const CommunityList = () => {
             <StatusState
               title={
                 query
-                  ? t('검색 결과가 없어요.')
+                  ? '검색 결과가 없어요.'
                   : tab === 'mine'
-                    ? t('아직 작성한 글이 없어요.')
-                    : t('아직 게시글이 없어요.')
+                    ? '아직 작성한 글이 없어요.'
+                    : '아직 게시글이 없어요.'
               }
-              description={
-                query ? t('다른 검색어로 찾아보세요.') : t('첫 경험을 커뮤니티에 나눠보세요.')
-              }
+              description={query ? '다른 검색어로 찾아보세요.' : '첫 경험을 커뮤니티에 나눠보세요.'}
               action={
                 <button
                   type="button"
                   onClick={() => (query ? setQuery('') : navigate(routePaths.communityNew))}
                   className="px-4 py-2 rounded-control bg-primary-normal text-label font-bold"
                 >
-                  {query ? t('검색 초기화') : t('글 작성하기')}
+                  {query ? '검색 초기화' : '글 작성하기'}
                 </button>
               }
             />
@@ -334,7 +325,7 @@ const CommunityList = () => {
         ))}
         {isFetchNextPageError && (
           <p role="alert" className="text-label text-status-error">
-            {t('다음 게시글을 불러오지 못했어요. 다시 시도해 주세요.')}
+            {'다음 게시글을 불러오지 못했어요. 다시 시도해 주세요.'}
           </p>
         )}
         {hasNextPage && (
@@ -344,7 +335,7 @@ const CommunityList = () => {
             disabled={isFetchingNextPage}
             onClick={() => void fetchNextPage()}
           >
-            {isFetchingNextPage ? t('불러오는 중') : t('더 보기')}
+            {isFetchingNextPage ? '불러오는 중' : '더 보기'}
           </button>
         )}
       </div>
@@ -353,7 +344,7 @@ const CommunityList = () => {
         onClick={() => navigate(routePaths.communityNew)}
         className="right-12 bottom-7 px-7 py-3 max-lg:right-8 max-md:right-4 max-md:bottom-24 max-md:z-40 max-md:px-5 text-white fixed rounded-control bg-green-40 text-body font-medium shadow-elevated-card"
       >
-        {t('게시글 작성')}
+        {'게시글 작성'}
       </button>
     </ServicePageContent>
   )
@@ -371,8 +362,6 @@ const AttachmentCard = ({
   attachment: CommunityAttachment
   postId: number
 }) => {
-  const { t } = useTranslation()
-
   const isScenario = attachment.type === 'scenario'
   const isRecord = attachment.type === 'record'
   const isImage = attachment.type === 'image'
@@ -412,7 +401,7 @@ const AttachmentCard = ({
       </figure>
     ) : (
       <div className="mt-5 px-4 py-6 flex items-center justify-center rounded-component border border-line-alternative bg-fill-normal text-label text-label-alternative">
-        {t('사진을 불러오지 못했어요.')}
+        {'사진을 불러오지 못했어요.'}
       </div>
     )
   }
@@ -513,15 +502,14 @@ const AttachmentCard = ({
 
 /** 작성한 콘텐츠의 수정·삭제 메뉴를 표시합니다. */
 const ActionMenu = ({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) => {
-  const { t } = useTranslation()
   return (
     <ActionDropdown
-      label={t('더보기')}
+      label={'더보기'}
       icon={<FiMoreVertical className="size-5" />}
       className="w-24"
       items={[
         { label: '수정', onSelect: onEdit },
-        { label: t('삭제'), onSelect: onDelete, isDanger: true },
+        { label: '삭제', onSelect: onDelete, isDanger: true },
       ]}
     />
   )
@@ -538,12 +526,11 @@ const ConfirmDeleteModal = ({
   onClose: () => void
   onConfirm: () => void
 }) => {
-  const { t } = useTranslation()
   return (
     <ConfirmDialog
       title={`정말 ${target}을 삭제하시겠습니까?`}
-      description={t('삭제한 내용은 다시 복구할 수 없어요.')}
-      confirmLabel={t('삭제')}
+      description={'삭제한 내용은 다시 복구할 수 없어요.'}
+      confirmLabel={'삭제'}
       pending={isPending}
       danger
       onClose={onClose}
@@ -567,8 +554,6 @@ const EditModal = ({
   onClose: () => void
   onSave: (value: { title?: string; content: string }) => void
 }) => {
-  const { t } = useTranslation()
-
   const dialogRef = useDialogFocus(true, onClose, isPending)
   const [editedTitle, setEditedTitle] = useState(initialTitle ?? '')
   const [editedContent, setEditedContent] = useState(initialContent)
@@ -592,7 +577,7 @@ const EditModal = ({
           <h3 id="edit-modal-title" className="text-headline1 font-bold">
             {title}
           </h3>
-          <button type="button" aria-label={t('닫기')} onClick={onClose} disabled={isPending}>
+          <button type="button" aria-label={'닫기'} onClick={onClose} disabled={isPending}>
             <FiX className="size-6" />
           </button>
         </div>
@@ -601,14 +586,14 @@ const EditModal = ({
             value={editedTitle}
             onChange={(event) => setEditedTitle(event.target.value)}
             className="mt-4 px-3 h-12 block w-full rounded-control bg-fill-field outline-primary-normal"
-            aria-label={t('게시물 제목')}
+            aria-label={'게시물 제목'}
           />
         )}
         <textarea
           value={editedContent}
           onChange={(event) => setEditedContent(event.target.value)}
           className="mt-3 p-3 min-h-40 block w-full resize-none rounded-control bg-fill-field outline-primary-normal"
-          aria-label={initialTitle === undefined ? '댓글 내용' : t('게시물 본문')}
+          aria-label={initialTitle === undefined ? '댓글 내용' : '게시물 본문'}
         />
         <div className="gap-2 mt-5 flex justify-end">
           <button
@@ -617,7 +602,7 @@ const EditModal = ({
             disabled={isPending}
             className="px-5 py-2.5 rounded-control bg-fill-normal text-label"
           >
-            {t('취소')}
+            {'취소'}
           </button>
           <button
             type="button"
@@ -630,7 +615,7 @@ const EditModal = ({
             }
             className="px-5 py-2.5 text-white rounded-control bg-primary-normal text-label disabled:opacity-40"
           >
-            {isPending ? '저장 중...' : t('저장')}
+            {isPending ? '저장 중...' : '저장'}
           </button>
         </div>
       </div>
@@ -645,8 +630,6 @@ const PostDetail = ({
   post: CommunityPost
   queryFeedback?: ReactNode
 }) => {
-  const { t } = useTranslation()
-
   const navigate = useNavigate()
   const currentUserId = getCurrentUserId()
   const [expanded, setExpanded] = useState<string[]>([])
@@ -705,7 +688,7 @@ const PostDetail = ({
         <span className="size-10 flex shrink-0 items-center justify-center">
           <BackIcon />
         </span>
-        {t('전체 글')}
+        {'전체 글'}
       </button>
       <div className="gap-4 mt-4 max-lg:grid-cols-1 grid flex-1 grid-cols-[minmax(0,1fr)_230px]">
         <article className="p-5 max-sm:p-4 max-lg:min-h-0 flex min-h-[580px] flex-col rounded-component bg-background-normal shadow-surface-card">
@@ -751,12 +734,12 @@ const PostDetail = ({
         <aside className="p-4 h-fit rounded-component bg-background-normal shadow-surface-card">
           <div className="flex items-center justify-between">
             <h3 className="text-headline2 font-bold">
-              {t('댓글')}{' '}
+              {'댓글'}{' '}
               <span className="ml-1 font-regular text-label-alternative">{post.commentCount}</span>
             </h3>
             <button
               type="button"
-              aria-label={t('댓글 새로고침')}
+              aria-label={'댓글 새로고침'}
               aria-busy={commentRefresh.isRefreshing}
               onClick={() => void commentRefresh.handleRefresh()}
               disabled={areCommentsLoading || commentRefresh.isRefreshing}
@@ -769,20 +752,17 @@ const PostDetail = ({
             </button>
           </div>
           <div className="divide-y divide-line-alternative">
-            {areCommentsLoading && <ListSkeleton count={2} label={t('댓글을 불러오는 중')} />}
+            {areCommentsLoading && <ListSkeleton count={2} label={'댓글을 불러오는 중'} />}
             {hasCommentsError && (
               <StatusState
                 isError
-                title={t('댓글을 불러오지 못했어요.')}
+                title={'댓글을 불러오지 못했어요.'}
                 onRetry={() => void commentRefresh.handleRefresh()}
                 isRetrying={commentRefresh.isRefreshing}
               />
             )}
             {!areCommentsLoading && !hasCommentsError && comments.length === 0 && (
-              <StatusState
-                title={t('아직 댓글이 없어요.')}
-                description={t('첫 댓글을 남겨보세요.')}
-              />
+              <StatusState title={'아직 댓글이 없어요.'} description={'첫 댓글을 남겨보세요.'} />
             )}
             {comments.map((item) => {
               const isExpanded = expanded.includes(item.id)
@@ -824,7 +804,7 @@ const PostDetail = ({
                       }
                       className="mt-2 text-caption text-label-alternative"
                     >
-                      {t('↳ 답글')} {isExpanded ? '숨기기' : `${item.replies.length}개 보기`}
+                      {'↳ 답글'} {isExpanded ? '숨기기' : `${item.replies.length}개 보기`}
                     </button>
                   )}
                   {isExpanded &&
@@ -867,10 +847,10 @@ const PostDetail = ({
               <div className="px-2 py-1 flex justify-between rounded-t-control border border-line-alternative text-caption">
                 <span>
                   ↪ {comments.find((item) => item.id === replyTo)?.author}
-                  {t('에게 답글')}
+                  {'에게 답글'}
                 </span>
                 <button type="button" onClick={() => setReplyTo(null)}>
-                  {t('취소')}
+                  {'취소'}
                 </button>
               </div>
             )}
@@ -884,12 +864,12 @@ const PostDetail = ({
                   submitComment()
                 }}
                 maxLength={1000}
-                placeholder={t('댓글을 입력해주세요.')}
+                placeholder={'댓글을 입력해주세요.'}
                 className="min-w-0 flex-1 bg-transparent text-label text-label-normal outline-none"
               />
               <button
                 type="button"
-                aria-label={t('댓글 등록')}
+                aria-label={'댓글 등록'}
                 onClick={submitComment}
                 disabled={!comment.trim() || createComment.isPending}
                 className={comment.trim() ? 'text-primary-normal' : 'text-label-disabled'}
@@ -926,7 +906,7 @@ const PostDetail = ({
       )}
       {editingComment && (
         <EditModal
-          title={t('댓글 수정')}
+          title={'댓글 수정'}
           initialContent={editingComment.content}
           isPending={updateComment.isPending}
           onClose={() => setEditingComment(null)}
@@ -971,8 +951,6 @@ const SelectionModal = ({
   onClose: () => void
   onSelect: (attachment: Attachment) => void
 }) => {
-  const { t } = useTranslation()
-
   const [records, setRecords] = useState<SelectableAttachment[]>([])
   const [selected, setSelected] = useState<number | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
@@ -1060,15 +1038,15 @@ const SelectionModal = ({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={t('첨부할 항목 선택')}
+        aria-label={'첨부할 항목 선택'}
         tabIndex={-1}
         className="ux-overlay p-5 max-sm:p-4 flex h-[min(560px,calc(100vh-32px))] w-full max-w-[680px] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card"
       >
         <div className="flex shrink-0 items-start justify-between">
           <div>
             <h3 className="text-headline1 font-bold">
-              {t('첨부')}
-              {type === 'record' ? '훈련기록' : t('시나리오')} {t('선택')}
+              {'첨부'}
+              {type === 'record' ? '훈련기록' : '시나리오'} {'선택'}
             </h3>
             <p className="mt-1 text-label text-label-alternative">
               {type === 'record'
@@ -1078,7 +1056,7 @@ const SelectionModal = ({
           </div>
           <button
             type="button"
-            aria-label={t('닫기')}
+            aria-label={'닫기'}
             onClick={onClose}
             className="size-9 flex items-center justify-center rounded-pill bg-fill-normal text-label-neutral"
           >
@@ -1102,13 +1080,13 @@ const SelectionModal = ({
             {isDatePickerOpen && (
               <div
                 role="dialog"
-                aria-label={t('훈련기록 날짜 선택')}
+                aria-label={'훈련기록 날짜 선택'}
                 className="right-0 p-4 w-80 max-sm:w-full absolute top-[calc(100%+8px)] z-20 rounded-component border border-line-alternative bg-background-normal shadow-elevated-card"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <button
                     type="button"
-                    aria-label={t('이전 달')}
+                    aria-label={'이전 달'}
                     onClick={() =>
                       setCalendarMonth(new Date(calendarYear, calendarMonthIndex - 1, 1))
                     }
@@ -1118,12 +1096,12 @@ const SelectionModal = ({
                   </button>
                   <strong className="text-label font-bold">
                     {calendarYear}
-                    {t('년')} {calendarMonthIndex + 1}
-                    {t('월')}
+                    {'년'} {calendarMonthIndex + 1}
+                    {'월'}
                   </strong>
                   <button
                     type="button"
-                    aria-label={t('다음 달')}
+                    aria-label={'다음 달'}
                     onClick={() =>
                       setCalendarMonth(new Date(calendarYear, calendarMonthIndex + 1, 1))
                     }
@@ -1133,7 +1111,7 @@ const SelectionModal = ({
                   </button>
                 </div>
                 <div className="grid grid-cols-7 text-center text-caption text-label-alternative">
-                  {['일', t('월'), '화', '수', '목', '금', '토'].map((day) => (
+                  {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
                     <span key={day} className="py-1">
                       {day}
                     </span>
@@ -1175,11 +1153,11 @@ const SelectionModal = ({
           </div>
         )}
         <div className="mt-4 gap-3 min-h-0 pr-1 flex flex-1 flex-col overflow-y-auto">
-          {isLoading && <ListSkeleton label={t('첨부할 항목을 불러오는 중')} />}
+          {isLoading && <ListSkeleton label={'첨부할 항목을 불러오는 중'} />}
           {hasError && (
             <StatusState
               isError
-              title={t('목록을 불러오지 못했어요.')}
+              title={'목록을 불러오지 못했어요.'}
               onRetry={() => {
                 setIsLoading(true)
                 setHasError(false)
@@ -1189,7 +1167,7 @@ const SelectionModal = ({
             />
           )}
           {!isLoading && !hasError && visibleRecords.length === 0 && (
-            <p className="py-6 text-center text-label-alternative">{t('첨부할 항목이 없어요.')}</p>
+            <p className="py-6 text-center text-label-alternative">{'첨부할 항목이 없어요.'}</p>
           )}
           {visibleRecords.map((item) => (
             <button
@@ -1237,10 +1215,10 @@ const SelectionModal = ({
                   </strong>
                   <span className="w-24 max-sm:w-auto gap-1 relative flex shrink-0 items-center text-label">
                     <FiRotateCw className="size-4" /> {item.practiceCount ?? 0}
-                    {t('회')}
+                    {'회'}
                   </span>
                   <span className="w-36 max-md:hidden relative shrink-0 text-label">
-                    {t('커스텀 시나리오')}
+                    {'커스텀 시나리오'}
                   </span>
                 </>
               )}
@@ -1258,7 +1236,7 @@ const SelectionModal = ({
             onClick={onClose}
             className="h-12 w-32 max-sm:flex-1 rounded-control bg-fill-normal text-label font-medium"
           >
-            {t('취소')}
+            {'취소'}
           </button>
           <button
             type="button"
@@ -1269,8 +1247,8 @@ const SelectionModal = ({
             }}
             className="h-12 w-56 max-sm:flex-1 text-white rounded-control bg-primary-normal text-label font-bold disabled:opacity-30"
           >
-            {t('선택')}
-            {type === 'record' ? '훈련기록' : t('시나리오')} {t('첨부')}
+            {'선택'}
+            {type === 'record' ? '훈련기록' : '시나리오'} {'첨부'}
           </button>
         </div>
       </div>
@@ -1285,8 +1263,6 @@ const PostComposer = ({
   post?: CommunityPost
   queryFeedback?: ReactNode
 }) => {
-  const { t } = useTranslation()
-
   const navigate = useNavigate()
   const imageInputRef = useRef<HTMLInputElement>(null)
   const attachmentMenuRef = useRef<HTMLDivElement>(null)
@@ -1378,28 +1354,28 @@ const PostComposer = ({
         onClick={() => navigate(returnPath)}
         className="gap-2 mt-4 px-2 min-h-10 flex w-fit items-center rounded-control text-body text-label-neutral transition-colors hover:bg-fill-normal"
       >
-        <BackIcon /> {isEditing ? '게시글로 돌아가기' : t('전체 글')}
+        <BackIcon /> {isEditing ? '게시글로 돌아가기' : '전체 글'}
       </button>
       <div className="gap-4 mt-4 max-lg:grid-cols-1 grid flex-1 grid-cols-[minmax(0,1fr)_230px]">
         <section className="p-5 max-sm:p-4 flex flex-col rounded-component bg-background-normal shadow-surface-card">
           <h2 className="text-title2 font-bold">{isEditing ? '게시물 수정' : '새 게시물 작성'}</h2>
           <label className="mt-4 text-label font-medium">
-            {t('게시물 제목')}
+            {'게시물 제목'}
             <input
               maxLength={100}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder={t('게시물 제목을 입력해주세요.')}
+              placeholder={'게시물 제목을 입력해주세요.'}
               className="mt-2 px-3 h-12 block w-full rounded-control bg-fill-normal outline-primary-normal"
             />
           </label>
           <label className="mt-4 flex flex-1 flex-col text-label font-medium">
-            {t('게시물 본문')}
+            {'게시물 본문'}
             <textarea
               maxLength={5000}
               value={content}
               onChange={(event) => setContent(event.target.value)}
-              placeholder={t('게시물 본문을 입력해주세요.')}
+              placeholder={'게시물 본문을 입력해주세요.'}
               className="mt-2 p-3 min-h-[300px] flex-1 resize-none rounded-control bg-fill-normal outline-primary-normal"
             />
           </label>
@@ -1409,7 +1385,7 @@ const PostComposer = ({
               onClick={() => navigate(returnPath)}
               className="px-8 py-3 rounded-control bg-fill-normal"
             >
-              {t('취소')}
+              {'취소'}
             </button>
             <button
               type="button"
@@ -1423,13 +1399,13 @@ const PostComposer = ({
         </section>
         <aside className="p-4 h-fit rounded-component bg-background-normal shadow-surface-card">
           <div ref={attachmentMenuRef} className="relative flex items-center justify-between">
-            <h3 className="text-label font-bold">{t('첨부요소')}</h3>
+            <h3 className="text-label font-bold">{'첨부요소'}</h3>
             <button
               type="button"
               onClick={() => setMenuOpen((value) => !value)}
               className="px-3 py-2 rounded-control border border-line-alternative text-caption"
             >
-              {t('추가하기 +')}
+              {'추가하기 +'}
             </button>
             {menuOpen && (
               <div className="right-0 top-11 w-44 absolute z-10 overflow-hidden rounded-control bg-background-normal shadow-elevated-card">
@@ -1463,7 +1439,7 @@ const PostComposer = ({
           />
           {isUploadingImage && (
             <p className="mt-3 text-caption text-label-alternative" role="status">
-              {t('사진을 업로드하는 중이에요.')}
+              {'사진을 업로드하는 중이에요.'}
             </p>
           )}
           {imageError && (
@@ -1474,7 +1450,7 @@ const PostComposer = ({
           <div className="mt-3 gap-2 p-2 flex min-h-[52px] flex-col rounded-control bg-fill-normal">
             {attachments.length === 0 ? (
               <p className="py-3 text-center text-caption text-label-alternative">
-                {t('종류별로 1개씩 첨부할 수 있어요. 다시 선택하면 교체돼요.')}
+                {'종류별로 1개씩 첨부할 수 있어요. 다시 선택하면 교체돼요.'}
               </p>
             ) : (
               attachments.map((item) => (
@@ -1488,7 +1464,7 @@ const PostComposer = ({
                   </span>
                   <button
                     type="button"
-                    aria-label={t('첨부 삭제')}
+                    aria-label={'첨부 삭제'}
                     onClick={() =>
                       setAttachments((items) =>
                         items.filter(
@@ -1524,8 +1500,6 @@ const PostComposer = ({
 }
 
 const CommunityDetailRoute = ({ postId }: { postId: number }) => {
-  const { t } = useTranslation()
-
   const { data: post, isLoading, isError, refetch, isFetching } = useCommunityPost(postId)
 
   if (isLoading)
@@ -1541,8 +1515,8 @@ const CommunityDetailRoute = ({ postId }: { postId: number }) => {
         <CommunityHeader />
         <StatusState
           isError
-          title={t('게시글을 불러오지 못했어요.')}
-          description={t('삭제된 글이거나 일시적인 오류일 수 있어요.')}
+          title={'게시글을 불러오지 못했어요.'}
+          description={'삭제된 글이거나 일시적인 오류일 수 있어요.'}
           onRetry={() => void refetch()}
           isRetrying={isFetching}
           action={
@@ -1551,7 +1525,7 @@ const CommunityDetailRoute = ({ postId }: { postId: number }) => {
               onClick={() => window.history.back()}
               className="text-label text-label-neutral"
             >
-              {t('이전으로 돌아가기')}
+              {'이전으로 돌아가기'}
             </button>
           }
         />
@@ -1572,8 +1546,6 @@ const CommunityDetailRoute = ({ postId }: { postId: number }) => {
 }
 
 const CommunityEditRoute = ({ postId }: { postId: number }) => {
-  const { t } = useTranslation()
-
   const { data: post, isLoading, isError, refetch, isFetching } = useCommunityPost(postId)
 
   if (isLoading)
@@ -1589,8 +1561,8 @@ const CommunityEditRoute = ({ postId }: { postId: number }) => {
         <CommunityHeader />
         <StatusState
           isError
-          title={t('게시글을 불러오지 못했어요.')}
-          description={t('삭제된 글이거나 일시적인 오류일 수 있어요.')}
+          title={'게시글을 불러오지 못했어요.'}
+          description={'삭제된 글이거나 일시적인 오류일 수 있어요.'}
           onRetry={() => void refetch()}
           isRetrying={isFetching}
           action={
@@ -1599,7 +1571,7 @@ const CommunityEditRoute = ({ postId }: { postId: number }) => {
               onClick={() => window.history.back()}
               className="text-label text-label-neutral"
             >
-              {t('이전으로 돌아가기')}
+              {'이전으로 돌아가기'}
             </button>
           }
         />
@@ -1608,7 +1580,7 @@ const CommunityEditRoute = ({ postId }: { postId: number }) => {
   if (post.authorId !== getCurrentUserId())
     return (
       <ServicePageContent className="text-status-error">
-        {t('게시글 수정 권한이 없어요.')}
+        {'게시글 수정 권한이 없어요.'}
       </ServicePageContent>
     )
   return (

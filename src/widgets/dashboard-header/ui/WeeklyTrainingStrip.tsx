@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { useRecentAttendanceDays } from '../model/useRecentAttendanceDays'
 import { useWeeklySummary } from '@entities/dashboard'
 import { Skeleton, LoadingRegion } from '@shared/ui'
@@ -6,18 +5,16 @@ import callIcon from '@shared/assets/dashboard/call.svg'
 
 // 이번 주 훈련 횟수와 최근 7일 출석 여부를 표시합니다.
 export const WeeklyTrainingStrip = () => {
-  const { t } = useTranslation()
-
   const { data: weeklySummary, isPending, isError } = useWeeklySummary()
   const days = useRecentAttendanceDays()
 
   return (
     <section
       className="px-6 max-lg:w-full max-sm:px-4 max-sm:py-3 max-sm:h-auto max-sm:flex-col max-sm:items-start max-sm:gap-3 flex h-[77px] w-[547px] max-w-full shrink-0 items-center justify-between rounded-dialog bg-background-normal"
-      aria-label={t('이번 주 훈련')}
+      aria-label={'이번 주 훈련'}
     >
       <div className="gap-0.5 flex flex-col">
-        <p className="text-label font-medium text-neutral-60">{t('이번 주 훈련')}</p>
+        <p className="text-label font-medium text-neutral-60">{'이번 주 훈련'}</p>
         <div className="text-body font-bold text-label-normal">
           {weeklySummary ? (
             `이번 주 ${weeklySummary.trainingCount}회 훈련했어요`
@@ -39,7 +36,7 @@ export const WeeklyTrainingStrip = () => {
               }`}
             >
               {day.isPending ? (
-                <LoadingRegion label={t('출석 확인 중')}>
+                <LoadingRegion label={'출석 확인 중'}>
                   <Skeleton className="size-7 rounded-pill" />
                 </LoadingRegion>
               ) : (

@@ -10,6 +10,10 @@ import { createElement, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTrainingRecords } from './useTrainingRecords'
 
+const { notify } = vi.hoisted(() => ({ notify: vi.fn() }))
+
+vi.mock('@shared/ui', () => ({ useToast: () => notify }))
+
 vi.mock('../api/trainingRecordsApi', () => ({
   deleteTrainingRecord: vi.fn(),
   getTrainingRecord: vi.fn(),
@@ -72,7 +76,9 @@ describe('useTrainingRecords', () => {
   })
 
   it('목록에 없는 기록도 전달받은 ID로 상세를 연다', async () => {
-    const { result } = renderHook(() => useTrainingRecords(undefined, 37), { wrapper: createWrapper() })
+    const { result } = renderHook(() => useTrainingRecords(undefined, 37), {
+      wrapper: createWrapper(),
+    })
 
     await waitFor(() => expect(result.current.selectedRecord?.id).toBe(37))
     expect(result.current.isDetailOpen).toBe(true)
@@ -80,10 +86,14 @@ describe('useTrainingRecords', () => {
   })
 
   it('상세 응답에 이미지가 없어도 목록의 서버 아이콘을 유지한다', async () => {
-    vi.mocked(getTrainingRecords).mockResolvedValue([{ ...createRecord(1), thumbnailUrl: 'https://example.com/category.png' }])
+    vi.mocked(getTrainingRecords).mockResolvedValue([
+      { ...createRecord(1), thumbnailUrl: 'https://example.com/category.png' },
+    ])
     const { result } = renderHook(() => useTrainingRecords(), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.paginatedRecords[0]?.feedbackCount).toBe(1))
-    expect(result.current.paginatedRecords[0]?.thumbnailUrl).toBe('https://example.com/category.png')
+    expect(result.current.paginatedRecords[0]?.thumbnailUrl).toBe(
+      'https://example.com/category.png',
+    )
     act(() => result.current.handleOpenRecord(1))
     await waitFor(() => expect(result.current.selectedRecord?.feedbackCount).toBe(1))
     expect(result.current.selectedRecord?.thumbnailUrl).toBe('https://example.com/category.png')
@@ -167,7 +177,32 @@ describe('useTrainingRecords', () => {
     act(() => result.current.handleOpenRecord(1))
     await waitFor(() => expect(getTrainingRecord).toHaveBeenCalledWith(1))
 
+    let finishDelete!: () => void
+    vi.mocked(deleteTrainingRecord).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishDelete = resolve
+      }),
+    )
     act(() => result.current.handleDeleteRecord())
     await waitFor(() => expect(vi.mocked(deleteTrainingRecord).mock.calls[0]?.[0]).toBe(1))
+    expect(notify).not.toHaveBeenCalled()
+    await act(async () => finishDelete())
+    await waitFor(() =>
+      expect(notify).toHaveBeenCalledExactlyOnceWith({ message: '훈련 기록을 삭제했어요.' }),
+    )
+    expect(result.current.isDetailOpen).toBe(false)
+  })
+  it('삭제 실패 시 성공 토스트를 표시하지 않고 상세 화면을 유지한다', async () => {
+    vi.mocked(deleteTrainingRecord).mockRejectedValueOnce(new Error('delete failed'))
+    const { result } = renderHook(() => useTrainingRecords(undefined, 1), {
+      wrapper: createWrapper(),
+    })
+    await waitFor(() => expect(result.current.selectedRecord?.id).toBe(1))
+    act(() => result.current.handleDeleteRecord())
+    await waitFor(() =>
+      expect(result.current.deleteErrorMessage).toBe('훈련 기록을 삭제하지 못했습니다.'),
+    )
+    expect(notify).not.toHaveBeenCalled()
+    expect(result.current.isDetailOpen).toBe(true)
   })
 })

@@ -1,4 +1,4 @@
-import { useTranslation } from '@shared/lib'
+import { MeditationPlayer } from './MeditationPlayer'
 import { useDialogFocus } from '@shared/lib'
 import { useScenarioCall, type ScenarioCallOptions } from '../model/useScenarioCall'
 import { useCallScriptScroll } from '../model/useCallScriptScroll'
@@ -25,12 +25,11 @@ interface ContactProps {
 
 /** 기존 통화 상대 정보와 아바타를 표시합니다. */
 const Contact = ({ title }: ContactProps) => {
-  const { t } = useTranslation()
   return (
     <div className="flex flex-col items-center text-center">
       <h1 className="text-display1 font-bold text-label-normal">{title}</h1>
       <div className="mt-8 flex size-[140px] items-center justify-center rounded-pill bg-label-disabled">
-        <img src={defaultProfile} alt={t('AI 통화 상대')} className="size-[84px]" />
+        <img src={defaultProfile} alt={'AI 통화 상대'} className="size-[84px]" />
       </div>
     </div>
   )
@@ -52,7 +51,6 @@ const CallControl = ({
   disabled = false,
   onClick,
 }: CallControlProps) => {
-  const { t } = useTranslation()
   return (
     <button
       type="button"
@@ -77,7 +75,7 @@ const CallControl = ({
           disabled ? 'opacity-40' : ''
         }`}
       >
-        {t(label)}
+        {label}
       </span>
     </button>
   )
@@ -85,8 +83,6 @@ const CallControl = ({
 
 /** Figma 수신·명상·통화·종료 화면을 표시합니다. */
 export const ScenarioCallView = (options: ScenarioCallOptions) => {
-  const { t } = useTranslation()
-
   const call = useScenarioCall(options)
   const meditationRef = useDialogFocus(call.stage === 'meditationPrompt', call.handleStartCall)
   const scriptScrollRef = useCallScriptScroll(call.isScriptOpen, call.script)
@@ -105,14 +101,14 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
             onClick={call.handleRetry}
             className="px-6 py-3 rounded-component bg-primary-normal text-body font-bold text-label-button-text"
           >
-            {t('새 훈련 시작')}
+            {'새 훈련 시작'}
           </button>
           <button
             type="button"
             onClick={call.handleDecline}
             className="px-6 py-3 rounded-component bg-fill-normal text-body text-label-normal"
           >
-            {t('목록으로 돌아가기')}
+            {'목록으로 돌아가기'}
           </button>
         </div>
       </main>
@@ -120,29 +116,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
   }
 
   if (call.stage === 'meditationVideo') {
-    return (
-      <main className="gap-5 p-5 flex min-h-screen flex-col items-center justify-center bg-background-normal">
-        <h1 className="text-title2 font-bold text-label-normal">
-          {t('잠시 호흡을 가다듬어 보세요')}
-        </h1>
-        <video
-          className="max-w-4xl w-full rounded-dialog"
-          src="/media/meditate.mp4"
-          controls
-          autoPlay
-          playsInline
-          onEnded={call.handleStartCall}
-          aria-label={t('통화 전 명상 영상')}
-        />
-        <button
-          type="button"
-          onClick={call.handleStartCall}
-          className="px-6 py-3 rounded-control bg-primary-normal text-body font-bold text-label-button-text"
-        >
-          {t('명상을 마치고 통화 시작')}
-        </button>
-      </main>
-    )
+    return <MeditationPlayer onFinish={call.handleStartCall} />
   }
 
   if (
@@ -153,11 +127,11 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
     return (
       <main className="px-12 pt-12 pb-14 max-sm:px-5 max-sm:pt-6 max-sm:pb-6 relative min-h-screen overflow-hidden bg-gradient-to-b from-background-normal to-train-call-gradient-end">
         <div className="flex min-h-[calc(100dvh-104px)] flex-col items-center justify-between">
-          <p className="text-body font-medium text-label-alternative">{t('바다 시나리오 훈련')}</p>
+          <p className="text-body font-medium text-label-alternative">{'바다 시나리오 훈련'}</p>
           <Contact title={title} />
           {call.stage === 'scheduled' ? (
             <div className="text-center">
-              <p className="text-caption text-label-alternative">{t('전화가 걸려오기까지')}</p>
+              <p className="text-caption text-label-alternative">{'전화가 걸려오기까지'}</p>
               <p className="mt-2 text-title2 font-bold text-label-normal tabular-nums">
                 {formatTimer(call.remainingDelay)}
               </p>
@@ -174,7 +148,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
                 disabled={call.isCanceling}
                 className="mt-5 text-caption text-label-alternative"
               >
-                {t('훈련 취소하기')}
+                {'훈련 취소하기'}
               </button>
             </div>
           ) : (
@@ -183,7 +157,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
                 type="button"
                 onClick={call.handleAnswer}
                 disabled={call.isAccepting || call.isCanceling}
-                aria-label={t('전화 받기')}
+                aria-label={'전화 받기'}
                 className="size-20 flex items-center justify-center rounded-pill bg-green-40"
               >
                 <img src={callAnswer} alt="" className="size-9" />
@@ -192,7 +166,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
                 type="button"
                 onClick={call.handleDecline}
                 disabled={call.isAccepting || call.isCanceling}
-                aria-label={t('전화 거절')}
+                aria-label={'전화 거절'}
                 className="size-20 flex items-center justify-center rounded-pill bg-red-40"
               >
                 <img src={callDecline} alt="" className="size-9 rotate-[135deg]" />
@@ -201,7 +175,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
           )}
           {call.isAccepting && (
             <p role="status" className="text-body text-label-alternative">
-              {t('예약 전화를 수락하고 있어요.')}
+              {'예약 전화를 수락하고 있어요.'}
             </p>
           )}
           {call.isRingtoneBlocked && (
@@ -210,7 +184,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
               onClick={() => void call.handlePlayRingtone()}
               className="text-label text-primary-normal"
             >
-              {t('벨소리 켜기')}
+              {'벨소리 켜기'}
             </button>
           )}
         </div>
@@ -220,16 +194,16 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
             <section
               ref={meditationRef}
               tabIndex={-1}
-              aria-label={t('훈련 전 명상')}
+              aria-label={'훈련 전 명상'}
               role="dialog"
               aria-modal="true"
               className="ux-overlay p-8 w-[460px] max-w-[calc(100%-32px)] rounded-dialog bg-background-normal shadow-elevated-card"
             >
               <h2 className="text-headline2 font-bold text-label-normal">
-                {t('훈련 전 명상을 할까요?')}
+                {'훈련 전 명상을 할까요?'}
               </h2>
               <p className="mt-2 text-body text-label-alternative">
-                {t('명상은 통화 전 마음을 안정시키는 데 도움이 돼요.')}
+                {'명상은 통화 전 마음을 안정시키는 데 도움이 돼요.'}
               </p>
               <div className="mt-6 gap-3 flex">
                 <button
@@ -237,14 +211,14 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
                   onClick={call.handleStartCall}
                   className="h-[52px] flex-1 rounded-component bg-background-alternative text-body font-bold text-label-neutral"
                 >
-                  {t('건너뛰기')}
+                  {'건너뛰기'}
                 </button>
                 <button
                   type="button"
                   onClick={call.handleMeditate}
                   className="h-[52px] flex-1 rounded-component bg-primary-normal text-body font-bold text-common-0"
                 >
-                  {t('명상하기')}
+                  {'명상하기'}
                 </button>
               </div>
             </section>
@@ -305,7 +279,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
           </span>
           {isWaitingForResult && (
             <span role="status" className="sr-only">
-              {t('훈련 결과 대기 중')}
+              {'훈련 결과 대기 중'}
             </span>
           )}
         </div>
@@ -314,7 +288,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
           <Contact title={call.displayName || title} />
           {!isWaitingForResult && (
             <p role="status" className="text-body text-label-alternative">
-              {t(statusMessage)}
+              {statusMessage}
             </p>
           )}
           {call.notice && !isWaitingForResult && (
@@ -328,28 +302,28 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
               onClick={call.handleResumeAudio}
               className="px-6 py-3 rounded-component bg-primary-normal text-body font-bold text-label-button-text"
             >
-              {t('음성 활성화')}
+              {'음성 활성화'}
             </button>
           )}
           {!isWaitingForResult && (
             <div className="gap-x-2 gap-y-5 grid grid-cols-3">
               <CallControl
                 icon={callScript}
-                label={t('스크립트 보기')}
+                label={'스크립트 보기'}
                 active={call.isScriptOpen}
                 disabled={!isActive}
                 onClick={call.handleToggleScript}
               />
               <CallControl
                 icon={callMicOff}
-                label={t('음소거')}
+                label={'음소거'}
                 active={call.isMuted}
                 disabled={!isActive}
                 onClick={call.handleToggleMute}
               />
               <CallControl
                 icon={callRecord}
-                label={call.isRecording ? t('녹음 저장') : t('녹음')}
+                label={call.isRecording ? '녹음 저장' : '녹음'}
                 active={call.isRecording}
                 disabled={!isActive}
                 onClick={call.handleToggleRecording}
@@ -362,7 +336,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
           type="button"
           onClick={call.handleEndCall}
           disabled={isWaitingForResult}
-          aria-label={t('통화 종료')}
+          aria-label={'통화 종료'}
           className={`size-20 flex shrink-0 items-center justify-center rounded-pill ${
             isWaitingForResult ? 'bg-red-80' : 'bg-red-40'
           }`}
@@ -384,16 +358,14 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
       >
         <div className="p-8 min-w-0 flex h-full flex-col">
           <div className="gap-3 flex items-center justify-between">
-            <h2 className="text-headline1 font-bold text-label-normal">
-              {t('실시간 대화 스크립트')}
-            </h2>
+            <h2 className="text-headline1 font-bold text-label-normal">{'실시간 대화 스크립트'}</h2>
             <button
               type="button"
               onClick={call.handleToggleScript}
               tabIndex={isScriptVisible ? 0 : -1}
               className="px-3 py-2 shrink-0 rounded-control bg-fill-normal text-label font-medium text-label-neutral"
             >
-              {t('스크립트 가리기')}
+              {'스크립트 가리기'}
             </button>
           </div>
           <div ref={scriptScrollRef} className="mt-7 min-h-0 pr-3 flex-1 overflow-y-auto">
@@ -407,7 +379,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
                     }`}
                   >
                     <strong className="font-bold">
-                      {turn.speaker === 'user' ? t('나') : t('상대방')} :{' '}
+                      {turn.speaker === 'user' ? '나' : '상대방'} :{' '}
                     </strong>
                     {turn.text}
                   </li>
@@ -417,7 +389,7 @@ export const ScenarioCallView = (options: ScenarioCallOptions) => {
             {call.script.length === 0 && (
               <div className="p-4 rounded-component bg-primary-alternative">
                 <p className="leading-6 text-label whitespace-pre-wrap text-label-normal">
-                  {t('대화를 시작하면 내 발화와 상대방의 응답이 여기에 표시됩니다.')}
+                  {'대화를 시작하면 내 발화와 상대방의 응답이 여기에 표시됩니다.'}
                 </p>
               </div>
             )}

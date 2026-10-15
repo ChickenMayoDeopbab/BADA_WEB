@@ -325,4 +325,7 @@ test('offers recovery instead of exposing a rendering stack trace', async ({ pag
   await expect(page.getByRole('alert')).toContainText('화면을 불러오지 못했어요.')
   await expect(page.getByText('Unexpected Application Error!')).toHaveCount(0)
   await expect(page.getByRole('button', { name: '다시 시도하기' })).toBeVisible()
+  await page.getByRole('link', { name: '홈으로 돌아가기' }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('heading', { name: '전화가 편해지는 연습, Bada' })).toBeVisible()
 })

@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { useDialogFocus } from '@shared/lib'
 import { OverlayPortal, BackIcon } from '@shared/ui'
 import { formatTrainingRecordDateRange } from '../model/formatTrainingRecordDateRange'
@@ -60,8 +59,6 @@ const CalendarMonth = ({
   onNextMonth,
   onSelectDate,
 }: CalendarMonthProps) => {
-  const { t } = useTranslation()
-
   const days = getCalendarDays(month)
   const recordDateKeys = new Set(recordDates.map(getDateKey))
 
@@ -71,20 +68,20 @@ const CalendarMonth = ({
         <button
           type="button"
           className="size-10 flex items-center justify-center rounded-control border border-line-alternative text-title2 text-label-normal transition-colors hover:bg-fill-normal"
-          aria-label={t('이전 달')}
+          aria-label={'이전 달'}
           onClick={onPreviousMonth}
         >
           <BackIcon />
         </button>
         <h3 className="text-center text-headline1 font-bold text-label-normal">
           {month.getFullYear()}
-          {t('년')} {month.getMonth() + 1}
-          {t('월')}
+          {'년'} {month.getMonth() + 1}
+          {'월'}
         </h3>
         <button
           type="button"
           className="size-10 flex items-center justify-center rounded-control border border-line-alternative text-title2 text-label-normal transition-colors hover:bg-fill-normal"
-          aria-label={t('다음 달')}
+          aria-label={'다음 달'}
           onClick={onNextMonth}
         >
           ›
@@ -171,8 +168,6 @@ export const TrainingRecordCalendar = ({
   onNextMonth,
   onSelectDate,
 }: TrainingRecordCalendarProps) => {
-  const { t } = useTranslation()
-
   const dialogRef = useDialogFocus(isOpen, onCancel)
   if (!isOpen) {
     return null
@@ -184,7 +179,7 @@ export const TrainingRecordCalendar = ({
         type="button"
         className="inset-0 fixed z-40 cursor-default bg-common-100/20 backdrop-blur-[2px]"
         tabIndex={-1}
-        aria-label={t('날짜 선택 취소')}
+        aria-label={'날짜 선택 취소'}
         onClick={onCancel}
       />
       <section
@@ -193,11 +188,11 @@ export const TrainingRecordCalendar = ({
         className="fixed top-1/2 left-1/2 z-50 flex h-[560px] max-h-[calc(100dvh-32px)] w-[440px] max-w-[calc(100%-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card"
         role="dialog"
         aria-modal="true"
-        aria-label={t('훈련 기록 날짜 범위 선택')}
+        aria-label={'훈련 기록 날짜 범위 선택'}
       >
         <header className="px-7 py-5 border-b border-line-alternative">
           <div>
-            <p className="text-label font-medium text-label-alternative">{t('조회 기간')}</p>
+            <p className="text-label font-medium text-label-alternative">{'조회 기간'}</p>
             <h2 className="text-headline1 font-bold text-label-normal">
               {formatTrainingRecordDateRange(range)}
             </h2>
@@ -219,14 +214,14 @@ export const TrainingRecordCalendar = ({
             className="h-11 px-5 rounded-control border border-line-normal bg-background-normal text-body font-medium text-label-normal transition-colors hover:bg-fill-normal"
             onClick={onCancel}
           >
-            {t('취소')}
+            {'취소'}
           </button>
           <button
             type="button"
             className="h-11 px-5 rounded-control bg-primary-normal text-body font-bold text-label-button-text transition-opacity hover:opacity-90"
             onClick={onApply}
           >
-            {t('적용')}
+            {'적용'}
           </button>
         </footer>
       </section>

@@ -75,7 +75,9 @@ test('registers payment interest once, without a payment, and reloads the stored
   expect(registrations).toBe(1)
 })
 
-test('creates a 30-second WARMUP session and opens the app meditation video', async ({ page }) => {
+test('creates a 30-second WARMUP session and opens YouTube without playback controls', async ({
+  page,
+}) => {
   await prepare(page)
   await page.route('**/api/v1/scenario/custom', (route) => {
     expect(route.request().postDataJSON()).toMatchObject({
@@ -110,27 +112,37 @@ test('creates a 30-second WARMUP session and opens the app meditation video', as
   await page.getByRole('textbox', { name: '통화 목적', exact: true }).fill('카페 영업시간 물어보기')
   await page.getByRole('button', { name: '30초 워밍업 시작' }).click()
   await expect(page).toHaveURL(/\/training\/81\/call$/)
+  await page.route('https://www.youtube-nocookie.com/embed/**', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: '<html><body style="margin:0;background:black"></body></html>',
+    }),
+  )
   await page.getByRole('button', { name: '명상하기', exact: true }).click()
-  const video = page.locator('video')
+  const video = page.getByTitle('통화 전 명상 영상')
   await expect(video).toBeVisible()
-  await expect(video).toHaveAttribute('src', '/media/meditate.mp4')
-  await expect(page.getByRole('button', { name: '명상을 마치고 통화 시작' })).toBeVisible()
+  const source = new URL((await video.getAttribute('src'))!)
+  expect(source.hostname).toBe('www.youtube-nocookie.com')
+  expect(source.pathname).toBe('/embed/z6b5nLI6BqI')
+  expect(source.searchParams.get('controls')).toBe('0')
+  expect(source.searchParams.get('autoplay')).toBe('1')
+  await expect(page.getByRole('button', { name: '명상 끝내고 전화하기' })).toBeVisible()
+  expect(
+    await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
+  ).toBe(true)
 })
 
-test('changes display language immediately, persists on reload, and translates navigation', async ({
+test('keeps Korean display and removes language settings even with an old saved preference', async ({
   page,
 }) => {
   await prepare(page)
+  await page.addInitScript(() => localStorage.setItem('bada:display-language', 'en'))
   await page.goto('/profile')
-  await page.getByRole('link', { name: /언어 설정/ }).click()
-  await page.getByRole('button', { name: /English/ }).click()
-  await expect(page.getByRole('heading', { name: 'Language settings' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Community', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '프로필', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: /언어 설정|Language settings/ })).toHaveCount(0)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ko')
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Language settings' })).toBeVisible()
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-  await page.getByRole('button', { name: /한국어/ }).click()
-  await expect(page.getByRole('heading', { name: '언어 설정' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '프로필', exact: true })).toBeVisible()
 })
 
 test('loads more community posts and searches all pages of my posts', async ({ page }) => {
@@ -176,7 +188,9 @@ test('loads more community posts and searches all pages of my posts', async ({ p
   await expect(page.getByText('카페 후기', { exact: true })).toHaveCount(0)
 })
 
-test('provides full recording playback and transcript even without feedback', async ({ page }) => {
+test('omits the added full recording and transcript blocks from record details', async ({
+  page,
+}) => {
   await prepare(page)
   await page.route('**/api/v1/training-records?*', (route) =>
     route.fulfill({ json: { data: { content: [], number: 0, totalPages: 0 } } }),
@@ -204,21 +218,14 @@ test('provides full recording playback and transcript even without feedback', as
     }),
   )
   await page.goto('/records?recordId=7')
-  const player = page.locator('audio[aria-label="전체 통화 녹음 재생"]')
-  await expect(player).toBeVisible()
-  await expect(player).toHaveAttribute(
-    'src',
-    /\/training-records\/7\/recording\?token=signed-audio$/,
-  )
-  await expect(player).toHaveAttribute('controls', '')
-  await page.getByText('전체 대화 보기', { exact: true }).click()
-  await expect(page.getByText('안녕하세요. 영업시간이 궁금해요.', { exact: true })).toBeVisible()
-  await expect(page.getByText('오전 10시에 열어요.', { exact: true })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: '훈련 기록 상세' })).toBeVisible()
+  await expect(page.getByText('전체 통화 녹음', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('전체 대화 보기', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('통화 타임라인', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('안녕하세요. 영업시간이 궁금해요.', { exact: true })).toHaveCount(0)
 })
 
-test('shows a server-driven notification badge and exposes the notification list on mobile', async ({
-  page,
-}) => {
+test('keeps the notification badge and removes the extra quick settings', async ({ page }) => {
   await prepare(page)
   let unreadCount = 0
   await page.route('**/api/v1/notifications?*', (route) =>
@@ -236,7 +243,48 @@ test('shows a server-driven notification badge and exposes the notification list
   await page.reload()
   await expect(badge).toBeVisible()
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.getByRole('link', { name: /알림 목록/ }).click()
-  await expect(page).toHaveURL(/\/notifications$/)
-  await expect(page.getByRole('heading', { name: '알림', exact: true })).toBeVisible()
+  for (const name of ['알림 목록', '문의하기', '서비스 관심 등록']) {
+    await expect(page.getByRole('link', { name: new RegExp(name) })).toHaveCount(0)
+  }
+})
+
+test('shows the shared toast after deleting a training record and dismisses it automatically', async ({
+  page,
+}) => {
+  await prepare(page)
+  await page.route('**/api/v1/training-records?*', (route) =>
+    route.fulfill({ json: { data: { content: [], number: 0, totalPages: 0 } } }),
+  )
+  await page.route('**/api/v1/training-records/7', (route) => {
+    if (route.request().method() === 'DELETE') return route.fulfill({ status: 204 })
+    return route.fulfill({
+      json: {
+        data: {
+          recordId: 7,
+          sessionId: 'record-7',
+          trainedAt: new Date().toISOString(),
+          scenarioId: 1,
+          scenarioName: '짧은 연습',
+          sessionType: 'WARMUP',
+          aiPersonality: 'KIND',
+          durationSeconds: 30,
+          positiveFeedbacks: [],
+        },
+      },
+    })
+  })
+  await page.goto('/records?recordId=7')
+  const dialog = page.getByRole('dialog', { name: '훈련 기록 상세' })
+  await expect(dialog).toBeVisible()
+  const toast = page.getByRole('status').filter({ hasText: '훈련 기록을 삭제했어요.' })
+  await expect(toast).toHaveCount(0)
+  await dialog.getByRole('button', { name: '기록 메뉴 열기' }).click()
+  await dialog.getByRole('button', { name: '기록 삭제하기' }).click()
+  await expect(dialog).toBeHidden()
+  await expect(toast).toBeVisible()
+  await expect(toast.locator('..').locator('[data-toast-progress]')).toHaveCSS(
+    'animation-duration',
+    '2.5s',
+  )
+  await expect(toast).toHaveCount(0, { timeout: 5000 })
 })

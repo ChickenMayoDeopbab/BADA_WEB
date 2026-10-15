@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { lockPageScroll } from '@shared/lib'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 
@@ -27,8 +26,6 @@ export const ConfirmDialog = ({
   onClose,
   onConfirm,
 }: Props) => {
-  const { t } = useTranslation()
-
   const ref = useRef<HTMLDialogElement>(null)
   const id = useId()
   useEffect(() => {
@@ -88,7 +85,7 @@ export const ConfirmDialog = ({
           onClick={onClose}
           className="h-10 rounded-control bg-fill-normal text-label font-bold disabled:opacity-50"
         >
-          {t('취소')}
+          {'취소'}
         </button>
         <button
           type="button"

@@ -81,16 +81,14 @@ export class VoiceCall {
       onRecordingChange: (isRecording) =>
         this.update({
           isRecording,
-          notice: isRecording ? '녹음을 마치거나 통화를 종료하면 녹음 파일이 기기에 저장돼요.' : '',
         }),
       onRecordingComplete: (blob) => {
         saveCallRecording(blob, this.options.sessionId)
-        this.update({ notice: '녹음 파일 저장을 시작했어요.' })
       },
       onRecordingError: () =>
         this.update({
           notice:
-            '녹음을 저장하지 못했어요. 너무 짧게 녹음했거나 녹음을 지원하지 않는 브라우저일 수 있어요. 전체 통화 녹음은 훈련 기록에서 확인해 주세요.',
+            '녹음을 저장하지 못했어요. 너무 짧게 녹음했거나 녹음을 지원하지 않는 브라우저일 수 있어요.',
         }),
       onPcm: (data) => {
         if (this.canSendAudio() && this.transport.sendBinary(data)) {

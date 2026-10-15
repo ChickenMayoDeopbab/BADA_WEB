@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import type { SignupState } from '../model/useSignup'
 import { AuthButton } from './AuthButton'
 import { AuthCard } from './AuthCard'
@@ -10,12 +9,11 @@ type UsernameStepProps = {
 
 // 회원가입 마지막 단계로 이름과 아이디를 입력받습니다.
 export const UsernameStep = ({ signup }: UsernameStepProps) => {
-  const { t } = useTranslation()
   return (
     <AuthCard
       variant="plain"
-      title={t('회원가입 · 아이디')}
-      description={t('이름과 사용할 아이디를 입력해 주세요.')}
+      title={'회원가입 · 아이디'}
+      description={'이름과 사용할 아이디를 입력해 주세요.'}
       className="min-h-[600px]"
     >
       <form
@@ -29,8 +27,8 @@ export const UsernameStep = ({ signup }: UsernameStepProps) => {
         <div className="gap-1.5 flex flex-col">
           <AuthTextField
             variant="inset"
-            label={t('이름')}
-            placeholder={t('이름을 입력하세요.')}
+            label={'이름'}
+            placeholder={'이름을 입력하세요.'}
             autoComplete="name"
             value={signup.name}
             onValueChange={signup.changeName}
@@ -39,8 +37,8 @@ export const UsernameStep = ({ signup }: UsernameStepProps) => {
           <div className="gap-4 flex items-start">
             <AuthTextField
               variant="inset"
-              label={t('아이디')}
-              placeholder={t('아이디를 입력하세요.')}
+              label={'아이디'}
+              placeholder={'아이디를 입력하세요.'}
               autoComplete="username"
               value={signup.username}
               onValueChange={signup.changeUsername}
@@ -49,7 +47,7 @@ export const UsernameStep = ({ signup }: UsernameStepProps) => {
             />
             <AuthButton
               size="small"
-              label={t('중복 확인')}
+              label={'중복 확인'}
               onClick={() => void signup.confirmUsername()}
               isLoading={signup.isCheckingUsername}
             />
@@ -57,8 +55,8 @@ export const UsernameStep = ({ signup }: UsernameStepProps) => {
         </div>
 
         <div className="mt-8 gap-4 flex flex-col">
-          <AuthButton type="submit" label={t('회원가입')} isLoading={signup.isSubmitting} />
-          <AuthButton variant="secondary" label={t('이전으로')} onClick={signup.goToPasswordStep} />
+          <AuthButton type="submit" label={'회원가입'} isLoading={signup.isSubmitting} />
+          <AuthButton variant="secondary" label={'이전으로'} onClick={signup.goToPasswordStep} />
         </div>
       </form>
     </AuthCard>

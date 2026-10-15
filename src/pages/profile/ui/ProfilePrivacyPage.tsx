@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { ProfileBackLink } from './ProfileBackLink'
 import { FiChevronDown } from 'react-icons/fi'
 import { useId, useState, type ReactNode } from 'react'
@@ -73,8 +72,6 @@ const DocumentAccordion = ({
 
 /** 앱의 약관·이미지·민감정보 안내 및 선택 동의 관리 기능을 제공합니다. */
 export const ProfilePrivacyPage = () => {
-  const { t } = useTranslation()
-
   const [confirming, setConfirming] = useState<OptionalConsent | null>(null)
   const [expandedDocument, setExpandedDocument] = useState<string | null>(null)
   const { status, update } = usePrivacySettings()
@@ -121,7 +118,7 @@ export const ProfilePrivacyPage = () => {
     <ServicePageContent className="pb-10">
       <header className="mb-5 gap-3 flex flex-wrap items-center">
         <ProfileBackLink />
-        <h1 className="text-title1 font-bold text-label-normal">{t('개인정보 관리')}</h1>
+        <h1 className="text-title1 font-bold text-label-normal">{'개인정보 관리'}</h1>
       </header>
       <div className="space-y-4 max-w-[1024px]">
         <section className="p-6 max-sm:p-4 rounded-card border border-line-alternative bg-background-normal shadow-subtle-card">
@@ -145,7 +142,7 @@ export const ProfilePrivacyPage = () => {
             <h2 className="text-headline1 font-bold text-label-normal">{title}</h2>
             <div className="mt-3 text-label text-label-alternative">
               {status.isPending ? (
-                <LoadingRegion label={t('동의 상태를 확인하는 중')}>
+                <LoadingRegion label={'동의 상태를 확인하는 중'}>
                   <Skeleton className="h-4 w-2/3" />
                 </LoadingRegion>
               ) : status.isError ? (
@@ -159,7 +156,7 @@ export const ProfilePrivacyPage = () => {
                 className="mt-3 text-label text-primary-normal"
                 onClick={() => void status.refetch()}
               >
-                {t('다시 시도')}
+                {'다시 시도'}
               </button>
             )}
             <button
@@ -196,7 +193,7 @@ export const ProfilePrivacyPage = () => {
               ? '철회 후 프로필 이미지를 등록하려면 다시 동의해야 합니다.'
               : '철회 후 통화불안 진단과 음성·훈련 분석 기능을 이용하려면 다시 동의해야 합니다.'
           }
-          confirmLabel={t('철회하기')}
+          confirmLabel={'철회하기'}
           danger
           pending={update.isPending}
           error={

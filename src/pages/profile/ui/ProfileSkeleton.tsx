@@ -1,12 +1,10 @@
-import { useTranslation } from '@shared/lib'
 import { LoadingRegion, Skeleton } from '@shared/ui'
 
 /** 프로필 요약·수정 화면의 실제 카드, 사진과 입력 영역 크기를 유지합니다. */
 export const ProfileSkeleton = ({ isEditing = false }: { isEditing?: boolean }) => {
-  const { t } = useTranslation()
   return (
     <LoadingRegion
-      label={t('프로필 정보를 불러오는 중')}
+      label={'프로필 정보를 불러오는 중'}
       className={isEditing ? 'max-w-[1024px]' : ''}
     >
       {isEditing ? (
