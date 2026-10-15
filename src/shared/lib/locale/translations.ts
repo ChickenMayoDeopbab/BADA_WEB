@@ -1,5 +1,7 @@
 // 사용자 작성 콘텐츠와 서버가 생성한 시나리오·진단·약관 본문은 원문을 유지합니다.
 export const english: Record<string, string> = {
+  '페이지를 찾을 수 없습니다.': 'Page not found.',
+  '주소를 확인하거나 대시보드로 돌아가 주세요.': 'Check the address or return to the dashboard.',
   하: 'Easy',
   중: 'Medium',
   상: 'Hard',

@@ -9,7 +9,7 @@ import { getApiErrorMessage } from '@shared/api'
 import { routePaths } from '@shared/config'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { getNotificationDestination } from './notificationPresentation'
 
 const notificationKeys = {
@@ -21,6 +21,7 @@ export const useNotifications = () => {
   const [filter, setFilter] = useState<NotificationFilter>('ALL')
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const location = useLocation()
   const isOpening = useRef(false)
   const isActive = useRef(true)
   const [openingId, setOpeningId] = useState<number | null>(null)
@@ -67,7 +68,7 @@ export const useNotifications = () => {
 
   /** 이전 화면이 없는 직접 접근에서도 대시보드로 돌아갈 수 있습니다. */
   const handleBack = () => {
-    if (window.history.state?.idx > 0) navigate(-1)
+    if (location.key !== 'default') navigate(-1)
     else navigate(routePaths.dashboard, { replace: true })
   }
 

@@ -10,7 +10,7 @@ import {
 } from '@pages/auth'
 import { CommunityPage } from '@pages/community'
 import { DashboardPage } from '@pages/dashboard'
-import { PlaceholderPage } from '@pages/placeholders'
+import { NotFoundPage, PlaceholderPage } from '@pages/placeholders'
 import { NotificationsPage } from '@pages/notifications'
 import {
   ProfileInquiryPage,
@@ -39,13 +39,11 @@ import {
   Navigate,
   Outlet,
   RouterProvider,
-  useLocation,
   type RouteObject,
 } from 'react-router-dom'
 
-/** 보호 경로 전환마다 저장소를 읽고 서버 인증 상태를 공유합니다. */
+/** 보호 경로에서 하나의 서버 인증 확인 결과를 공유합니다. */
 const ProtectedRoutes = () => {
-  useLocation()
   return (
     <AuthProvider>
       <RequireAuth />
@@ -161,6 +159,7 @@ const applicationRoutes: RouteObject[] = [
           },
         ],
       },
+      { path: '*', element: <NotFoundPage /> },
       {
         path: routePaths.welcome,
         element: <SelfDiagnosisPage />,
@@ -174,10 +173,6 @@ const applicationRoutes: RouteObject[] = [
         element: <ScenarioResultPage />,
       },
     ],
-  },
-  {
-    path: '*',
-    element: <Navigate to={routePaths.landing} replace />,
   },
 ]
 

@@ -1,3 +1,4 @@
+import { hasAuthSession } from '../model/authSession'
 import { useAuthSession } from '../model/useAuthSession'
 import { routePaths } from '@shared/config'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
@@ -8,6 +9,7 @@ export const RequireAuth = () => {
   useLocation()
   const status = useAuthSession()
 
+  if (!hasAuthSession()) return <Navigate to={routePaths.landing} replace />
   if (status === 'checking') return null
   if (status === 'authenticated') {
     return <Outlet />
