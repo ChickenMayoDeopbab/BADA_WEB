@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   sendJson: vi.fn<(payload: object) => boolean>(),
   sendBinary: vi.fn(),
   setCaptureEnabled: vi.fn(),
+  setRecordingMuted: vi.fn(),
   connect: vi.fn(),
 }))
 
@@ -28,6 +29,7 @@ vi.mock('./voiceAudio', () => ({
     prepare = mocks.prepare
     dispose = mocks.audioDispose
     setCaptureEnabled = mocks.setCaptureEnabled
+    setRecordingMuted = mocks.setRecordingMuted
     resume = vi.fn()
     constructor(options: typeof mocks.audioOptions) {
       mocks.audioOptions = options
@@ -86,12 +88,15 @@ describe('voice call coordination', () => {
     mocks.audioOptions!.onPcm(new ArrayBuffer(640))
     expect(mocks.sendBinary).toHaveBeenCalledOnce()
     mocks.audioOptions!.onBlocked(true)
+    expect(mocks.setRecordingMuted).toHaveBeenLastCalledWith(false)
     mocks.audioOptions!.onPcm(new ArrayBuffer(640))
     expect(mocks.sendBinary).toHaveBeenCalledOnce()
     call.toggleMute()
+    expect(mocks.setRecordingMuted).toHaveBeenLastCalledWith(true)
     mocks.audioOptions!.onBlocked(false)
     expect(mocks.sendJson).toHaveBeenLastCalledWith({ type: 'mute', muted: true })
     call.toggleMute()
+    expect(mocks.setRecordingMuted).toHaveBeenLastCalledWith(false)
     mocks.audioOptions!.onSuspended(true)
     mocks.audioOptions!.onPcm(new ArrayBuffer(640))
     expect(mocks.sendBinary).toHaveBeenCalledOnce()

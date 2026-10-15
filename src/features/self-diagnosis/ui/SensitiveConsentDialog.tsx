@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { DiagnosisButton } from './DiagnosisButton'
 import { useDialogFocus } from '@shared/lib'
 
@@ -13,6 +14,8 @@ export const SensitiveConsentDialog = ({
   onAccept,
   onDecline,
 }: SensitiveConsentDialogProps) => {
+  const { t } = useTranslation()
+
   const dialogRef = useDialogFocus(true, onDecline, isSaving)
 
   return (
@@ -28,19 +31,20 @@ export const SensitiveConsentDialog = ({
       >
         <div className="gap-2 flex flex-col">
           <h2 id="sensitive-consent-title" className="text-headline1 font-bold text-label-normal">
-            민감정보 처리 동의가 필요해요
+            {t('민감정보 처리 동의가 필요해요')}
           </h2>
           <p
             id="sensitive-consent-description"
             className="text-label font-medium break-keep text-label-alternative"
           >
-            통화불안 진단 답변과 점수, 음성 분석 결과, 훈련 분석 및 피드백을 제공하기 위해
-            민감정보를 처리합니다. 동의하지 않아도 일반 서비스는 이용할 수 있어요.
+            {t(
+              '통화불안 진단 답변과 점수, 음성 분석 결과, 훈련 분석 및 피드백을 제공하기 위해 민감정보를 처리합니다. 동의하지 않아도 일반 서비스는 이용할 수 있어요.',
+            )}
           </p>
         </div>
         <div className="gap-3 flex">
           <DiagnosisButton
-            label="나중에"
+            label={t('나중에')}
             variant="secondary"
             disabled={isSaving}
             onClick={onDecline}

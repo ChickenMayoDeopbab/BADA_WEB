@@ -1,4 +1,5 @@
-import { checkUsername, signup } from '../api/authApi'
+import { checkUsername, login, signup } from '../api/authApi'
+import { setAuthTokens } from './authSession'
 import { useEmailVerification } from './useEmailVerification'
 import {
   validateName,
@@ -127,7 +128,17 @@ export const useSignup = () => {
         email: emailVerification.email.trim(),
         name: name.trim(),
       })
-      navigate(routePaths.welcome, { replace: true })
+      try {
+        const tokens = await login({ username: trimmedUsername, password })
+        if (!tokens?.accessToken || !tokens.refreshToken) throw new Error('LOGIN_REQUIRED')
+        setAuthTokens(tokens, false)
+        navigate(routePaths.welcome, { replace: true })
+      } catch {
+        navigate(routePaths.login, {
+          replace: true,
+          state: { signupComplete: true, username: trimmedUsername },
+        })
+      }
     } catch (error) {
       setUsernameError(getApiErrorMessage(error, '회원가입에 실패했습니다. 다시 시도해주세요.'))
     } finally {

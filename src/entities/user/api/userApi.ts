@@ -3,8 +3,8 @@ import { httpClient } from '@shared/api'
 import type { ApiResponse } from '@shared/types'
 
 /** 로그인한 사용자의 계정 정보를 조회합니다. */
-export const getCurrentUser = async () => {
-  const { data } = await httpClient.get<ApiResponse<CurrentUser>>('/api/v1/user/mypage')
+export const getCurrentUser = async (signal?: AbortSignal) => {
+  const { data } = await httpClient.get<ApiResponse<CurrentUser>>('/api/v1/user/mypage', { signal })
 
   return data.data
 }

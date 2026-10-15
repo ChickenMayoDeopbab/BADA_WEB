@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { useRef } from 'react'
 
 interface ServiceTabItem<Value extends string> {
@@ -23,6 +24,8 @@ export const ServiceTabs = <Value extends string>({
   label,
   onChange,
 }: ServiceTabsProps<Value>) => {
+  const { t } = useTranslation()
+
   const buttons = useRef<(HTMLButtonElement | null)[]>([])
   const activeIndex = items.findIndex((item) => item.value === value)
   const activeItem = items[activeIndex]
@@ -71,7 +74,7 @@ export const ServiceTabs = <Value extends string>({
           }`}
           style={{ width: item.width ?? defaultTabWidth }}
         >
-          {item.label}
+          {t(item.label)}
         </button>
       ))}
       {activeItem && (

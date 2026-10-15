@@ -14,7 +14,7 @@ import type { ApiResponse } from '@shared/types'
 
 const AUTH_PATH = '/api/v1/auth'
 
-/** 현재 인증된 세션을 서버에서 로그아웃합니다. */
+/** 서버에 저장된 로그인 세션을 종료합니다. */
 export const signout = async () => {
   await httpClient.delete<ApiResponse<null>>(`${AUTH_PATH}/signout`)
 }

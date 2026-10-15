@@ -1,1 +1,3 @@
-export { PlaceholderPage, ServicePlaceholderPage } from './PlaceholderPage'
+export { PlaceholderPage } from './PlaceholderPage'
+
+export { NotFoundPage } from './NotFoundPage'

@@ -1,4 +1,4 @@
-import { getTrainingRingtone } from '../api/scenarioTrainingApi'
+import { getRingtoneSetting, ringtoneKeys } from '@entities/ringtone'
 import defaultRingtone from '@shared/assets/scenario-training/ringtone-default.mp3'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from 'react'
 /** 서버의 벨소리 설정을 수신 중에만 재생하고 자동 재생 차단은 사용자 클릭으로 해제합니다. */
 export const useIncomingRingtone = (isIncoming: boolean) => {
   const ringtoneQuery = useQuery({
-    queryKey: ['training-ringtone'],
-    queryFn: getTrainingRingtone,
+    queryKey: ringtoneKeys.setting,
+    queryFn: getRingtoneSetting,
     enabled: isIncoming,
   })
   const audioRef = useRef<HTMLAudioElement | null>(null)

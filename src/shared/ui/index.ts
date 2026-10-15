@@ -15,3 +15,5 @@ export {
 } from './LoadingUI'
 export { ExperienceProvider } from './ExperienceProvider'
 export { useToast } from './toastContext'
+
+export { PrimaryButton } from './PrimaryButton'

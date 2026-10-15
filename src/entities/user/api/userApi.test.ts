@@ -25,7 +25,7 @@ describe('userApi', () => {
     vi.mocked(httpClient.get).mockResolvedValue({ data: { data: user } })
 
     await expect(getCurrentUser()).resolves.toEqual(user)
-    expect(httpClient.get).toHaveBeenCalledWith('/api/v1/user/mypage')
+    expect(httpClient.get).toHaveBeenCalledWith('/api/v1/user/mypage', { signal: undefined })
   })
 
   it('returns a profile image URL for an S3 key', async () => {

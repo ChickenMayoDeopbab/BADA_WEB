@@ -1,6 +1,6 @@
 import { RouteErrorPage } from './RouteErrorPage'
 import { ServiceLayout } from '../layouts/ServiceLayout'
-import { RequireAuth } from '@features/auth'
+import { AuthProvider, RequireAuth } from '@features/auth'
 import {
   FindIdPage,
   LoginPage,
@@ -10,8 +10,11 @@ import {
 } from '@pages/auth'
 import { CommunityPage } from '@pages/community'
 import { DashboardPage } from '@pages/dashboard'
-import { PlaceholderPage, ServicePlaceholderPage } from '@pages/placeholders'
+import { NotFoundPage, PlaceholderPage } from '@pages/placeholders'
+import { NotificationsPage } from '@pages/notifications'
 import {
+  ProfileInquiryPage,
+  ProfilePaymentInterestPage,
   ProfileEditPage,
   ProfileLanguagePage,
   ProfileNotificationsPage,
@@ -22,6 +25,7 @@ import {
 } from '@pages/profile'
 import { TrainingRecordsPage } from '@pages/records'
 import {
+  WarmupPage,
   CustomScenarioPage,
   ScenarioCallPage,
   ScenarioResultPage,
@@ -30,12 +34,27 @@ import {
 } from '@pages/training'
 import { SelfDiagnosisPage } from '@pages/self-diagnosis'
 import { routePaths } from '@shared/config'
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  RouterProvider,
+  type RouteObject,
+} from 'react-router-dom'
 
-const routes = [
+/** 보호 경로에서 하나의 서버 인증 확인 결과를 공유합니다. */
+const ProtectedRoutes = () => {
+  return (
+    <AuthProvider>
+      <RequireAuth />
+    </AuthProvider>
+  )
+}
+
+const applicationRoutes: RouteObject[] = [
   {
     path: routePaths.landing,
-    element: <PlaceholderPage title="랜딩 페이지" />,
+    element: <PlaceholderPage title="전화가 편해지는 연습, Bada" />,
   },
   {
     path: routePaths.login,
@@ -58,7 +77,7 @@ const routes = [
     element: <OAuthCallbackPage />,
   },
   {
-    element: <RequireAuth />,
+    element: <ProtectedRoutes />,
     children: [
       {
         element: <ServiceLayout />,
@@ -71,6 +90,9 @@ const routes = [
             path: routePaths.training,
             element: <ScenarioTrainingPage />,
           },
+          { path: routePaths.trainingWarmup, element: <WarmupPage /> },
+          { path: routePaths.profileInquiry, element: <ProfileInquiryPage /> },
+          { path: routePaths.profilePaymentInterest, element: <ProfilePaymentInterestPage /> },
           {
             path: routePaths.trainingCustomNew,
             element: <CustomScenarioPage />,
@@ -101,7 +123,7 @@ const routes = [
           },
           {
             path: routePaths.notifications,
-            element: <ServicePlaceholderPage title="알림 화면" />,
+            element: <NotificationsPage />,
           },
           {
             path: routePaths.profile,
@@ -137,6 +159,7 @@ const routes = [
           },
         ],
       },
+      { path: '*', element: <NotFoundPage /> },
       {
         path: routePaths.welcome,
         element: <SelfDiagnosisPage />,
@@ -151,14 +174,10 @@ const routes = [
       },
     ],
   },
-  {
-    path: '*',
-    element: <PlaceholderPage title="페이지를 찾을 수 없습니다." />,
-  },
 ]
 
-const router = createBrowserRouter(
-  routes.map((route) => ({ ...route, errorElement: <RouteErrorPage /> })),
-)
+const router = createBrowserRouter([
+  { element: <Outlet />, errorElement: <RouteErrorPage />, children: applicationRoutes },
+])
 
 export const AppRouter = () => <RouterProvider router={router} />

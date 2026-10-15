@@ -82,7 +82,6 @@ import {
   ProfileLanguagePage,
   ProfileNotificationsPage,
   ProfileOverviewPage,
-  ProfileRingtonePage,
 } from './ProfilePages'
 
 describe('Profile pages', () => {
@@ -231,24 +230,6 @@ describe('Profile pages', () => {
     profileQueryMock.data = previousProfile
   })
 
-  it('selects a ringtone and previews the default ringtone', () => {
-    render(
-      <MemoryRouter>
-        <ProfileRingtonePage />
-      </MemoryRouter>,
-    )
-
-    const calmWave = screen.getByRole('button', { name: /잔잔한 파도/ })
-    fireEvent.click(calmWave)
-    expect(calmWave).toHaveClass('bg-primary-alternative')
-
-    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()
-    fireEvent.click(screen.getByRole('button', { name: '기본 벨소리 미리듣기' }))
-    return waitFor(() =>
-      expect(screen.getByRole('button', { name: '기본 벨소리 정지' })).toBeInTheDocument(),
-    )
-  })
-
   it('changes the selected display language', () => {
     render(
       <MemoryRouter>
@@ -259,6 +240,9 @@ describe('Profile pages', () => {
     const english = screen.getByRole('button', { name: /English/ })
     fireEvent.click(english)
 
-    expect(within(english).getByText('선택됨')).toBeInTheDocument()
+    expect(within(english).getByText('Selected')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Language settings' })).toBeInTheDocument()
+    expect(localStorage.getItem('bada:display-language')).toBe('en')
+    fireEvent.click(screen.getByRole('button', { name: /한국어/ }))
   })
 })

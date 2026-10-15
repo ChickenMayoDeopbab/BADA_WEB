@@ -1,3 +1,4 @@
+import { getRingtoneSetting } from '@entities/ringtone'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { aiHttpClient, httpClient } from '@shared/api'
 import {
@@ -13,7 +14,6 @@ import {
   getScenarioExample,
   getScenarioFeedback,
   getScenarios,
-  getTrainingRingtone,
   postTrainingAnxietyScore,
 } from './scenarioTrainingApi'
 
@@ -220,7 +220,7 @@ describe('pasted OpenAPI scenario training contracts', () => {
     expect(httpClient.get).toHaveBeenCalledWith('/api/v1/training-records/feedback', {
       params: { scenarioId: 12 },
     })
-    expect(await getTrainingRingtone()).toEqual({ defaultRingtone: true, url: null })
+    expect(await getRingtoneSetting()).toEqual({ defaultRingtone: true, url: null })
     vi.mocked(httpClient.post).mockResolvedValue({
       data: {
         data: {

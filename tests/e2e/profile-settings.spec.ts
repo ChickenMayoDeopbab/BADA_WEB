@@ -85,6 +85,12 @@ const prepareProfile = async (page: Page, imageAgreed = false) => {
               : { allEnabled: true, communityEnabled: true, trainingEnabled: true },
         },
       })
+    if (path === '/api/v1/ringtones')
+      return route.fulfill({
+        json: { data: [{ fileId: 7, title: '잔잔한 파도', url: '/wave.mp3' }] },
+      })
+    if (path === '/api/v1/ringtones/settings')
+      return route.fulfill({ json: { data: { fileId: null, defaultRingtone: true } } })
     if (path === '/api/v1/training-records')
       return route.fulfill({ json: { data: { content: [] } } })
     return route.fulfill({ json: { data: {} } })
@@ -224,7 +230,8 @@ test('animates ringtone hover and selection colors and moves notification toggle
 }) => {
   await prepareProfile(page)
   await page.goto('/profile/ringtone')
-  const ringtone = page.getByRole('button', { name: /잔잔한 파도/ })
+  const radio = page.getByRole('radio', { name: /잔잔한 파도/ })
+  const ringtone = radio.locator('../..')
   const originalColor = await ringtone.evaluate(
     (element) => getComputedStyle(element).backgroundColor,
   )
@@ -233,7 +240,7 @@ test('animates ringtone hover and selection colors and moves notification toggle
     .poll(() => ringtone.evaluate((element) => getComputedStyle(element).backgroundColor))
     .not.toBe(originalColor)
   await expect(ringtone).toHaveCSS('transition-duration', '0.4s')
-  await ringtone.click()
+  await radio.locator('..').click()
   await page.mouse.move(0, 0)
   await expect(ringtone).toHaveCSS('background-color', 'rgba(10, 227, 101, 0.2)')
   await page.goto('/profile/notifications')

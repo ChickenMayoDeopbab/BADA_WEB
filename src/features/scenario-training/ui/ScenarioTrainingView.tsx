@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { OverlayPortal } from '@shared/ui'
 import { useScenarioCatalog, type ScenarioTab } from '../model/useScenarioCatalog'
 import { useScenarioExampleAudio } from '../model/useScenarioExampleAudio'
@@ -79,29 +80,35 @@ interface ScenarioCardProps {
 }
 
 /** 실제 API 시나리오 한 건을 목록 카드로 표시합니다. */
-const ScenarioCard = ({ scenario, onClick }: ScenarioCardProps) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="group min-w-0 p-4 hover:-translate-y-1 focus-visible:-translate-y-1 relative flex h-[220px] w-full items-end justify-between overflow-hidden rounded-control border border-line-alternative bg-fill-neutral text-left transition duration-200 hover:shadow-elevated-card focus-visible:outline-2 focus-visible:outline-primary-normal"
-    aria-label={`${scenario.title} 상세 보기`}
-  >
-    <div className="inset-0 absolute">
-      <ScenarioImage scenario={scenario} className="transition group-hover:scale-[1.02]" />
-    </div>
-    <span className="inset-x-0 bottom-0 absolute h-[106px] bg-gradient-to-b from-transparent to-common-100" />
-    <div className="min-w-0 relative text-common-0">
-      <h3 className="max-w-[145px] truncate text-headline1 font-bold">{scenario.title}</h3>
-      <div className="mt-0.5 gap-1 flex items-center text-label font-medium">
-        <IoTimeOutline size={17} aria-hidden="true" />
-        <span>{scenario.practiceCount}회</span>
+const ScenarioCard = ({ scenario, onClick }: ScenarioCardProps) => {
+  const { t } = useTranslation()
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group min-w-0 p-4 hover:-translate-y-1 focus-visible:-translate-y-1 relative flex h-[220px] w-full items-end justify-between overflow-hidden rounded-control border border-line-alternative bg-fill-neutral text-left transition duration-200 hover:shadow-elevated-card focus-visible:outline-2 focus-visible:outline-primary-normal"
+      aria-label={`${scenario.title} 상세 보기`}
+    >
+      <div className="inset-0 absolute">
+        <ScenarioImage scenario={scenario} className="transition group-hover:scale-[1.02]" />
       </div>
-    </div>
-    <span className="size-10 backdrop-blur-sm relative flex items-center justify-center rounded-pill border border-common-0/30 bg-common-0/10 text-common-0">
-      <IoChevronForward size={22} aria-hidden="true" />
-    </span>
-  </button>
-)
+      <span className="inset-x-0 bottom-0 absolute h-[106px] bg-gradient-to-b from-transparent to-common-100" />
+      <div className="min-w-0 relative text-common-0">
+        <h3 className="max-w-[145px] truncate text-headline1 font-bold">{scenario.title}</h3>
+        <div className="mt-0.5 gap-1 flex items-center text-label font-medium">
+          <IoTimeOutline size={17} aria-hidden="true" />
+          <span>
+            {scenario.practiceCount}
+            {t('회')}
+          </span>
+        </div>
+      </div>
+      <span className="size-10 backdrop-blur-sm relative flex items-center justify-center rounded-pill border border-common-0/30 bg-common-0/10 text-common-0">
+        <IoChevronForward size={22} aria-hidden="true" />
+      </span>
+    </button>
+  )
+}
 
 interface ScenarioExampleAudioProps {
   audioUrl?: string
@@ -109,6 +116,8 @@ interface ScenarioExampleAudioProps {
 
 /** 훈련 기록과 같은 파형 UI로 시나리오 예시 음성만 재생합니다. */
 const ScenarioExampleAudio = ({ audioUrl }: ScenarioExampleAudioProps) => {
+  const { t } = useTranslation()
+
   const {
     audioRef,
     isPlaying,
@@ -150,7 +159,7 @@ const ScenarioExampleAudio = ({ audioUrl }: ScenarioExampleAudioProps) => {
       <div
         className="h-12 min-w-0 gap-0.5 flex flex-1 items-center justify-center overflow-hidden"
         role="img"
-        aria-label="예시 음성 파형"
+        aria-label={t('예시 음성 파형')}
       >
         {waveformHeights.map((heightRatio, index) => {
           const barProgress = Math.min(1, Math.max(0, progress * waveformHeights.length - index))
@@ -212,6 +221,8 @@ const ScenarioDetailPanel = ({
   onToggleMenu,
   onOpenDeleteDialog,
 }: ScenarioDetailPanelProps) => {
+  const { t } = useTranslation()
+
   const dialogRef = useDialogFocus(isOpen, onClose)
   return (
     <OverlayPortal>
@@ -219,7 +230,7 @@ const ScenarioDetailPanel = ({
         type="button"
         className="inset-0 fixed z-40 cursor-default bg-transparent"
         tabIndex={-1}
-        aria-label="시나리오 상세 닫기"
+        aria-label={t('시나리오 상세 닫기')}
         onClick={onClose}
         disabled={!isOpen}
       />
@@ -243,7 +254,7 @@ const ScenarioDetailPanel = ({
               type="button"
               onClick={onClose}
               className="h-10 w-5 flex items-center justify-center"
-              aria-label="시나리오 상세 닫기"
+              aria-label={t('시나리오 상세 닫기')}
             >
               <BackIcon />
             </button>
@@ -252,7 +263,7 @@ const ScenarioDetailPanel = ({
                 type="button"
                 onClick={onToggleMenu}
                 className="size-8 flex items-center justify-center rounded-control hover:bg-fill-normal"
-                aria-label="시나리오 메뉴 열기"
+                aria-label={t('시나리오 메뉴 열기')}
                 aria-expanded={isMenuOpen}
               >
                 <img src={menuDots} alt="" />
@@ -267,7 +278,7 @@ const ScenarioDetailPanel = ({
                 onClick={onOpenDeleteDialog}
                 className="p-3 flex h-[52px] w-full items-center text-left text-headline2 font-medium text-label-normal hover:bg-fill-normal"
               >
-                시나리오 삭제하기
+                {t('시나리오 삭제하기')}
               </button>
             </div>
           )}
@@ -284,13 +295,16 @@ const ScenarioDetailPanel = ({
                   {scenario.isCopied
                     ? '공유 시나리오'
                     : scenario.isCustom
-                      ? '커스텀 시나리오'
+                      ? t('커스텀 시나리오')
                       : '기본 제공 시나리오'}
                 </p>
                 <h2 className="mt-0.5 text-title1 font-bold text-label-normal">{scenario.title}</h2>
                 <div className="mt-1 gap-0.5 flex items-center text-headline2 font-medium text-label-alternative">
                   <IoTimeOutline size={28} aria-hidden="true" />
-                  <span>{scenario.practiceCount}회</span>
+                  <span>
+                    {scenario.practiceCount}
+                    {t('회')}
+                  </span>
                 </div>
               </section>
 
@@ -303,10 +317,10 @@ const ScenarioDetailPanel = ({
               <section className="px-6 pb-5">
                 <div className="mb-2 gap-1.5 flex items-center text-label font-bold text-primary-normal">
                   <IoHeadset aria-hidden="true" />
-                  예시 음성
+                  {t('예시 음성')}
                 </div>
                 {isExampleLoading && (
-                  <LoadingRegion label="예시 음성을 불러오는 중">
+                  <LoadingRegion label={t('예시 음성을 불러오는 중')}>
                     <Skeleton className="h-[72px]" />
                   </LoadingRegion>
                 )}
@@ -318,11 +332,11 @@ const ScenarioDetailPanel = ({
                 )}
                 {example?.dialogue && example.dialogue.length > 0 && (
                   <details className="mt-3 text-label text-label-neutral">
-                    <summary className="cursor-pointer">예시 대화 보기</summary>
+                    <summary className="cursor-pointer">{t('예시 대화 보기')}</summary>
                     <ol className="mt-3 space-y-3">
                       {example.dialogue.map((turn, index) => (
                         <li key={index} className="whitespace-pre-wrap">
-                          <strong>{turn.speaker === 'user' ? '나' : '상대방'}: </strong>
+                          <strong>{turn.speaker === 'user' ? t('나') : t('상대방')}: </strong>
                           {turn.text}
                         </li>
                       ))}
@@ -332,9 +346,11 @@ const ScenarioDetailPanel = ({
               </section>
               {scenario.practiceCount > 0 && (
                 <section className="px-6 pb-5">
-                  <h3 className="mb-2 text-label font-bold text-label-normal">최근 훈련 피드백</h3>
+                  <h3 className="mb-2 text-label font-bold text-label-normal">
+                    {t('최근 훈련 피드백')}
+                  </h3>
                   {isFeedbackLoading ? (
-                    <LoadingRegion label="최근 훈련 피드백을 불러오는 중">
+                    <LoadingRegion label={t('최근 훈련 피드백을 불러오는 중')}>
                       <Skeleton className="h-5" />
                       <Skeleton className="mt-2 h-5 w-2/3" />
                     </LoadingRegion>
@@ -350,7 +366,7 @@ const ScenarioDetailPanel = ({
                     </ul>
                   ) : (
                     <p className="text-label text-label-alternative">
-                      아직 표시할 피드백이 없어요.
+                      {t('아직 표시할 피드백이 없어요.')}
                     </p>
                   )}
                 </section>
@@ -364,7 +380,7 @@ const ScenarioDetailPanel = ({
               onClick={onStart}
               className="flex h-[52px] w-full items-center justify-center rounded-component bg-primary-normal text-headline2 font-bold text-label-button-text transition hover:brightness-95"
             >
-              훈련 시작하기
+              {t('훈련 시작하기')}
             </button>
           </div>
         </div>
@@ -388,29 +404,34 @@ const ScenarioDeleteDialog = ({
   errorMessage,
   onClose,
   onDelete,
-}: ScenarioDeleteDialogProps) => (
-  <ConfirmDialog
-    title={`${scenario.title} 시나리오를 삭제할까요?`}
-    description="삭제한 커스텀 시나리오는 다시 복구할 수 없어요."
-    confirmLabel="삭제하기"
-    pending={isDeleting}
-    danger
-    error={errorMessage}
-    onClose={onClose}
-    onConfirm={onDelete}
-  />
-)
+}: ScenarioDeleteDialogProps) => {
+  const { t } = useTranslation()
+  return (
+    <ConfirmDialog
+      title={`${scenario.title} 시나리오를 삭제할까요?`}
+      description={t('삭제한 커스텀 시나리오는 다시 복구할 수 없어요.')}
+      confirmLabel={t('삭제하기')}
+      pending={isDeleting}
+      danger
+      error={errorMessage}
+      onClose={onClose}
+      onConfirm={onDelete}
+    />
+  )
+}
 
 /** Figma 시나리오 훈련 목록과 상세 탐색 화면을 표시합니다. */
 export const ScenarioTrainingView = () => {
+  const { t } = useTranslation()
+
   const catalog = useScenarioCatalog()
 
   return (
     <ServicePageContent>
       <header className="gap-x-3 gap-y-1 flex flex-wrap items-baseline">
-        <h1 className="text-title1 font-bold text-label-neutral">시나리오 훈련</h1>
+        <h1 className="text-title1 font-bold text-label-neutral">{t('시나리오 훈련')}</h1>
         <p className="text-body font-medium text-neutral-60">
-          AI와 함께 실제와 같은 전화 통화를 연습해 보세요.
+          {t('AI와 함께 실제와 같은 전화 통화를 연습해 보세요.')}
         </p>
       </header>
 
@@ -418,14 +439,14 @@ export const ScenarioTrainingView = () => {
         <ServiceTabs
           items={tabs}
           value={catalog.selectedTab}
-          label="시나리오 분류"
+          label={t('시나리오 분류')}
           onChange={catalog.handleTabChange}
         />
         <ServiceSearchField
-          label="시나리오 검색"
+          label={t('시나리오 검색')}
           value={catalog.searchQuery}
           onChange={(event) => catalog.setSearchQuery(event.target.value)}
-          placeholder="제목 또는 설명으로 검색"
+          placeholder={t('제목 또는 설명으로 검색')}
         />
       </div>
 
@@ -435,13 +456,13 @@ export const ScenarioTrainingView = () => {
             role="status"
             className="mb-5 gap-3 p-4 flex items-center justify-between rounded-component bg-primary-alternative"
           >
-            <p className="text-body text-label-normal">예약한 훈련 전화가 도착했어요.</p>
+            <p className="text-body text-label-normal">{t('예약한 훈련 전화가 도착했어요.')}</p>
             <button
               type="button"
               onClick={catalog.handleOpenRingingCall}
               className="px-4 py-2 rounded-control bg-primary-normal text-label font-bold text-label-button-text"
             >
-              예약 전화 확인
+              {t('예약 전화 확인')}
             </button>
           </div>
         )}
@@ -454,9 +475,9 @@ export const ScenarioTrainingView = () => {
             <span className="gap-4 flex items-center">
               <img src={customBannerBulb} alt="" />
               <span className="gap-0.5 flex flex-col text-common-0">
-                <strong className="text-headline1 font-bold">나만의 시나리오 만들기</strong>
+                <strong className="text-headline1 font-bold">{t('나만의 시나리오 만들기')}</strong>
                 <span className="text-label font-medium">
-                  내가 원하는 상황에서 전화를 훈련해 보세요!
+                  {t('내가 원하는 상황에서 전화를 훈련해 보세요!')}
                 </span>
               </span>
             </span>
@@ -470,7 +491,9 @@ export const ScenarioTrainingView = () => {
 
         {catalog.selectedTab === 'basic' && catalog.recommendedScenario && !catalog.searchQuery && (
           <div className="mb-7">
-            <p className="mb-1.5 text-body font-medium text-label-normal">이 시나리오 어때요?</p>
+            <p className="mb-1.5 text-body font-medium text-label-normal">
+              {t('이 시나리오 어때요?')}
+            </p>
             <button
               type="button"
               onClick={() => {
@@ -495,13 +518,13 @@ export const ScenarioTrainingView = () => {
                   {catalog.recommendedScenario.isCopied
                     ? '공유 시나리오'
                     : catalog.recommendedScenario.isCustom
-                      ? '커스텀 시나리오'
+                      ? t('커스텀 시나리오')
                       : '기본 제공 시나리오'}
                 </p>
                 <h2 className="text-headline1 font-bold">{catalog.recommendedScenario.title}</h2>
               </div>
               <span className="gap-2 px-2.5 backdrop-blur-sm relative flex h-[30px] items-center rounded-control border border-common-0/30 bg-common-0/10 text-body font-medium text-common-0">
-                자세히 보기
+                {t('자세히 보기')}
                 <IoChevronForward size={18} aria-hidden="true" />
               </span>
             </button>
@@ -509,7 +532,7 @@ export const ScenarioTrainingView = () => {
         )}
 
         <div className="mb-3 flex items-start justify-between">
-          <h2 className="text-title2 font-bold text-label-normal">시나리오</h2>
+          <h2 className="text-title2 font-bold text-label-normal">{t('시나리오')}</h2>
           {catalog.selectedTab === 'basic' && (
             <div className="gap-1 flex flex-wrap">
               {categories.map((category) => (
@@ -523,7 +546,7 @@ export const ScenarioTrainingView = () => {
                       : 'border-transparent bg-background-alternative text-label-normal'
                   }`}
                 >
-                  {category.label}
+                  {t(category.label)}
                 </button>
               ))}
             </div>
@@ -531,7 +554,7 @@ export const ScenarioTrainingView = () => {
         </div>
 
         {catalog.isLoading ? (
-          <LoadingRegion label="시나리오를 불러오는 중" className="min-h-[360px]">
+          <LoadingRegion label={t('시나리오를 불러오는 중')} className="min-h-[360px]">
             <div className="gap-3 max-xl:grid-cols-3 max-lg:grid-cols-2 max-sm:grid-cols-1 grid grid-cols-4">
               {Array.from({ length: 8 }, (_, i) => (
                 <Skeleton key={i} className="h-[220px]" />
@@ -548,7 +571,7 @@ export const ScenarioTrainingView = () => {
               className="gap-2 px-5 py-3 flex items-center rounded-component bg-secondary-normal text-body font-bold text-common-0 disabled:opacity-50"
             >
               <IoRefresh aria-hidden="true" />
-              다시 불러오기
+              {t('다시 불러오기')}
             </button>
           </div>
         ) : catalog.scenarios.length > 0 ||
@@ -568,10 +591,10 @@ export const ScenarioTrainingView = () => {
               <IoSearch size={28} aria-hidden="true" />
             </div>
             <h2 className="text-headline1 font-bold text-label-normal">
-              표시할 시나리오가 없어요.
+              {t('표시할 시나리오가 없어요.')}
             </h2>
             <p className="mt-2 text-body text-label-alternative">
-              검색어 또는 선택한 분류를 바꿔보세요.
+              {t('검색어 또는 선택한 분류를 바꿔보세요.')}
             </p>
           </div>
         )}

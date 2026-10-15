@@ -10,3 +10,5 @@ export {
 export { useDialogFocus } from './useDialogFocus'
 export { getDrawerCloseDelay } from './getDrawerCloseDelay'
 export { lockPageScroll } from './lockPageScroll'
+
+export { useTranslation, type Locale } from './locale/useTranslation'

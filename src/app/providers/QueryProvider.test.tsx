@@ -16,6 +16,7 @@ const config = vi.hoisted(() => ({
   skeletonMotion: true,
   spinnerMotion: true,
   toasts: true,
+  toastMotion: true,
   durations: {
     page: 220,
     interaction: 180,
@@ -25,7 +26,8 @@ const config = vi.hoisted(() => ({
     toggle: 350,
     drawerEnter: 320,
     drawerExit: 260,
-    toast: 4500,
+    toast: 2500,
+    toastExit: 280,
   },
 }))
 vi.mock('@shared/config', async (importOriginal) => ({
@@ -76,7 +78,7 @@ describe('작업 결과 피드백', () => {
     await act(async () => resolve())
     expect(await screen.findByRole('status')).toHaveTextContent('저장을 완료했어요.')
     fireEvent.click(screen.getByRole('button', { name: '알림 닫기' }))
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
   })
   it('실패를 성공으로 표시하지 않고 재시도 가능한 버튼을 유지한다', async () => {
     renderAction(() => Promise.reject(new Error('연결 오류')))

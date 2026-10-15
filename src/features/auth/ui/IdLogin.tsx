@@ -1,3 +1,4 @@
+import { useTranslation } from '@shared/lib'
 import { useIdLogin } from '../model/useIdLogin'
 import { AuthButton } from './AuthButton'
 import { AuthCard } from './AuthCard'
@@ -8,16 +9,23 @@ import { PasswordVisibilityButton } from './PasswordVisibilityButton'
 
 // 아이디와 비밀번호로 로그인하는 화면입니다.
 export const IdLogin = () => {
+  const { t } = useTranslation()
+
   const login = useIdLogin()
 
   return (
     <AuthLayout>
-      <AuthCard title="아이디로 로그인" description="Bada 계정으로 서비스를 시작하세요.">
+      <AuthCard title={t('아이디로 로그인')} description={t('Bada 계정으로 서비스를 시작하세요.')}>
+        {login.signupComplete && (
+          <p role="status" className="mb-4 text-label text-label-neutral">
+            {t('회원가입을 완료했어요. 로그인 후 자가진단을 시작해 주세요.')}
+          </p>
+        )}
         <form className="gap-8 flex w-full flex-col" onSubmit={login.submit} noValidate>
           <div className="gap-3 flex w-full flex-col">
             <AuthTextField
-              label="아이디"
-              placeholder="아이디를 입력하세요."
+              label={t('아이디')}
+              placeholder={t('아이디를 입력하세요.')}
               name="username"
               autoComplete="username"
               value={login.username}
@@ -25,8 +33,8 @@ export const IdLogin = () => {
               error={login.usernameError}
             />
             <AuthTextField
-              label="비밀번호"
-              placeholder="비밀번호를 입력하세요."
+              label={t('비밀번호')}
+              placeholder={t('비밀번호를 입력하세요.')}
               name="password"
               type={login.isPasswordVisible ? 'text' : 'password'}
               autoComplete="current-password"
@@ -47,14 +55,14 @@ export const IdLogin = () => {
           </div>
 
           <div className="gap-3 flex w-full flex-col">
-            <AuthButton type="submit" label="로그인" isLoading={login.isSubmitting} />
-            <AuthButton variant="secondary" label="회원가입" onClick={login.goToSignup} />
+            <AuthButton type="submit" label={t('로그인')} isLoading={login.isSubmitting} />
+            <AuthButton variant="secondary" label={t('회원가입')} onClick={login.goToSignup} />
             <div className="gap-4 flex text-label font-medium text-label-neutral">
               <button type="button" onClick={login.goToFindId}>
-                아이디 찾기
+                {t('아이디 찾기')}
               </button>
               <button type="button" onClick={login.goToResetPassword}>
-                비밀번호 찾기
+                {t('비밀번호 찾기')}
               </button>
             </div>
           </div>

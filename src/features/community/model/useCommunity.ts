@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createCommunityComment,
   createCommunityPost,
@@ -21,11 +21,34 @@ const communityKeys = {
   savedScenarios: ['community', 'saved-scenarios'] as const,
 }
 
-export const useCommunityPosts = (mine: boolean, query: string) =>
-  useQuery({
+/** 검색 조건별 페이지를 보관하고 불러온 게시글을 이어 붙입니다. */
+export const useCommunityPosts = (mine: boolean, query: string) => {
+  const list = useInfiniteQuery({
     queryKey: communityKeys.posts(mine, query),
-    queryFn: () => getCommunityPosts(mine, query),
+    queryFn: async ({ pageParam, signal }) => {
+      const first = await getCommunityPosts(mine, query, pageParam, signal)
+      if (!mine || !query) return first
+      // 내 글 API는 q를 지원하지 않으므로 내 글 전체 페이지에서 검색합니다.
+      let posts = first.posts
+      let current = first
+      while (current.hasNextPage) {
+        current = await getCommunityPosts(true, '', current.page + 1, signal)
+        posts = [...posts, ...current.posts]
+      }
+      const normalized = query.toLocaleLowerCase()
+      return {
+        ...first,
+        hasNextPage: false,
+        posts: posts.filter((post) =>
+          `${post.title} ${post.content}`.toLocaleLowerCase().includes(normalized),
+        ),
+      }
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.hasNextPage ? lastPage.page + 1 : undefined),
   })
+  return { ...list, data: list.data?.pages.flatMap((page) => page.posts) }
+}
 
 export const useCommunityPost = (postId: number) =>
   useQuery({ queryKey: communityKeys.post(postId), queryFn: () => getCommunityPost(postId) })

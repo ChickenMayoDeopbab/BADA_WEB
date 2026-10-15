@@ -45,7 +45,7 @@ const prepareCall = async (page: Page) => {
   await page.route('**/api/v1/scenario/recommendation', (route) =>
     route.fulfill({ json: { scenario } }),
   )
-  await page.route('**/api/v1/users/me', (route) => route.fulfill({ json: { data: {} } }))
+  await page.route('**/api/v1/user/mypage', (route) => route.fulfill({ json: { data: {} } }))
   await page.route('**/api/v1/training-call-schedules/ringing', (route) =>
     route.fulfill({ json: { data: null } }),
   )
@@ -496,15 +496,13 @@ test('uses server hint levels for a fixed recommendation/advice footer and hides
     '추천 : 내일 오후 두 명 예약하고 싶어요.',
   )
   for (let index = 0; index < 40; index += 1) {
-    audit
-      .getSocket()
-      .send(
-        JSON.stringify({
-          type: 'transcript',
-          role: index % 2 ? 'user' : 'ai',
-          text: `예약 대화 ${index + 1}`,
-        }),
-      )
+    audit.getSocket().send(
+      JSON.stringify({
+        type: 'transcript',
+        role: index % 2 ? 'user' : 'ai',
+        text: `예약 대화 ${index + 1}`,
+      }),
+    )
   }
   await expect(page.getByText('예약 대화 40', { exact: false })).toHaveCount(1)
   const hintBottom = await page
@@ -956,5 +954,42 @@ test('shows a plain waiting screen and frozen pulsing timer when the other party
   await expect(timer).toHaveText('00:42')
   await page.clock.fastForward(1000)
   await expect(page).toHaveURL(/\/training\/1\/result$/)
+  expect(audit.errors).toEqual([])
+})
+
+test('records mixed call audio to a real file and flushes another recording when the call ends', async ({
+  page,
+}, testInfo) => {
+  const audit = await prepareCall(page)
+  await startCall(page)
+  await expect(page.getByRole('heading', { name: '상담 직원' })).toBeVisible()
+  await page.getByRole('button', { name: '녹음', exact: true }).click()
+  await expect(page.getByRole('button', { name: '녹음 저장', exact: true })).toBeVisible()
+  sendAiTurn(audit.getSocket(), 9)
+  await expect
+    .poll(() =>
+      audit.messages.some((message) => message.type === 'playback_done' && message.turn_id === 9),
+    )
+    .toBe(true)
+  const saved = page.waitForEvent('download')
+  await page.getByRole('button', { name: '녹음 저장', exact: true }).click()
+  const recording = await saved
+  expect(recording.suggestedFilename()).toMatch(/^bada-call-browser-session-1\.(webm|m4a)$/)
+  await recording.saveAs(testInfo.outputPath(recording.suggestedFilename()))
+  const { stat } = await import('node:fs/promises')
+  expect((await stat(await recording.path())).size).toBeGreaterThan(1000)
+  const beforeSecondRecording = audit.binaryFrames.length
+  await page.getByRole('button', { name: '녹음', exact: true }).click()
+  await expect.poll(() => audit.binaryFrames.length).toBeGreaterThan(beforeSecondRecording + 60)
+  const finalSave = page.waitForEvent('download')
+  await page.getByRole('button', { name: '통화 종료', exact: true }).click()
+  await finalSave
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        window.badaAudioAudit.contexts.every((context) => context.state === 'closed'),
+      ),
+    )
+    .toBe(true)
   expect(audit.errors).toEqual([])
 })

@@ -1,3 +1,4 @@
+import { saveCallRecording } from './saveCallRecording'
 import { getCallErrorMessage } from './callErrors'
 import { VoiceAudio } from './voiceAudio'
 import { VoiceTransport } from './voiceTransport'
@@ -9,6 +10,7 @@ export interface VoiceCallState {
   connection: 'idle' | 'connecting' | 'authenticated' | 'closed'
   startedAt: number | null
   durationSeconds: number
+  isRecording: boolean
   isMuted: boolean
   isPlaybackBlocked: boolean
   isAudioSuspended: boolean
@@ -46,6 +48,7 @@ export class VoiceCall {
     connection: 'idle',
     startedAt: null,
     durationSeconds: 0,
+    isRecording: false,
     isMuted: false,
     isPlaybackBlocked: false,
     isAudioSuspended: false,
@@ -75,6 +78,20 @@ export class VoiceCall {
       },
     })
     this.audio = new VoiceAudio({
+      onRecordingChange: (isRecording) =>
+        this.update({
+          isRecording,
+          notice: isRecording ? '녹음을 마치거나 통화를 종료하면 녹음 파일이 기기에 저장돼요.' : '',
+        }),
+      onRecordingComplete: (blob) => {
+        saveCallRecording(blob, this.options.sessionId)
+        this.update({ notice: '녹음 파일 저장을 시작했어요.' })
+      },
+      onRecordingError: () =>
+        this.update({
+          notice:
+            '녹음을 저장하지 못했어요. 너무 짧게 녹음했거나 녹음을 지원하지 않는 브라우저일 수 있어요. 전체 통화 녹음은 훈련 기록에서 확인해 주세요.',
+        }),
       onPcm: (data) => {
         if (this.canSendAudio() && this.transport.sendBinary(data)) {
           this.microphoneBytes += data.byteLength
@@ -146,6 +163,7 @@ export class VoiceCall {
     if (this.isDisposed) return
     const isBlocked = !this.canSendAudio()
     this.audio.setCaptureEnabled(!isBlocked)
+    this.audio.setRecordingMuted(this.state.isMuted)
     if (isBlocked !== this.isCaptureBlocked) {
       this.isCaptureBlocked = isBlocked
       reportVoiceDiagnostic('capture_gate', {
@@ -214,7 +232,12 @@ export class VoiceCall {
     }
   }
 
-  /** 명시적인 사용자 음소거만 변경해 자동 Half-Duplex 해제와 독립적으로 유지합니다. */
+  /** 통화 중 사용자가 선택한 구간의 녹음을 시작하거나 저장합니다. */
+  toggleRecording = () => {
+    if (this.state.stage === 'active') this.audio.toggleRecording()
+  }
+
+  /** 사용자 음소거를 변경하고 입력 게이트와 동기화합니다. */
   toggleMute = () => {
     if (this.state.stage !== 'active') return
     this.update({ isMuted: !this.state.isMuted })

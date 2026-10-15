@@ -6,6 +6,7 @@ import type {
 } from '@entities/scenario'
 
 export interface CreateCustomScenarioRequest {
+  isWarmup?: boolean
   title: string
   category: ScenarioCategory
   callTarget: string

@@ -37,3 +37,13 @@ it('외부 클릭과 Escape로 메뉴를 닫는다', () => {
   fireEvent.keyDown(document, { key: 'Escape' })
   expect(screen.queryByRole('button', { name: '사용자 차단하기' })).not.toBeInTheDocument()
 })
+
+it('신고 메뉴는 차단 요청 없이 신고 대화상자를 연다', () => {
+  const onReport = vi.fn()
+  render(<CommunityContentMenu id={23} name="사용자" onReport={onReport} />)
+  fireEvent.click(screen.getByRole('button', { name: '사용자 게시글 메뉴' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: '게시글 신고하기' }))
+  expect(onReport).toHaveBeenCalledOnce()
+  expect(mutate).not.toHaveBeenCalled()
+  expect(screen.queryByRole('menuitem', { name: '게시글 신고하기' })).not.toBeInTheDocument()
+})

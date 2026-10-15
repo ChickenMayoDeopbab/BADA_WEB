@@ -24,6 +24,7 @@ export interface TrainingRecord {
   startedAt: string
   anxietyScore?: number
   recordingUrl?: string
+  transcript?: Array<{ role: 'ai' | 'user'; text: string }>
   feedbacks: TrainingFeedback[]
 }
 

@@ -195,6 +195,10 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
         return
       }
       void queryClient.invalidateQueries({ queryKey: ['training-records'] })
+      if (routeState?.sessionConfiguration?.type === 'WARMUP') {
+        navigate('/records', { replace: true })
+        return
+      }
       navigate(`/training/${scenarioId}/result`, {
         state: {
           ...routeState,
@@ -359,7 +363,7 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
       : elapsedSeconds,
     isMuted: voiceState?.isMuted ?? false,
     isSpeakerOn: false,
-    isRecording: false,
+    isRecording: voiceState?.isRecording ?? false,
     isScriptOpen,
     script,
     scriptHint: voiceState?.scriptHint ?? null,
@@ -380,6 +384,7 @@ export const useScenarioCall = ({ getToken }: ScenarioCallOptions) => {
       serverSchedule ||
       (routeState?.sessionConfiguration && preparationStage === 'scheduled'),
     ),
+    handleToggleRecording: () => callRef.current?.toggleRecording(),
     handleToggleMute,
     handleToggleScript,
     handleAnswer,

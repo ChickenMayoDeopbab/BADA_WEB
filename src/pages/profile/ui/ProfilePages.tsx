@@ -1,6 +1,6 @@
 import { ProfileSkeleton } from './ProfileSkeleton'
 import { useDialogFocus } from '@shared/lib'
-import defaultRingtone from '@shared/assets/scenario-training/ringtone-default.mp3'
+import { ProfileRingtoneSettings } from './ProfileRingtoneSettings'
 import defaultProfileLarge from '@shared/assets/profile/default-profile-large.svg'
 import { ProfileBackLink } from './ProfileBackLink'
 import { ProfileImageConsentDialog } from './ProfileImageConsentDialog'
@@ -34,10 +34,10 @@ import {
   type ReactNode,
   useEffect,
   useId,
-  useRef,
   useState,
 } from 'react'
-import { FiChevronRight, FiPlay } from 'react-icons/fi'
+import { useTranslation } from '@shared/lib'
+import { FiChevronRight } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 
 const EMPTY_VALUE = '-'
@@ -50,17 +50,20 @@ interface PageFrameProps {
   children: ReactNode
 }
 
-const PageFrame = ({ title, description, children, showBack = false, action }: PageFrameProps) => (
-  <ServicePageContent className="pb-10">
-    <header className="gap-3 mb-[18px] flex flex-wrap items-center">
-      {showBack && <ProfileBackLink />}
-      <h1 className="text-title1 font-bold text-label-normal">{title}</h1>
-      <p className="text-body font-medium text-neutral-60">{description}</p>
-      {action}
-    </header>
-    {children}
-  </ServicePageContent>
-)
+const PageFrame = ({ title, description, children, showBack = false, action }: PageFrameProps) => {
+  const { t } = useTranslation()
+  return (
+    <ServicePageContent className="pb-10">
+      <header className="gap-3 mb-[18px] flex flex-wrap items-center">
+        {showBack && <ProfileBackLink />}
+        <h1 className="text-title1 font-bold text-label-normal">{t(title)}</h1>
+        <p className="text-body font-medium text-neutral-60">{t(description)}</p>
+        {action}
+      </header>
+      {children}
+    </ServicePageContent>
+  )
+}
 
 const Card = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
   <section
@@ -97,6 +100,14 @@ const SecondaryButton = ({
 )
 
 const quickSettings = [
+  { title: '언어 설정', value: '한국어 · English', to: routePaths.profileLanguage },
+  { title: '문의하기', value: '서비스 문의 접수', to: routePaths.profileInquiry },
+  {
+    title: '서비스 관심 등록',
+    value: '유료 서비스 이용 의향',
+    to: routePaths.profilePaymentInterest,
+  },
+  { title: '알림 목록', value: '받은 알림 확인', to: routePaths.notifications },
   { title: '벨소리', value: EMPTY_VALUE, to: routePaths.profileRingtone },
   { title: '알림', value: EMPTY_VALUE, to: routePaths.profileNotifications },
   { title: '개인정보 관리', value: '약관 및 민감정보 동의', to: routePaths.profilePrivacy },
@@ -118,6 +129,8 @@ interface AccountWithdrawalDialogProps {
 }
 
 const AccountWithdrawalDialog = ({ isOpen, onClose }: AccountWithdrawalDialogProps) => {
+  const { t } = useTranslation()
+
   const navigate = useNavigate()
   const withdrawAccount = useWithdrawAccount()
   const [withdrawError, setWithdrawError] = useState('')
@@ -161,18 +174,18 @@ const AccountWithdrawalDialog = ({ isOpen, onClose }: AccountWithdrawalDialogPro
           id="withdraw-dialog-title"
           className="text-center text-headline1 font-bold text-label-normal"
         >
-          정말 회원 탈퇴할까요?
+          {t('정말 회원 탈퇴할까요?')}
         </h2>
         <p
           id="withdraw-dialog-description"
           className="mt-6 text-center text-body text-label-normal"
         >
-          탈퇴하면 프로필과 훈련 기록이 삭제되며
+          {t('탈퇴하면 프로필과 훈련 기록이 삭제되며')}
           <br />
-          복구할 수 없습니다.
+          {t('복구할 수 없습니다.')}
         </p>
         <p className="mt-7 rounded-[10px] bg-red-90/20 py-[17px] text-center text-[13px] font-bold text-status-error">
-          삭제 후에는 계정을 복구할 수 없습니다.
+          {t('삭제 후에는 계정을 복구할 수 없습니다.')}
         </p>
         {withdrawError && (
           <p className="mt-3 text-center text-caption text-status-error" role="alert">
@@ -186,7 +199,7 @@ const AccountWithdrawalDialog = ({ isOpen, onClose }: AccountWithdrawalDialogPro
             disabled={withdrawAccount.isPending}
             onClick={onClose}
           >
-            취소
+            {t('취소')}
           </button>
           <button
             className="h-[52px] flex-1 rounded-component bg-status-error text-body font-bold text-common-0 disabled:cursor-not-allowed disabled:opacity-50"
@@ -194,7 +207,7 @@ const AccountWithdrawalDialog = ({ isOpen, onClose }: AccountWithdrawalDialogPro
             disabled={withdrawAccount.isPending}
             onClick={() => void confirmWithdrawal()}
           >
-            {withdrawAccount.isPending ? '탈퇴 중' : '회원 탈퇴'}
+            {withdrawAccount.isPending ? '탈퇴 중' : t('회원 탈퇴')}
           </button>
         </div>
       </section>
@@ -203,6 +216,8 @@ const AccountWithdrawalDialog = ({ isOpen, onClose }: AccountWithdrawalDialogPro
 }
 
 export const ProfileOverviewPage = () => {
+  const { t } = useTranslation()
+
   const profileQuery = useMyPage()
   const trainingQuery = useRecentTrainings()
   const notificationQuery = useNotificationSettings()
@@ -212,7 +227,7 @@ export const ProfileOverviewPage = () => {
   const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false)
 
   const mobileLogout = (
-    <div className="hidden max-md:ml-auto max-md:block">
+    <div className="max-md:ml-auto max-md:block hidden">
       <LogoutButton />
     </div>
   )
@@ -247,8 +262,8 @@ export const ProfileOverviewPage = () => {
   if (profileQuery.isPending && !profileData)
     return (
       <PageFrame
-        title="프로필"
-        description="계정 정보와 서비스 설정을 관리하세요."
+        title={t('프로필')}
+        description={t('계정 정보와 서비스 설정을 관리하세요.')}
         action={mobileLogout}
       >
         <ProfileSkeleton />
@@ -257,13 +272,13 @@ export const ProfileOverviewPage = () => {
   if (profileQuery.isError && !profileData)
     return (
       <PageFrame
-        title="프로필"
-        description="계정 정보와 서비스 설정을 관리하세요."
+        title={t('프로필')}
+        description={t('계정 정보와 서비스 설정을 관리하세요.')}
         action={mobileLogout}
       >
         <StatusState
           isError
-          title="프로필 정보를 불러오지 못했어요."
+          title={t('프로필 정보를 불러오지 못했어요.')}
           onRetry={() => void profileQuery.refetch()}
           isRetrying={profileQuery.isFetching}
         />
@@ -272,8 +287,8 @@ export const ProfileOverviewPage = () => {
 
   return (
     <PageFrame
-      title="프로필"
-      description="계정 정보와 서비스 설정을 관리하세요."
+      title={t('프로필')}
+      description={t('계정 정보와 서비스 설정을 관리하세요.')}
       action={mobileLogout}
     >
       <div className="gap-4 max-sm:grid-cols-1 grid grid-cols-3">
@@ -304,20 +319,20 @@ export const ProfileOverviewPage = () => {
             className="h-12 px-6 flex shrink-0 items-center justify-center rounded-component bg-primary-normal text-body font-bold text-common-0"
             to={routePaths.profileEdit}
           >
-            프로필 수정
+            {t('프로필 수정')}
           </Link>
         </Card>
 
         {summaryCards.map(([label, value, note]) => (
-          <Card className="h-32 p-6" key={label}>
+          <Card className="h-32 p-6" key={t(label)}>
             <div className="gap-2 flex items-center justify-between">
-              <p className="text-label font-medium text-label-alternative">{label}</p>
+              <p className="text-label font-medium text-label-alternative">{t(label)}</p>
               {label === '콜포비아 레벨' && (
                 <Link
                   className="shrink-0 rounded-control text-caption font-bold text-primary-normal hover:underline"
                   to={routePaths.welcome}
                 >
-                  자가진단 다시 하기
+                  {t('자가진단 다시 하기')}
                 </Link>
               )}
             </div>
@@ -329,13 +344,13 @@ export const ProfileOverviewPage = () => {
         <Card className="p-5 max-sm:col-span-1 col-span-3">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-headline1 font-bold text-label-normal">최근 훈련</h2>
+              <h2 className="text-headline1 font-bold text-label-normal">{t('최근 훈련')}</h2>
               <p className="mt-1 text-label text-label-alternative">
-                최근 진행한 훈련을 빠르게 확인하세요.
+                {t('최근 진행한 훈련을 빠르게 확인하세요.')}
               </p>
             </div>
             <Link className="text-label font-bold text-primary-normal" to={routePaths.records}>
-              전체 기록 보기
+              {t('전체 기록 보기')}
             </Link>
           </div>
           <ul className="mt-4 space-y-2">
@@ -366,7 +381,10 @@ export const ProfileOverviewPage = () => {
                   <span className="px-3 py-2 w-64 max-sm:order-last max-sm:w-full gap-2 grid shrink-0 grid-cols-[1fr_auto_1fr_auto_1fr] items-center rounded-control bg-fill-normal text-center text-caption text-label-alternative">
                     <span>{training.detail?.duration ?? '-'}</span>
                     <span className="h-3 w-px bg-line-neutral" aria-hidden="true" />
-                    <span>피드백 {training.detail?.feedbackCount ?? '-'}개</span>
+                    <span>
+                      {t('피드백')} {training.detail?.feedbackCount ?? '-'}
+                      {t('개')}
+                    </span>
                     <span className="h-3 w-px bg-line-neutral" aria-hidden="true" />
                     <span>{formatTrainingDate(training.trainedAt)}</span>
                   </span>
@@ -376,14 +394,14 @@ export const ProfileOverviewPage = () => {
             ))}
             {trainingQuery.isPending && (
               <li>
-                <ListSkeleton label="최근 훈련을 불러오는 중" />
+                <ListSkeleton label={t('최근 훈련을 불러오는 중')} />
               </li>
             )}
             {trainingQuery.isError && (
               <li>
                 <StatusState
                   isError
-                  title="최근 훈련을 불러오지 못했어요."
+                  title={t('최근 훈련을 불러오지 못했어요.')}
                   onRetry={() => void trainingQuery.refetch()}
                   isRetrying={trainingQuery.isFetching}
                 />
@@ -391,7 +409,7 @@ export const ProfileOverviewPage = () => {
             )}
             {!trainingQuery.isPending && !trainingQuery.isError && recentTrainings.length === 0 && (
               <li className="py-10 flex items-center justify-center text-label text-label-alternative">
-                최근 훈련 기록이 없습니다.
+                {t('최근 훈련 기록이 없습니다.')}
               </li>
             )}
           </ul>
@@ -399,24 +417,24 @@ export const ProfileOverviewPage = () => {
 
         <Card className="gap-6 p-5 max-xl:flex-col max-xl:items-stretch max-sm:col-span-1 col-span-3 flex items-center">
           <div className="shrink-0">
-            <h2 className="text-headline1 font-bold text-label-normal">빠른 설정</h2>
+            <h2 className="text-headline1 font-bold text-label-normal">{t('빠른 설정')}</h2>
             <p className="mt-1 text-label whitespace-nowrap text-label-alternative">
-              자주 사용하는 설정을 관리하세요.
+              {t('자주 사용하는 설정을 관리하세요.')}
             </p>
           </div>
           <div className="gap-3 min-w-0 max-lg:grid-cols-2 max-sm:grid-cols-1 grid flex-1 grid-cols-4">
             {quickSettingsWithApiState.map((item) => (
               <Link
                 className="px-4 py-3 min-h-16 flex items-center justify-between rounded-component bg-fill-normal hover:bg-fill-pressed"
-                key={item.title}
+                key={t(item.title)}
                 to={item.to}
               >
                 <span>
                   <span className="block text-[15px] font-bold text-label-normal">
-                    {item.title}
+                    {t(item.title)}
                   </span>
                   <span className="mt-1 block text-caption text-label-alternative">
-                    {item.value}
+                    {t(item.value)}
                   </span>
                 </span>
                 <FiChevronRight className="text-label-alternative" aria-hidden="true" />
@@ -426,9 +444,9 @@ export const ProfileOverviewPage = () => {
         </Card>
         <Card className="p-6 max-sm:col-span-1 gap-4 max-sm:flex-col max-sm:items-start col-span-3 flex items-center justify-between">
           <div>
-            <h2 className="text-headline1 font-bold text-label-normal">계정 관리</h2>
+            <h2 className="text-headline1 font-bold text-label-normal">{t('계정 관리')}</h2>
             <p className="mt-1 text-label text-label-alternative">
-              더 이상 Bada를 이용하지 않는다면 계정을 삭제할 수 있습니다.
+              {t('더 이상 Bada를 이용하지 않는다면 계정을 삭제할 수 있습니다.')}
             </p>
           </div>
           <button
@@ -436,7 +454,7 @@ export const ProfileOverviewPage = () => {
             type="button"
             onClick={() => setIsWithdrawalDialogOpen(true)}
           >
-            회원 탈퇴
+            {t('회원 탈퇴')}
           </button>
         </Card>
       </div>
@@ -455,20 +473,25 @@ interface FieldProps {
   children: ReactNode
 }
 
-const Field = ({ label, htmlFor, description, children }: FieldProps) => (
-  <div>
-    <label htmlFor={htmlFor} className="block text-body font-bold text-label-normal">
-      {label}
-    </label>
-    <div className="mt-2">{children}</div>
-    <p className="mt-2 text-caption text-label-alternative">{description}</p>
-  </div>
-)
+const Field = ({ label, htmlFor, description, children }: FieldProps) => {
+  const { t } = useTranslation()
+  return (
+    <div>
+      <label htmlFor={htmlFor} className="block text-body font-bold text-label-normal">
+        {t(label)}
+      </label>
+      <div className="mt-2">{children}</div>
+      <p className="mt-2 text-caption text-label-alternative">{t(description)}</p>
+    </div>
+  )
+}
 
 const inputClass =
   'h-12 min-w-0 w-full rounded-control border border-line-alternative bg-fill-field px-4 text-body text-label-normal outline-none focus:border-primary-normal'
 
 export const ProfileEditPage = () => {
+  const { t } = useTranslation()
+
   const consent = useProfileImageConsent()
   const navigate = useNavigate()
   const inputId = useId()
@@ -556,16 +579,16 @@ export const ProfileEditPage = () => {
 
   if (profileQuery.isPending && !profileData)
     return (
-      <PageFrame title="프로필 수정" description="계정에 표시되는 정보를 변경하세요.">
+      <PageFrame title={t('프로필 수정')} description={t('계정에 표시되는 정보를 변경하세요.')}>
         <ProfileSkeleton isEditing />
       </PageFrame>
     )
   if (profileQuery.isError && !profileData)
     return (
-      <PageFrame title="프로필 수정" description="계정에 표시되는 정보를 변경하세요.">
+      <PageFrame title={t('프로필 수정')} description={t('계정에 표시되는 정보를 변경하세요.')}>
         <StatusState
           isError
-          title="프로필 정보를 불러오지 못했어요."
+          title={t('프로필 정보를 불러오지 못했어요.')}
           onRetry={() => void profileQuery.refetch()}
           isRetrying={profileQuery.isFetching}
         />
@@ -573,7 +596,7 @@ export const ProfileEditPage = () => {
     )
 
   return (
-    <PageFrame title="프로필 수정" description="계정에 표시되는 정보를 변경하세요.">
+    <PageFrame title={t('프로필 수정')} description={t('계정에 표시되는 정보를 변경하세요.')}>
       <Card className="max-lg:flex-col flex min-h-[720px] max-w-[1024px] overflow-hidden">
         <aside className="p-6 max-sm:p-4 max-lg:w-full max-lg:flex-row max-lg:justify-center gap-6 max-lg:gap-16 max-sm:gap-6 flex w-[300px] shrink-0 flex-col items-center bg-fill-normal">
           <div className="min-w-0 flex flex-col items-center">
@@ -583,7 +606,7 @@ export const ProfileEditPage = () => {
                   hasPhoto ? 'size-full rounded-pill object-cover' : 'size-[54px] rounded-pill'
                 }
                 src={displayedImage}
-                alt="현재 프로필"
+                alt={t('현재 프로필')}
               />
             </div>
             <p className="mt-4 max-w-full truncate text-headline1 font-bold text-label-normal">
@@ -598,7 +621,7 @@ export const ProfileEditPage = () => {
               className="h-12 max-sm:h-10 flex w-full cursor-pointer items-center justify-center rounded-component bg-primary-alternative text-label font-bold text-primary-normal"
               htmlFor={inputId}
             >
-              프로필 사진 변경
+              {t('프로필 사진 변경')}
             </label>
             <input
               id={inputId}
@@ -617,9 +640,9 @@ export const ProfileEditPage = () => {
                 setSubmitError('')
               }}
             >
-              기본 이미지로 변경
+              {t('기본 이미지로 변경')}
             </SecondaryButton>
-            <p className="mt-3 text-caption text-label-alternative">JPG, PNG · 최대 5MB</p>
+            <p className="mt-3 text-caption text-label-alternative">{t('JPG, PNG · 최대 5MB')}</p>
           </div>
         </aside>
         <form
@@ -629,15 +652,15 @@ export const ProfileEditPage = () => {
             await handleSubmit()
           }}
         >
-          <h2 className="text-[22px] font-bold text-label-normal">기본 정보</h2>
+          <h2 className="text-[22px] font-bold text-label-normal">{t('기본 정보')}</h2>
           <p className="mt-1 text-label text-label-alternative">
-            계정에 표시되는 프로필 정보를 수정하세요.
+            {t('계정에 표시되는 프로필 정보를 수정하세요.')}
           </p>
           <div className="mt-7 gap-x-6 gap-y-6 max-sm:grid-cols-1 grid grid-cols-2">
             <Field
               htmlFor={`${inputId}-name`}
-              label="이름"
-              description="서비스에 표시되는 이름입니다."
+              label={t('이름')}
+              description={t('서비스에 표시되는 이름입니다.')}
             >
               <input
                 className={inputClass}
@@ -650,8 +673,8 @@ export const ProfileEditPage = () => {
             </Field>
             <Field
               htmlFor={`${inputId}-username`}
-              label="아이디"
-              description="영문과 숫자를 사용할 수 있습니다."
+              label={t('아이디')}
+              description={t('영문과 숫자를 사용할 수 있습니다.')}
             >
               <div className="gap-2 flex">
                 <input
@@ -674,7 +697,7 @@ export const ProfileEditPage = () => {
                   aria-busy={checkUsername.isPending}
                   onClick={handleUsernameCheck}
                 >
-                  {checkUsername.isPending ? '확인 중' : '중복 확인'}
+                  {checkUsername.isPending ? '확인 중' : t('중복 확인')}
                 </PrimaryButton>
               </div>
               {usernameMessage && (
@@ -686,12 +709,12 @@ export const ProfileEditPage = () => {
             <div className="max-sm:col-span-1 col-span-2">
               <Field
                 htmlFor={`${inputId}-email`}
-                label="이메일"
-                description="인증 및 알림에 사용되는 이메일입니다."
+                label={t('이메일')}
+                description={t('인증 및 알림에 사용되는 이메일입니다.')}
               >
                 <input
                   id={`${inputId}-email`}
-                  aria-label="이메일"
+                  aria-label={t('이메일')}
                   className={`${inputClass} cursor-not-allowed disabled:bg-fill-normal disabled:text-label-alternative`}
                   value={profileData?.email || EMPTY_VALUE}
                   disabled
@@ -699,16 +722,16 @@ export const ProfileEditPage = () => {
               </Field>
             </div>
             <div className="pt-6 max-sm:col-span-1 col-span-2 border-t border-line-alternative">
-              <p className="text-body font-bold text-label-normal">비밀번호</p>
+              <p className="text-body font-bold text-label-normal">{t('비밀번호')}</p>
               <p className="mt-2 text-caption text-label-alternative">
-                보안을 위해 주기적으로 비밀번호를 변경해 주세요.
+                {t('보안을 위해 주기적으로 비밀번호를 변경해 주세요.')}
               </p>
               <SecondaryButton
                 className="mt-5 w-[220px]"
                 type="button"
                 onClick={() => navigate(routePaths.resetPassword)}
               >
-                비밀번호 변경
+                {t('비밀번호 변경')}
               </SecondaryButton>
             </div>
           </div>
@@ -719,7 +742,7 @@ export const ProfileEditPage = () => {
           )}
           <div className="gap-3 mt-auto flex justify-end">
             <SecondaryButton type="button" onClick={() => navigate(routePaths.profile)}>
-              취소
+              {t('취소')}
             </SecondaryButton>
             <PrimaryButton
               type="submit"
@@ -737,8 +760,8 @@ export const ProfileEditPage = () => {
                 <LoadingSpinner className="mr-2" />
               )}
               {updateProfile.isPending || uploadImage.isPending || consent.isChecking
-                ? '저장 중'
-                : '변경사항 저장'}
+                ? t('저장 중')
+                : t('변경사항 저장')}
             </PrimaryButton>
           </div>
         </form>
@@ -764,143 +787,48 @@ const SelectRow = ({
   description,
   onSelect,
   action,
-}: SelectRowProps) => (
-  <div
-    className={`flex items-center rounded-component ${selected ? 'bg-primary-alternative' : 'bg-fill-normal'}`}
-  >
-    <button
-      className={`px-5 ux-accordion ease-out min-w-0 flex min-h-[82px] flex-1 items-center rounded-component text-left transition-colors motion-reduce:transition-none ${selected ? 'bg-primary-alternative hover:bg-primary-alternative/80' : 'bg-fill-normal hover:bg-fill-pressed'} ${className}`}
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
+}: SelectRowProps) => {
+  const { t } = useTranslation()
+  return (
+    <div
+      className={`flex items-center rounded-component ${selected ? 'bg-primary-alternative' : 'bg-fill-normal'}`}
     >
-      <span
-        className={`mr-5 size-5 ux-accordion ease-out flex items-center justify-center rounded-pill border-2 transition-colors motion-reduce:transition-none ${selected ? 'border-primary-normal' : 'border-line-normal'}`}
+      <button
+        className={`px-5 ux-accordion ease-out min-w-0 flex min-h-[82px] flex-1 items-center rounded-component text-left transition-colors motion-reduce:transition-none ${selected ? 'bg-primary-alternative hover:bg-primary-alternative/80' : 'bg-fill-normal hover:bg-fill-pressed'} ${className}`}
+        type="button"
+        onClick={onSelect}
+        aria-pressed={selected}
       >
         <span
-          className={`size-2.5 ux-accordion ease-out rounded-pill bg-primary-normal transition-[opacity,scale] motion-reduce:transition-none ${selected ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}
-        />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-body font-bold text-label-normal">{title}</span>
-        <span className="mt-1 block text-[13px] text-label-alternative">{description}</span>
-      </span>
-      {!action && selected && (
-        <span className="text-caption font-bold text-primary-normal">선택됨</span>
-      )}
-    </button>
-    {action && <div className="pr-4 shrink-0">{action}</div>}
-  </div>
-)
-
-export const ProfileRingtonePage = () => {
-  const navigate = useNavigate()
-  const [ringtone, setRingtone] = useState('기본 벨소리')
-  const [playing, setPlaying] = useState(false)
-  const previewRef = useRef<HTMLAudioElement>(null)
-  const [previewError, setPreviewError] = useState('')
-  const handlePreview = async () => {
-    const audio = previewRef.current
-    if (!audio) return
-    setPreviewError('')
-    if (!audio.paused) {
-      audio.pause()
-      setPlaying(false)
-      return
-    }
-    try {
-      await audio.play()
-      setPlaying(true)
-    } catch {
-      setPreviewError('벨소리를 재생하지 못했어요. 다시 시도해 주세요.')
-    }
-  }
-
-  const options = [
-    ['기본 벨소리', '서비스에서 제공하는 기본 벨소리'],
-    ['잔잔한 파도', '벨소리 선택 예시 · 저장 기능 준비 중'],
-    ['맑은 알림음', '벨소리 선택 예시 · 저장 기능 준비 중'],
-    ['무음', '벨소리를 재생하지 않음'],
-  ]
-
-  return (
-    <PageFrame title="벨소리" description="통화 훈련에 사용할 벨소리를 선택하세요." showBack>
-      <Card className="p-7 max-sm:p-4 relative min-h-[672px] max-w-[1024px] overflow-hidden">
-        <h2 className="text-[22px] font-bold text-label-normal">벨소리 설정</h2>
-        <p className="mt-1 text-label text-label-alternative">
-          벨소리 선택을 미리 확인할 수 있어요. 저장과 추가 기능은 준비 중이에요.
-        </p>
-        <audio
-          ref={previewRef}
-          src={defaultRingtone}
-          preload="none"
-          onEnded={() => setPlaying(false)}
-          onError={() => {
-            setPlaying(false)
-            setPreviewError('벨소리를 불러오지 못했어요. 다시 시도해 주세요.')
-          }}
-        />
-        {previewError && (
-          <p role="alert" className="mt-3 text-label text-status-error">
-            {previewError}
-          </p>
-        )}
-        <p className="mt-7 text-body font-bold text-label-normal">기본 벨소리</p>
-        <div className="mt-3">
-          <SelectRow
-            className="min-h-[68px]"
-            title={options[0][0]}
-            description={options[0][1]}
-            selected={ringtone === options[0][0]}
-            onSelect={() => setRingtone(options[0][0])}
-            action={
-              <button
-                type="button"
-                aria-label={playing ? '기본 벨소리 정지' : '기본 벨소리 미리듣기'}
-                aria-pressed={playing}
-                className="gap-2 py-3 flex items-center text-caption font-bold text-primary-normal"
-                onClick={() => void handlePreview()}
-              >
-                <FiPlay aria-hidden="true" />
-                {playing ? '정지' : '미리듣기'}
-              </button>
-            }
+          className={`mr-5 size-5 ux-accordion ease-out flex items-center justify-center rounded-pill border-2 transition-colors motion-reduce:transition-none ${selected ? 'border-primary-normal' : 'border-line-normal'}`}
+        >
+          <span
+            className={`size-2.5 ux-accordion ease-out rounded-pill bg-primary-normal transition-[opacity,scale] motion-reduce:transition-none ${selected ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}
           />
-        </div>
-        <div className="mt-5 flex items-center justify-between">
-          <p className="text-body font-bold text-label-normal">추가 벨소리</p>
-          <PrimaryButton
-            className="h-11 w-[192px] disabled:opacity-50"
-            disabled
-            title="벨소리 추가 기능을 준비하고 있어요."
-          >
-            ＋ 벨소리 추가
-          </PrimaryButton>
-        </div>
-        <div className="mt-1 space-y-3">
-          {options.slice(1).map(([title, description]) => (
-            <SelectRow
-              className="min-h-[68px]"
-              key={title}
-              title={title}
-              description={description}
-              selected={ringtone === title}
-              onSelect={() => setRingtone(title)}
-              action={<span className="text-caption text-label-alternative">준비 중</span>}
-            />
-          ))}
-        </div>
-        <div className="right-0 bottom-0 gap-3 pr-7 absolute flex h-[94px] w-full items-center justify-end bg-fill-normal">
-          <SecondaryButton onClick={() => navigate(routePaths.profile)}>취소</SecondaryButton>
-          <PrimaryButton
-            disabled
-            className="disabled:opacity-50"
-            title="벨소리 저장 기능을 준비하고 있어요."
-          >
-            저장
-          </PrimaryButton>
-        </div>
-      </Card>
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-body font-bold text-label-normal">{t(title)}</span>
+          <span className="mt-1 block text-[13px] text-label-alternative">{t(description)}</span>
+        </span>
+        {!action && selected && (
+          <span className="text-caption font-bold text-primary-normal">{t('선택됨')}</span>
+        )}
+      </button>
+      {action && <div className="pr-4 shrink-0">{action}</div>}
+    </div>
+  )
+}
+
+/** 서버와 연결된 벨소리 관리를 프로필 화면에서 표시합니다. */
+export const ProfileRingtonePage = () => {
+  const { t } = useTranslation()
+  return (
+    <PageFrame
+      title={t('벨소리')}
+      description={t('통화 훈련에 사용할 벨소리를 선택하세요.')}
+      showBack
+    >
+      <ProfileRingtoneSettings />
     </PageFrame>
   )
 }
@@ -915,23 +843,28 @@ const Toggle = ({
   onChange: () => void
   label: string
   disabled?: boolean
-}) => (
-  <button
-    aria-label={label}
-    aria-pressed={checked}
-    aria-busy={disabled}
-    className={`h-6 p-1 w-10 ux-toggle ease-out flex shrink-0 items-center rounded-pill transition-colors motion-reduce:transition-none ${checked ? 'bg-primary-normal' : 'bg-label-disabled'}`}
-    type="button"
-    disabled={disabled}
-    onClick={onChange}
-  >
-    <span
-      className={`size-4 ux-toggle rounded-pill bg-common-0 shadow-subtle-card transition-transform ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${checked ? 'translate-x-4' : 'translate-x-0'}`}
-    />
-  </button>
-)
+}) => {
+  const { t } = useTranslation()
+  return (
+    <button
+      aria-label={t(label)}
+      aria-pressed={checked}
+      aria-busy={disabled}
+      className={`h-6 p-1 w-10 ux-toggle ease-out flex shrink-0 items-center rounded-pill transition-colors motion-reduce:transition-none ${checked ? 'bg-primary-normal' : 'bg-label-disabled'}`}
+      type="button"
+      disabled={disabled}
+      onClick={onChange}
+    >
+      <span
+        className={`size-4 ux-toggle rounded-pill bg-common-0 shadow-subtle-card transition-transform ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${checked ? 'translate-x-4' : 'translate-x-0'}`}
+      />
+    </button>
+  )
+}
 
 export const ProfileNotificationsPage = () => {
+  const { t } = useTranslation()
+
   const notificationQuery = useNotificationSettings()
   const updateNotifications = useUpdateNotificationSettings()
   const [settingOverrides, setSettingOverrides] = useState<boolean[] | null>(null)
@@ -974,7 +907,11 @@ export const ProfileNotificationsPage = () => {
   }
 
   return (
-    <PageFrame title="알림 설정" description="받고 싶은 알림을 항목별로 관리하세요." showBack>
+    <PageFrame
+      title={t('알림 설정')}
+      description={t('받고 싶은 알림을 항목별로 관리하세요.')}
+      showBack
+    >
       <div className="space-y-3 max-w-[1024px]">
         {(notificationQuery.isError || updateError) && (
           <p className="text-label text-status-error" role="alert">
@@ -984,7 +921,7 @@ export const ProfileNotificationsPage = () => {
         {notificationQuery.isError && (
           <StatusState
             isError
-            title="알림 설정을 다시 불러와 주세요."
+            title={t('알림 설정을 다시 불러와 주세요.')}
             onRetry={() => void notificationQuery.refetch()}
             isRetrying={notificationQuery.isFetching}
           />
@@ -994,8 +931,8 @@ export const ProfileNotificationsPage = () => {
             {indices.map((index) => {
               const title = options[index][0]
               return (
-                <div className="gap-4 min-h-14 flex items-center justify-between" key={title}>
-                  <p className="text-body font-bold text-label-normal">{title}</p>
+                <div className="gap-4 min-h-14 flex items-center justify-between" key={t(title)}>
+                  <p className="text-body font-bold text-label-normal">{t(title)}</p>
                   {settings?.[index] == null ? (
                     notificationQuery.isPending ? (
                       <LoadingRegion label={`${title} 설정을 불러오는 중`}>
@@ -1023,28 +960,29 @@ export const ProfileNotificationsPage = () => {
 }
 
 export const ProfileLanguagePage = () => {
-  const [language, setLanguage] = useState('한국어')
+  const { t, locale, setLocale } = useTranslation()
   const languages = [
-    ['한국어', '대한민국 · 한국어'],
-    ['English', 'United States · English'],
-    ['日本語', '日本 · 日本語'],
+    ['ko', '한국어', '대한민국 · 한국어'],
+    ['en', 'English', 'English'],
   ]
 
   return (
-    <PageFrame title="언어 설정" description="Bada에서 사용할 표시 언어를 선택하세요.">
+    <PageFrame title={t('언어 설정')} description={t('Bada에서 사용할 표시 언어를 선택하세요.')}>
       <Card className="p-7 max-sm:p-4 min-h-[430px] max-w-[1024px]">
-        <h2 className="text-[22px] font-bold text-label-normal">표시 언어</h2>
+        <h2 className="text-[22px] font-bold text-label-normal">{t('표시 언어')}</h2>
         <p className="mt-1 text-label text-label-alternative">
-          언어 선택을 미리 확인할 수 있어요. 실제 표시 언어 변경 기능은 준비 중이에요.
+          {t(
+            '이 기기에 언어 설정이 저장돼요. 작성한 글과 서버가 제공하는 훈련 내용·약관은 원문으로 표시돼요.',
+          )}
         </p>
         <div className="mt-7 space-y-3">
-          {languages.map(([title, description]) => (
+          {languages.map(([value, title, description]) => (
             <SelectRow
-              key={title}
-              title={title}
-              description={description}
-              selected={language === title}
-              onSelect={() => setLanguage(title)}
+              key={t(title)}
+              title={t(title)}
+              description={t(description)}
+              selected={locale === value}
+              onSelect={() => setLocale(value as 'ko' | 'en')}
             />
           ))}
         </div>
@@ -1054,6 +992,8 @@ export const ProfileLanguagePage = () => {
 }
 
 export const ProfilePhotoPage = () => {
+  const { t } = useTranslation()
+
   const consent = useProfileImageConsent()
   const navigate = useNavigate()
   const inputId = useId()
@@ -1124,7 +1064,10 @@ export const ProfilePhotoPage = () => {
     : (preview ?? profileImageQuery.data ?? defaultProfileLarge)
 
   return (
-    <PageFrame title="프로필 사진 변경" description="기본 프로필 또는 새 사진을 선택하세요.">
+    <PageFrame
+      title={t('프로필 사진 변경')}
+      description={t('기본 프로필 또는 새 사진을 선택하세요.')}
+    >
       <Card className="p-8 gap-12 max-lg:flex-col max-sm:p-4 flex min-h-[680px] max-w-[1024px]">
         <div className="max-lg:w-full max-lg:pb-8 flex w-[420px] shrink-0 flex-col items-center rounded-[16px] bg-fill-normal pt-[58px]">
           <div className="flex size-[156px] items-center justify-center overflow-hidden rounded-pill bg-label-disabled">
@@ -1133,20 +1076,22 @@ export const ProfilePhotoPage = () => {
                 preview || profileImageQuery.data ? 'size-full object-cover' : 'size-[104px]'
               }
               src={displayedImage}
-              alt="선택한 프로필 미리보기"
+              alt={t('선택한 프로필 미리보기')}
             />
           </div>
-          <h2 className="mt-8 text-headline1 font-bold text-label-normal">현재 프로필 이미지</h2>
+          <h2 className="mt-8 text-headline1 font-bold text-label-normal">
+            {t('현재 프로필 이미지')}
+          </h2>
           <p className="mt-3 text-center text-label text-label-alternative">
-            미리보기는 실제 서비스에 표시되는
+            {t('미리보기는 실제 서비스에 표시되는')}
             <br />
-            형태와 동일합니다.
+            {t('형태와 동일합니다.')}
           </p>
         </div>
         <div className="min-w-0 pt-4 flex flex-1 flex-col">
-          <h2 className="text-[22px] font-bold text-label-normal">사진 업로드</h2>
+          <h2 className="text-[22px] font-bold text-label-normal">{t('사진 업로드')}</h2>
           <p className="mt-1 text-label text-label-alternative">
-            JPG 또는 PNG 파일을 선택하세요. 최대 5MB까지 지원합니다.
+            {t('JPG 또는 PNG 파일을 선택하세요. 최대 5MB까지 지원합니다.')}
           </p>
           {photoError && (
             <p className="mt-4 text-label text-status-error" role="alert">
@@ -1157,12 +1102,12 @@ export const ProfilePhotoPage = () => {
             className="mt-8 flex h-[196px] cursor-pointer flex-col items-center justify-center rounded-[14px] border border-dashed border-line-alternative bg-fill-normal"
             htmlFor={inputId}
           >
-            <span className="text-[17px] font-bold text-label-normal">
-              파일을 끌어 놓거나 선택하세요.
+            <span className="text-[17px] font-bold text-label-normal">파일을 선택하세요.</span>
+            <span className="mt-2 text-[13px] text-label-alternative">
+              {t('권장 크기 800 × 800px')}
             </span>
-            <span className="mt-2 text-[13px] text-label-alternative">권장 크기 800 × 800px</span>
             <span className="mt-4 px-8 py-3 rounded-component bg-primary-normal text-body font-bold text-common-0">
-              파일 선택
+              {t('파일 선택')}
             </span>
           </label>
           <input
@@ -1172,22 +1117,24 @@ export const ProfilePhotoPage = () => {
             accept="image/png,image/jpeg"
             onChange={choosePhoto}
           />
-          <h3 className="mt-9 text-[17px] font-bold text-label-normal">기본 이미지</h3>
+          <h3 className="mt-9 text-[17px] font-bold text-label-normal">{t('기본 이미지')}</h3>
           <p className="mt-2 text-[13px] text-label-alternative">
-            업로드한 사진 대신 기본 프로필 아이콘을 사용합니다.
+            {t('업로드한 사진 대신 기본 프로필 아이콘을 사용합니다.')}
           </p>
           <SecondaryButton className="mt-6 w-[220px]" onClick={selectDefaultImage}>
-            기본 이미지로 변경
+            {t('기본 이미지로 변경')}
           </SecondaryButton>
           <div className="gap-3 mt-auto flex justify-end">
-            <SecondaryButton onClick={() => navigate(routePaths.profile)}>취소</SecondaryButton>
+            <SecondaryButton onClick={() => navigate(routePaths.profile)}>
+              {t('취소')}
+            </SecondaryButton>
             <PrimaryButton
               disabled={uploadImage.isPending || updateProfile.isPending || consent.isChecking}
               onClick={() => void savePhoto()}
             >
               {uploadImage.isPending || updateProfile.isPending || consent.isChecking
-                ? '저장 중'
-                : '저장'}
+                ? t('저장 중')
+                : t('저장')}
             </PrimaryButton>
           </div>
         </div>

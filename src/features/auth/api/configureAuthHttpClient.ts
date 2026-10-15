@@ -31,12 +31,13 @@ const isSameApiOrigin = (config: InternalAxiosRequestConfig, baseURL?: string) =
   }
 }
 
-const redirectToLogin = () => {
-  window.location.assign(routePaths.login)
+/** 인증 갱신이 실패한 세션은 이전 보호 경로를 남기지 않고 랜딩으로 돌립니다. */
+const redirectToLanding = () => {
+  window.location.replace(routePaths.landing)
 }
 
 /** 공통 HTTP 클라이언트에 인증 헤더와 토큰 갱신 동작을 연결합니다. */
-export const configureAuthHttpClient = (onAuthenticationFailure = redirectToLogin) => {
+export const configureAuthHttpClient = (onAuthenticationFailure = redirectToLanding) => {
   for (const client of [httpClient, aiHttpClient]) {
     const previous = interceptorIds.get(client)
     if (previous) {
