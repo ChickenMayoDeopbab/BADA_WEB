@@ -240,7 +240,7 @@ test('animates ringtone hover and selection colors and moves notification toggle
     .poll(() => ringtone.evaluate((element) => getComputedStyle(element).backgroundColor))
     .not.toBe(originalColor)
   await expect(ringtone).toHaveCSS('transition-duration', '0.4s')
-  await radio.check()
+  await radio.locator('..').click()
   await page.mouse.move(0, 0)
   await expect(ringtone).toHaveCSS('background-color', 'rgba(10, 227, 101, 0.2)')
   await page.goto('/profile/notifications')

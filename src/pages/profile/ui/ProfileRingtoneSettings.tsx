@@ -76,7 +76,11 @@ export const ProfileRingtoneSettings = () => {
                 value={option.fileId ?? 'default'}
                 checked={settings.selectedId === option.fileId}
                 onChange={() => settings.setSelection(option.fileId)}
-                className="size-5 accent-primary-normal"
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden="true"
+                className={`size-5 shrink-0 rounded-pill border transition-colors duration-300 motion-reduce:transition-none peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-normal ${settings.selectedId === option.fileId ? 'border-primary-normal bg-primary-normal' : 'border-line-normal bg-background-normal'}`}
               />
               <span className="min-w-0">
                 <span className="block text-body font-bold break-all text-label-normal">
