@@ -23,7 +23,8 @@ import {
   useId,
   useState,
 } from 'react'
-import { FiChevronRight, FiPlay } from 'react-icons/fi'
+import { FiChevronRight } from 'react-icons/fi'
+import { ProfileRingtoneSettings } from './ProfileRingtoneSettings'
 import { Link, useNavigate } from 'react-router-dom'
 
 const EMPTY_VALUE = '-'
@@ -640,73 +641,12 @@ const SelectRow = ({
   </button>
 )
 
-export const ProfileRingtonePage = () => {
-  const navigate = useNavigate()
-  const [ringtone, setRingtone] = useState('기본 벨소리')
-  const [playing, setPlaying] = useState(false)
-
-  const options = [
-    ['기본 벨소리', '서비스에서 제공하는 기본 벨소리'],
-    ['잔잔한 파도', '직접 추가한 벨소리'],
-    ['맑은 알림음', '직접 추가한 벨소리'],
-    ['무음', '벨소리를 재생하지 않음'],
-  ]
-
-  return (
-    <PageFrame title="벨소리" description="통화 훈련에 사용할 벨소리를 선택하세요." showBack>
-      <Card className="p-7 max-sm:p-4 relative min-h-[672px] max-w-[1024px] overflow-hidden">
-        <h2 className="text-[22px] font-bold text-label-normal">벨소리 설정</h2>
-        <p className="mt-1 text-label text-label-alternative">
-          훈련 중 사용할 벨소리를 선택하거나 직접 추가하세요.
-        </p>
-        <p className="mt-7 text-body font-bold text-label-normal">기본 벨소리</p>
-        <div className="mt-3">
-          <SelectRow
-            className="min-h-[68px]"
-            title={options[0][0]}
-            description={options[0][1]}
-            selected={ringtone === options[0][0]}
-            onSelect={() => setRingtone(options[0][0])}
-            action={
-              <span
-                className="gap-2 flex items-center text-[13px] font-bold text-primary-normal"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  setPlaying((value) => !value)
-                }}
-              >
-                <FiPlay aria-hidden="true" /> {playing ? '정지' : '미리듣기'}
-              </span>
-            }
-          />
-        </div>
-        <div className="mt-5 flex items-center justify-between">
-          <p className="text-body font-bold text-label-normal">추가 벨소리</p>
-          <PrimaryButton className="h-11 w-[192px]">＋ 벨소리 추가</PrimaryButton>
-        </div>
-        <div className="mt-1 space-y-3">
-          {options.slice(1).map(([title, description]) => (
-            <SelectRow
-              className="min-h-[68px]"
-              key={title}
-              title={title}
-              description={description}
-              selected={ringtone === title}
-              onSelect={() => setRingtone(title)}
-              action={
-                <span className="text-[13px] font-medium text-label-alternative">미리듣기</span>
-              }
-            />
-          ))}
-        </div>
-        <div className="right-0 bottom-0 gap-3 pr-7 absolute flex h-[94px] w-full items-center justify-end bg-fill-normal">
-          <SecondaryButton onClick={() => navigate(routePaths.profile)}>취소</SecondaryButton>
-          <PrimaryButton onClick={() => navigate(routePaths.profile)}>저장</PrimaryButton>
-        </div>
-      </Card>
-    </PageFrame>
-  )
-}
+/** 기존 프로필 틀 안에서 서버 벨소리 설정을 표시합니다. */
+export const ProfileRingtonePage = () => (
+  <PageFrame title="벨소리" description="통화 훈련에 사용할 벨소리를 선택하세요." showBack>
+    <ProfileRingtoneSettings />
+  </PageFrame>
+)
 
 const Toggle = ({
   checked,

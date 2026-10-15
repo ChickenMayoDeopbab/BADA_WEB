@@ -6,6 +6,16 @@ import type {
 } from '@entities/community'
 import { getProfileImageUrl } from '@entities/user'
 import { aiHttpClient, httpClient } from '@shared/api'
+import type { CommunityReportReason, CommunityReportTarget } from '../model/report'
+
+/** 게시글·댓글을 서버에서 지원하는 사유로 신고합니다. */
+export const reportCommunityContent = async (
+  target: CommunityReportTarget,
+  reason: CommunityReportReason,
+) => {
+  const resource = target.type === 'post' ? 'posts' : 'comments'
+  await aiHttpClient.post(`/api/v1/community/${resource}/${target.id}/reports`, { reason })
+}
 
 type ApiReactionKind = 'CHEER' | 'RELATE' | 'LIKE'
 type ApiAttachmentKind = 'SCENARIO' | 'TRAINING_RECORD' | 'FILE'

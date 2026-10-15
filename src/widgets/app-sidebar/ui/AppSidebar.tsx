@@ -1,5 +1,5 @@
 import { SidebarUserProfile } from './SidebarUserProfile'
-import { clearAuthSession } from '@features/auth'
+import { useLogout } from '@features/auth'
 import badaLogo from '@shared/assets/training-records/bada-logo.svg'
 import bellIcon from '@shared/assets/training-records/nav-bell.svg'
 import callIcon from '@shared/assets/training-records/nav-call.svg'
@@ -9,7 +9,6 @@ import homeIcon from '@shared/assets/training-records/nav-home.svg'
 import logoutIcon from '@shared/assets/training-records/nav-logout.svg'
 import profileIcon from '@shared/assets/training-records/nav-profile.svg'
 import { routePaths } from '@shared/config'
-import { useQueryClient } from '@tanstack/react-query'
 import { NavLink } from 'react-router-dom'
 
 const primaryItems = [
@@ -41,7 +40,7 @@ interface SidebarItemProps {
   to: string
   end?: boolean
   hasNeutralActiveState?: boolean
-  onClick?: () => void
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>
 }
 
 interface SidebarIconProps {
@@ -95,16 +94,10 @@ const SidebarItem = ({
 
 // 애플리케이션 공통 사이드바를 표시합니다.
 export const AppSidebar = () => {
-  const queryClient = useQueryClient()
-
-  // 로그아웃 시 인증 정보와 사용자별 서버 상태를 함께 제거합니다.
-  const handleLogout = () => {
-    clearAuthSession()
-    queryClient.clear()
-  }
+  const { handleLogout, isLoggingOut, logoutError } = useLogout()
 
   return (
-    <aside className="top-4 pb-1 pt-7 max-md:inset-x-3 max-md:bottom-3 max-md:top-auto max-md:z-50 max-md:h-auto max-md:min-h-0 max-md:w-auto max-md:p-1 md:sticky fixed flex h-[calc(100vh-32px)] min-h-0 w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+    <aside className="top-4 pb-1 pt-7 max-md:inset-x-3 max-md:bottom-3 max-md:top-auto max-md:z-50 max-md:h-auto max-md:min-h-0 max-md:w-auto max-md:p-1 md:sticky min-h-0 fixed flex h-[calc(100vh-32px)] w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
       <div className="gap-2.5 max-md:gap-0 flex flex-col">
         <div className="py-5 max-md:hidden flex items-center justify-center border-b border-line-alternative">
           <img src={badaLogo} alt="Bada" />
@@ -122,10 +115,23 @@ export const AppSidebar = () => {
             <SidebarItem
               key={item.label}
               {...item}
-              onClick={item.label === '로그아웃' ? handleLogout : undefined}
+              onClick={
+                item.label === '로그아웃'
+                  ? (event) => {
+                      event.preventDefault()
+                      handleLogout()
+                    }
+                  : undefined
+              }
+              label={item.label === '로그아웃' && isLoggingOut ? '로그아웃 중...' : item.label}
             />
           ))}
         </nav>
+        {logoutError && (
+          <p role="alert" className="px-4 text-caption text-status-error">
+            {logoutError}
+          </p>
+        )}
         <div className="px-4 py-3 border-t border-line-alternative">
           <SidebarUserProfile />
         </div>

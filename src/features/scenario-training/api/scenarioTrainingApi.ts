@@ -217,11 +217,3 @@ export const cancelTrainingCallSchedule = async (scheduleId: number) => {
   )
   return data.data
 }
-
-/** 수신 벨소리의 현재 사용자 설정을 조회합니다. 설정 변경은 프로필 기능에서 처리합니다. */
-export const getTrainingRingtone = async () => {
-  const { data } = await httpClient.get<
-    ApiResponse<{ defaultRingtone: boolean; url?: string | null }>
-  >('/api/v1/ringtones/settings')
-  return data.data
-}

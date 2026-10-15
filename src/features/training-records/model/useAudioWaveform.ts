@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { getTrainingAudioBuffer } from '../api/trainingRecordsApi'
 
 const WAVEFORM_BAR_COUNT = 25
 const MINIMUM_BAR_RATIO = 0.18
@@ -18,10 +19,7 @@ const loadAudioBuffer = (audioUrl: string) => {
     const audioContext = new window.AudioContext()
 
     try {
-      const response = await fetch(audioUrl)
-      if (!response.ok) throw new Error('음성 파일을 불러오지 못했습니다.')
-
-      return await audioContext.decodeAudioData(await response.arrayBuffer())
+      return await audioContext.decodeAudioData(await getTrainingAudioBuffer(audioUrl))
     } finally {
       if (audioContext.state !== 'closed') {
         await audioContext.close().catch(() => undefined)

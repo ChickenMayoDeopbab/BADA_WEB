@@ -71,7 +71,6 @@ import {
   ProfileLanguagePage,
   ProfileNotificationsPage,
   ProfileOverviewPage,
-  ProfileRingtonePage,
 } from './ProfilePages'
 
 describe('Profile pages', () => {
@@ -207,21 +206,6 @@ describe('Profile pages', () => {
     expect(within(container).getAllByText('-').length).toBeGreaterThan(0)
 
     profileQueryMock.data = previousProfile
-  })
-
-  it('selects a ringtone and previews the default ringtone', () => {
-    render(
-      <MemoryRouter>
-        <ProfileRingtonePage />
-      </MemoryRouter>,
-    )
-
-    const calmWave = screen.getByRole('button', { name: /잔잔한 파도/ })
-    fireEvent.click(calmWave)
-    expect(calmWave).toHaveClass('bg-primary-alternative')
-
-    fireEvent.click(screen.getAllByText('미리듣기')[0])
-    expect(screen.getByText('정지')).toBeInTheDocument()
   })
 
   it('changes the selected display language', () => {

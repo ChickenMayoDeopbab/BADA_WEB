@@ -9,6 +9,7 @@ export {
 export { checkUsername } from './api/authApi'
 export { configureAuthHttpClient } from './api/configureAuthHttpClient'
 export { getValidAccessToken } from './model/getValidAccessToken'
+export { useLogout } from './model/useLogout'
 export type { LoginMode } from './model/types'
 export { FindIdFlow } from './ui/FindIdFlow'
 export { IdLogin } from './ui/IdLogin'
