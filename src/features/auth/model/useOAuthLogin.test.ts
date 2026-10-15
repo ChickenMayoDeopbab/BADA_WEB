@@ -1,9 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { exchangeOAuthCode } from '../api/authApi'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { exchangeOAuthCode, getOAuthLoginUrl } from '../api/authApi'
 import { getAccessToken } from './authSession'
 import { getPostLoginPath } from './getPostLoginPath'
-import { useOAuthCallback } from './useOAuthLogin'
+import { startOAuthLogin, useOAuthCallback } from './useOAuthLogin'
 
 const navigate = vi.fn()
 let searchParams = new URLSearchParams()
@@ -20,7 +20,12 @@ vi.mock('@shared/config', () => ({
     accessToken: 'bada.accessToken',
     refreshToken: 'bada.refreshToken',
   },
-  routePaths: { login: '/login', welcome: '/welcome', dashboard: '/dashboard' },
+  routePaths: {
+    login: '/login',
+    welcome: '/welcome',
+    dashboard: '/dashboard',
+    oauthCallback: '/oauth/callback',
+  },
 }))
 vi.mock('../api/authApi', () => ({
   exchangeOAuthCode: vi.fn(),
@@ -29,6 +34,31 @@ vi.mock('../api/authApi', () => ({
 vi.mock('./getPostLoginPath', () => ({
   getPostLoginPath: vi.fn((fallbackPath: string) => Promise.resolve(fallbackPath)),
 }))
+
+describe('startOAuthLogin', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.clearAllMocks()
+  })
+
+  it.each(['google', 'naver', 'apple'] as const)(
+    '%s 로그인은 서버 기본 앱 링크 대신 chickenmayo.kr 콜백을 지정한다',
+    (provider) => {
+      const assign = vi.fn()
+      vi.stubGlobal('window', { location: { assign } })
+      const loginUrl = `https://api.example.test/api/v1/auth/${provider}`
+      vi.mocked(getOAuthLoginUrl).mockReturnValueOnce(loginUrl)
+
+      startOAuthLogin(provider)
+
+      expect(getOAuthLoginUrl).toHaveBeenCalledWith(
+        provider,
+        'https://chickenmayo.kr/oauth/callback',
+      )
+      expect(assign).toHaveBeenCalledWith(loginUrl)
+    },
+  )
+})
 
 describe('useOAuthCallback', () => {
   beforeEach(() => {
