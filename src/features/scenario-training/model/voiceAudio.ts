@@ -28,6 +28,7 @@ export class VoiceAudio {
   private nextTime = 0
   private isDisposed = false
   private isCaptureEnabled = false
+  private isRecordingMuted = false
   readonly playback: TrainPlayback
 
   /** 앱 재생 제어기의 출력 드라이버를 Web Audio로 대체합니다. */
@@ -115,8 +116,13 @@ export class VoiceAudio {
   setCaptureEnabled = (isEnabled: boolean) => {
     if (isEnabled === this.isCaptureEnabled) return
     this.isCaptureEnabled = isEnabled
-    if (this.recordingGain) this.recordingGain.gain.value = isEnabled ? 1 : 0
     this.worklet?.port.postMessage({ enabled: isEnabled })
+  }
+
+  /** 로컬 녹음은 서버 전송 게이트와 분리하고 사용자가 누른 음소거만 반영합니다. */
+  setRecordingMuted = (isMuted: boolean) => {
+    this.isRecordingMuted = isMuted
+    if (this.recordingGain) this.recordingGain.gain.value = isMuted ? 0 : 1
   }
 
   /** 마이크와 AI 출력을 혼합하고 사용자가 선택한 구간을 로컬 파일로 저장합니다. */
@@ -134,7 +140,7 @@ export class VoiceAudio {
       if (!this.recordingDestination) {
         this.recordingDestination = context.createMediaStreamDestination()
         this.recordingGain = context.createGain()
-        this.recordingGain.gain.value = this.isCaptureEnabled ? 1 : 0
+        this.recordingGain.gain.value = this.isRecordingMuted ? 0 : 1
         this.input.connect(this.recordingGain)
         this.recordingGain.connect(this.recordingDestination)
         this.sources.forEach((source) => source.connect(this.recordingDestination!))

@@ -163,6 +163,7 @@ export class VoiceCall {
     if (this.isDisposed) return
     const isBlocked = !this.canSendAudio()
     this.audio.setCaptureEnabled(!isBlocked)
+    this.audio.setRecordingMuted(this.state.isMuted)
     if (isBlocked !== this.isCaptureBlocked) {
       this.isCaptureBlocked = isBlocked
       reportVoiceDiagnostic('capture_gate', {
