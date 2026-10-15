@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { startOAuthLogin } from '../model/useOAuthLogin'
 import type { OAuthProvider } from '../model/types'
 import { AuthCard } from './AuthCard'
@@ -46,13 +45,12 @@ const socialLabelClassName = 'text-headline2 font-bold'
 
 // 소셜 로그인 제공자와 아이디 로그인 진입 버튼을 보여줍니다.
 export const SocialLogin = ({ onSelectIdLogin }: SocialLoginProps) => {
-  const { t } = useTranslation()
   return (
     <AuthLayout>
       <AuthCard
         variant="social"
-        title={t('간편 로그인')}
-        description={t('원하는 계정으로 빠르게 시작하세요.')}
+        title={'간편 로그인'}
+        description={'원하는 계정으로 빠르게 시작하세요.'}
       >
         <div className="gap-3 flex w-full flex-col">
           {socialProviders.map(({ provider, label, icon, className }) => (
@@ -71,7 +69,7 @@ export const SocialLogin = ({ onSelectIdLogin }: SocialLoginProps) => {
             onClick={onSelectIdLogin}
             className={`${socialButtonClassName} bg-fill-normal text-label-normal`}
           >
-            <span className={socialLabelClassName}>{t('아이디로 계속할래요')}</span>
+            <span className={socialLabelClassName}>{'아이디로 계속할래요'}</span>
           </button>
         </div>
       </AuthCard>

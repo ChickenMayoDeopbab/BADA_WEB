@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { useAudioWaveform } from '../model/useAudioWaveform'
 import { IoPause, IoPlay } from 'react-icons/io5'
 import { useEffect, useRef, useState } from 'react'
@@ -29,8 +28,6 @@ export const AudioPreview = ({
   endSecond,
   onToggle,
 }: AudioPreviewProps) => {
-  const { t } = useTranslation()
-
   const audioRef = useRef<HTMLAudioElement>(null)
   const onToggleRef = useRef(onToggle)
   const [progress, setProgress] = useState(0)
@@ -144,7 +141,7 @@ export const AudioPreview = ({
       <div
         className="h-12 min-w-0 gap-0.5 flex flex-1 items-center justify-center overflow-hidden"
         role="img"
-        aria-label={t('음성 파형')}
+        aria-label={'음성 파형'}
       >
         {waveform.map((heightRatio, index) => {
           const barProgress = Math.min(1, Math.max(0, displayedProgress * waveform.length - index))

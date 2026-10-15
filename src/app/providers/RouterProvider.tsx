@@ -16,7 +16,6 @@ import {
   ProfileInquiryPage,
   ProfilePaymentInterestPage,
   ProfileEditPage,
-  ProfileLanguagePage,
   ProfileNotificationsPage,
   ProfileOverviewPage,
   ProfilePrivacyPage,
@@ -152,10 +151,6 @@ const applicationRoutes: RouteObject[] = [
           {
             path: routePaths.profileNotifications,
             element: <ProfileNotificationsPage />,
-          },
-          {
-            path: routePaths.profileLanguage,
-            element: <ProfileLanguagePage />,
           },
         ],
       },

@@ -1,11 +1,8 @@
-import { useTranslation } from '@shared/lib'
 import { LoadingSpinner } from '@shared/ui'
 import { useAttendanceCheck } from '../model/useAttendanceCheck'
 
 // 오늘 출석 버튼을 표시하고, 이미 출석한 경우 완료 상태로 비활성화합니다.
 export const AttendanceCheckButton = () => {
-  const { t } = useTranslation()
-
   const { isCheckedToday, isChecking, isError, isDisabled, checkAttendance } = useAttendanceCheck()
 
   return (
@@ -18,11 +15,11 @@ export const AttendanceCheckButton = () => {
         onClick={checkAttendance}
       >
         {isChecking && <LoadingSpinner />}
-        {isChecking ? t('출석 확인 중') : isCheckedToday ? '오늘 출석 완료' : '오늘 출석하기'}
+        {isChecking ? '출석 확인 중' : isCheckedToday ? '오늘 출석 완료' : '오늘 출석하기'}
       </button>
       {isError && (
         <p role="alert" className="mt-2 text-caption text-status-error">
-          {t('출석하지 못했어요. 다시 시도해 주세요.')}
+          {'출석하지 못했어요. 다시 시도해 주세요.'}
         </p>
       )}
     </div>

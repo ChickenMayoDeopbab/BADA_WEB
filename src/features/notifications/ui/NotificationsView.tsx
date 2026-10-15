@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import type { AppNotification } from '@entities/notification'
 import backIcon from '@shared/assets/notifications/back.svg'
 import emptyIcon from '@shared/assets/notifications/empty.svg'
@@ -33,8 +32,6 @@ const NotificationAvatar = ({ notification }: { notification: AppNotification })
 
 /** Figma의 전체·안읽음 목록과 빈 상태를 서비스 레이아웃 안에 표시합니다. */
 export const NotificationsView = () => {
-  const { t } = useTranslation()
-
   const notifications = useNotifications()
   const id = useId()
   const tabs = [
@@ -47,20 +44,18 @@ export const NotificationsView = () => {
         <button
           type="button"
           onClick={notifications.handleBack}
-          aria-label={t('이전 화면으로')}
+          aria-label={'이전 화면으로'}
           className="size-16 flex shrink-0 items-center justify-center rounded-control transition-colors hover:bg-fill-neutral"
         >
           <img src={backIcon} alt="" />
         </button>
-        <h1 className="max-md:text-headline1 text-title1 font-bold text-label-neutral">
-          {t('알림')}
-        </h1>
+        <h1 className="max-md:text-headline1 text-title1 font-bold text-label-neutral">{'알림'}</h1>
         <span className="size-16 max-md:block hidden" aria-hidden="true" />
       </header>
       <div className="max-w-5xl flex w-full flex-1 flex-col">
         <div
           role="tablist"
-          aria-label={t('알림 필터')}
+          aria-label={'알림 필터'}
           className="gap-1 px-6 max-md:px-[34px] my-[15px] flex"
         >
           {tabs.map((tab, index) => (
@@ -89,7 +84,7 @@ export const NotificationsView = () => {
               }}
               className={`gap-1 px-4 py-1.5 flex items-center justify-center rounded-control text-body font-medium transition-colors duration-200 motion-reduce:transition-none ${notifications.filter === tab.value ? 'bg-neutral-20 text-neutral-97' : 'bg-neutral-90 text-label-alternative hover:bg-fill-alternative'}`}
             >
-              <span className="text-body font-medium">{t(tab.label)}</span>
+              <span className="text-body font-medium">{tab.label}</span>
               {tab.value === 'UNREAD' && notifications.unreadCount > 0 && (
                 <span className="text-body font-bold text-green-40">
                   {notifications.unreadCount}
@@ -105,7 +100,7 @@ export const NotificationsView = () => {
           tabIndex={0}
           className="px-3 pb-8 flex flex-1 flex-col outline-offset-2"
         >
-          {notifications.isLoading && <ListSkeleton count={5} label={t('알림을 불러오는 중')} />}
+          {notifications.isLoading && <ListSkeleton count={5} label={'알림을 불러오는 중'} />}
           {notifications.isError && (
             <StatusState
               isError
@@ -128,7 +123,7 @@ export const NotificationsView = () => {
               >
                 <img src={emptyIcon} alt="" />
                 <p className="text-body font-medium text-label-alternative opacity-50">
-                  {t('표시할 알림이 없어요.')}
+                  {'표시할 알림이 없어요.'}
                 </p>
               </div>
             )}
@@ -177,19 +172,19 @@ export const NotificationsView = () => {
               className="mt-5 gap-2 px-5 py-3 mx-auto flex items-center rounded-control bg-fill-neutral text-label font-bold disabled:opacity-50"
             >
               {notifications.isFetchingNextPage && <LoadingSpinner />}
-              {notifications.isNextPageError ? t('다시 불러오기') : t('더 보기')}
+              {notifications.isNextPageError ? '다시 불러오기' : '더 보기'}
             </button>
           )}
           {notifications.isNextPageError && (
             <p role="alert" className="mt-3 text-center text-label text-status-error">
-              {t('추가 알림을 불러오지 못했어요. 다시 시도해 주세요.')}
+              {'추가 알림을 불러오지 못했어요. 다시 시도해 주세요.'}
             </p>
           )}
           {!notifications.isLoading &&
             !notifications.isError &&
             notifications.notifications.length > 0 && (
               <p className="py-8 text-center text-caption font-medium text-label-alternative opacity-50">
-                {t('받은 알림은 3일 동안 표시됩니다.')}
+                {'받은 알림은 3일 동안 표시됩니다.'}
               </p>
             )}
         </section>

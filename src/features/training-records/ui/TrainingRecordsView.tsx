@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { OverlayPortal } from '@shared/ui'
 import { useDialogFocus } from '@shared/lib'
 import {
@@ -101,16 +100,15 @@ interface RecordPaginationProps {
 
 // 열 개 단위로 나뉜 훈련 기록 페이지를 이동합니다.
 const RecordPagination = ({ currentPage, totalPages, onChange }: RecordPaginationProps) => {
-  const { t } = useTranslation()
   return (
-    <nav className="gap-2 pt-2 flex items-center justify-center" aria-label={t('훈련 기록 페이지')}>
+    <nav className="gap-2 pt-2 flex items-center justify-center" aria-label={'훈련 기록 페이지'}>
       <button
         type="button"
         className="h-9 px-3 rounded-control border border-line-alternative bg-background-normal text-label font-medium text-label-alternative transition-colors hover:bg-fill-normal disabled:cursor-not-allowed disabled:text-label-disabled"
         disabled={currentPage === 1}
         onClick={() => onChange(currentPage - 1)}
       >
-        {t('이전')}
+        {'이전'}
       </button>
       {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => {
         const isActive = page === currentPage
@@ -137,7 +135,7 @@ const RecordPagination = ({ currentPage, totalPages, onChange }: RecordPaginatio
         disabled={currentPage === totalPages}
         onClick={() => onChange(currentPage + 1)}
       >
-        {t('다음')}
+        {'다음'}
       </button>
     </nav>
   )
@@ -265,8 +263,6 @@ const RecordDetailPanel = ({
   onRetry,
   isRetrying,
 }: RecordDetailPanelProps) => {
-  const { t } = useTranslation()
-
   const { scrollRef, isDragging, dragScrollHandlers } = useDragScroll()
   const fullRecordingRef = useFullRecording(
     isAudioPlaying,
@@ -282,7 +278,7 @@ const RecordDetailPanel = ({
         type="button"
         className="inset-0 fixed z-20 cursor-default bg-transparent"
         tabIndex={-1}
-        aria-label={t('훈련 기록 상세 닫기')}
+        aria-label={'훈련 기록 상세 닫기'}
         onClick={onClose}
         disabled={!isOpen}
       />
@@ -297,7 +293,7 @@ const RecordDetailPanel = ({
         } motion-reduce:animate-none`}
         role="dialog"
         aria-modal="true"
-        aria-label={t('훈련 기록 상세')}
+        aria-label={'훈련 기록 상세'}
         aria-hidden={!isOpen}
       >
         <div className="gap-5 min-h-0 relative flex h-full flex-col">
@@ -306,7 +302,7 @@ const RecordDetailPanel = ({
               type="button"
               onClick={onClose}
               className="h-10 w-5 flex items-center justify-center"
-              aria-label={t('훈련 기록 상세 닫기')}
+              aria-label={'훈련 기록 상세 닫기'}
             >
               <BackIcon />
             </button>
@@ -314,7 +310,7 @@ const RecordDetailPanel = ({
               type="button"
               onClick={onToggleMenu}
               className="size-8 flex items-center justify-center rounded-control hover:bg-fill-normal"
-              aria-label={t('기록 메뉴 열기')}
+              aria-label={'기록 메뉴 열기'}
               aria-expanded={isMenuOpen}
             >
               <img src={menuDots} alt="" />
@@ -340,23 +336,23 @@ const RecordDetailPanel = ({
           <section className="p-5 flex h-[190px] shrink-0 items-start justify-between overflow-hidden rounded-component bg-linear-[52.82deg] from-record-summary-gradient-start to-record-summary-gradient-end text-common-0 shadow-elevated-card">
             <div className="py-2.5 flex h-full flex-col justify-between">
               <div>
-                <p className="text-body font-medium text-common-0/60">{t('시나리오명')}</p>
+                <p className="text-body font-medium text-common-0/60">{'시나리오명'}</p>
                 <p className="text-title2 font-bold">{record.title}</p>
               </div>
               <div>
-                <p className="text-body font-medium text-common-0/60">{t('훈련시간')}</p>
+                <p className="text-body font-medium text-common-0/60">{'훈련시간'}</p>
                 <p className="text-title2 font-bold">{record.duration}</p>
               </div>
             </div>
             <div className="flex h-full flex-col items-end justify-center">
-              <p className="text-body font-medium text-common-0/60">{t('불안 점수')}</p>
+              <p className="text-body font-medium text-common-0/60">{'불안 점수'}</p>
               <p className="text-display1 font-bold">{record.anxietyScore ?? '-'}</p>
             </div>
           </section>
 
           <section className="p-5 min-h-0 relative flex flex-1 flex-col overflow-hidden rounded-component bg-fill-field">
             <p className="mb-2.5 text-label font-medium text-label-alternative">
-              {t('통화 타임라인')}
+              {'통화 타임라인'}
             </p>
             <div
               ref={scrollRef}
@@ -367,12 +363,10 @@ const RecordDetailPanel = ({
             >
               {isOpen && !isLoading && !errorMessage && record.recordingUrl && (
                 <div className="p-4 rounded-component bg-background-normal">
-                  <p className="mb-2 text-label font-bold text-label-normal">
-                    {t('전체 통화 녹음')}
-                  </p>
+                  <p className="mb-2 text-label font-bold text-label-normal">{'전체 통화 녹음'}</p>
                   <audio
                     ref={fullRecordingRef}
-                    aria-label={t('전체 통화 녹음 재생')}
+                    aria-label={'전체 통화 녹음 재생'}
                     controls
                     preload="none"
                     src={record.recordingUrl}
@@ -385,11 +379,11 @@ const RecordDetailPanel = ({
               )}
               {!isLoading && !errorMessage && Boolean(record.transcript?.length) && (
                 <details className="p-4 rounded-component bg-background-normal text-label text-label-normal">
-                  <summary className="cursor-pointer font-bold">{t('전체 대화 보기')}</summary>
+                  <summary className="cursor-pointer font-bold">{'전체 대화 보기'}</summary>
                   <ol className="mt-3 space-y-3 select-text">
                     {record.transcript?.map((line, index) => (
                       <li key={index}>
-                        <strong>{line.role === 'user' ? t('나') : t('상대방')}</strong>
+                        <strong>{line.role === 'user' ? '나' : '상대방'}</strong>
                         <p className="whitespace-pre-wrap">{line.text}</p>
                       </li>
                     ))}
@@ -397,7 +391,7 @@ const RecordDetailPanel = ({
                 </details>
               )}
               {isLoading && (
-                <LoadingRegion label={t('상세 기록을 불러오는 중')}>
+                <LoadingRegion label={'상세 기록을 불러오는 중'}>
                   <Skeleton className="h-24" />
                   <Skeleton className="mt-3 h-24" />
                 </LoadingRegion>
@@ -412,7 +406,7 @@ const RecordDetailPanel = ({
               )}
               {!isLoading && !errorMessage && record.feedbacks.length === 0 && (
                 <p className="py-8 text-center text-body text-label-alternative">
-                  {t('표시할 피드백이 없습니다.')}
+                  {'표시할 피드백이 없습니다.'}
                 </p>
               )}
               {!isLoading &&
@@ -439,8 +433,6 @@ const RecordDetailPanel = ({
 
 // 훈련 기록 목록과 상세 패널을 포함한 화면 본문을 표시합니다.
 export const TrainingRecordsView = () => {
-  const { t } = useTranslation()
-
   const [searchParams] = useSearchParams()
   const recordId = Number(searchParams.get('recordId'))
   const initialRecordId = Number.isSafeInteger(recordId) && recordId > 0 ? recordId : undefined
@@ -507,9 +499,9 @@ export const TrainingRecordsView = () => {
     <ServicePageContent className="overflow-hidden">
       <div className="gap-4 flex w-full flex-col">
         <header className="gap-x-3 gap-y-1 flex flex-wrap items-center">
-          <h1 className="text-title1 font-bold text-label-normal">{t('훈련 기록')}</h1>
+          <h1 className="text-title1 font-bold text-label-normal">{'훈련 기록'}</h1>
           <p className="text-body font-medium text-neutral-60">
-            {t('훈련 정보와 피드백을 다시 확인해 보세요.')}
+            {'훈련 정보와 피드백을 다시 확인해 보세요.'}
           </p>
         </header>
 
@@ -517,14 +509,14 @@ export const TrainingRecordsView = () => {
           <ServiceTabs
             items={periodTabs}
             value={period}
-            label={t('훈련 기록 기간')}
+            label={'훈련 기록 기간'}
             onChange={handleSelectPeriod}
           />
           <ServiceSearchField
-            label={t('훈련 기록 검색')}
+            label={'훈련 기록 검색'}
             value={searchQuery}
             onChange={(event) => handleSearchQueryChange(event.target.value)}
-            placeholder={t('제목 또는 설명으로 검색')}
+            placeholder={'제목 또는 설명으로 검색'}
           />
         </div>
 
@@ -557,7 +549,7 @@ export const TrainingRecordsView = () => {
           </div>
           <dl className="gap-14 max-sm:gap-8 flex whitespace-nowrap">
             <div className="space-y-1.5">
-              <dt className="text-label text-label-alternative">{t('훈련')}</dt>
+              <dt className="text-label text-label-alternative">{'훈련'}</dt>
               <dd className="text-title2 font-bold text-label-normal">
                 {isLoading ? (
                   <Skeleton className="h-7 w-14" />
@@ -569,7 +561,7 @@ export const TrainingRecordsView = () => {
               </dd>
             </div>
             <div className="space-y-1.5">
-              <dt className="text-label text-label-alternative">{t('피드백')}</dt>
+              <dt className="text-label text-label-alternative">{'피드백'}</dt>
               <dd className="text-title2 font-bold text-label-normal">
                 {isLoading ? (
                   <Skeleton className="h-7 w-14" />
@@ -581,7 +573,7 @@ export const TrainingRecordsView = () => {
               </dd>
             </div>
             <div className="space-y-1.5">
-              <dt className="text-label text-label-alternative">{t('평균 시간')}</dt>
+              <dt className="text-label text-label-alternative">{'평균 시간'}</dt>
               <dd className="text-title2 font-bold text-label-normal">
                 {isLoading ? (
                   <Skeleton className="h-7 w-16" />
@@ -600,9 +592,9 @@ export const TrainingRecordsView = () => {
         </section>
 
         <section className="gap-3 flex flex-col">
-          <h2 className="text-title2 font-bold text-label-normal">{t('최근 기록')}</h2>
+          <h2 className="text-title2 font-bold text-label-normal">{'최근 기록'}</h2>
           <div className="gap-2.5 flex flex-col">
-            {isLoading && <ListSkeleton count={4} label={t('훈련 기록을 불러오는 중')} />}
+            {isLoading && <ListSkeleton count={4} label={'훈련 기록을 불러오는 중'} />}
             {!isLoading && recordsErrorMessage && (
               <StatusState
                 isError
@@ -621,7 +613,7 @@ export const TrainingRecordsView = () => {
             ))}
             {!isLoading && !recordsErrorMessage && filteredRecords.length === 0 && (
               <div className="flex h-[88px] items-center justify-center rounded-component border border-line-alternative bg-background-normal text-body text-neutral-60">
-                {t('해당 기간의 훈련 기록이 없습니다.')}
+                {'해당 기간의 훈련 기록이 없습니다.'}
               </div>
             )}
           </div>

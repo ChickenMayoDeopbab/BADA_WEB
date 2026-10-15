@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { Link } from 'react-router-dom'
 import { routePaths } from '@shared/config'
 
@@ -8,7 +7,6 @@ interface PlaceholderPageProps {
 
 /** 공개 준비 화면과 찾을 수 없는 경로에 돌아갈 수 있는 행동을 제공합니다. */
 export const PlaceholderPage = ({ title }: PlaceholderPageProps) => {
-  const { t } = useTranslation()
   return (
     <main className="ux-page gap-5 p-6 flex min-h-screen flex-col items-center justify-center bg-background-alternative text-center">
       <h1 className="text-display1 font-bold text-label-normal">{title}</h1>
@@ -22,7 +20,7 @@ export const PlaceholderPage = ({ title }: PlaceholderPageProps) => {
           to={routePaths.login}
           className="px-5 py-3 rounded-component bg-fill-neutral text-body text-label-normal"
         >
-          {t('로그인')}
+          {'로그인'}
         </Link>
       </div>
     </main>

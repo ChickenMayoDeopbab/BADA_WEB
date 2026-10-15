@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import type { DiagnosisAnswer } from '@entities/diagnosis'
 
 type AnswerScaleProps = {
@@ -17,10 +16,9 @@ const options: { value: DiagnosisAnswer; label: string; sizeClassName: string }[
 
 // 문항에 대한 5점 척도 응답을 고르는 라디오 그룹입니다. 양 끝으로 갈수록 원이 커집니다.
 export const AnswerScale = ({ name, value, onChange }: AnswerScaleProps) => {
-  const { t } = useTranslation()
   return (
     <fieldset className="px-4 max-sm:px-0 flex w-full justify-between">
-      <legend className="sr-only">{t('응답 선택 (1: 전혀 없다, 5: 자주 있다)')}</legend>
+      <legend className="sr-only">{'응답 선택 (1: 전혀 없다, 5: 자주 있다)'}</legend>
       {options.map((option) => (
         <label
           key={option.value}

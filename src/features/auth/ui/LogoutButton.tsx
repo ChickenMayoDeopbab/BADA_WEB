@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import type { ReactNode } from 'react'
 import { useIsMutating } from '@tanstack/react-query'
 import { getApiErrorMessage } from '@shared/api'
@@ -15,8 +14,6 @@ export const LogoutButton = ({
   className = 'gap-2 px-5 h-11 flex items-center justify-center rounded-component border border-line-neutral text-label font-medium text-label-normal hover:bg-fill-normal disabled:opacity-50',
   icon,
 }: LogoutButtonProps) => {
-  const { t } = useTranslation()
-
   const logout = useLogout()
   const isLoggingOut = useIsMutating({ mutationKey: logoutMutationKey }) > 0
 
@@ -32,7 +29,7 @@ export const LogoutButton = ({
         className={className}
       >
         {isLoggingOut ? <LoadingSpinner /> : icon}
-        <span>{isLoggingOut ? '로그아웃 중...' : t('로그아웃')}</span>
+        <span>{isLoggingOut ? '로그아웃 중...' : '로그아웃'}</span>
       </button>
       {logout.isError && (
         <p role="alert" className="px-2 py-2 text-caption text-status-error">

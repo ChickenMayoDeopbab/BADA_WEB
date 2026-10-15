@@ -28,5 +28,4 @@ export const routePaths = {
   profilePhoto: '/profile/photo',
   profileRingtone: '/profile/ringtone',
   profileNotifications: '/profile/notifications',
-  profileLanguage: '/profile/language',
 } as const

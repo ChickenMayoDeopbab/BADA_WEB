@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { useAttendanceCalendar } from '../model/useAttendanceCalendar'
 import { AttendanceCheckButton } from '@features/attendance-check'
 import arrowIcon from '@shared/assets/dashboard/calendar-arrow.svg'
@@ -16,8 +15,6 @@ const getWeekdayClassName = (index: number) => {
 
 // 월별 출석 달력과 오늘 출석 버튼을 표시합니다.
 export const AttendanceCalendar = () => {
-  const { t } = useTranslation()
-
   const {
     title,
     weeks,
@@ -37,7 +34,7 @@ export const AttendanceCalendar = () => {
           <button
             type="button"
             className="size-9 flex items-center justify-center rounded-control hover:bg-fill-neutral"
-            aria-label={t('이전 달')}
+            aria-label={'이전 달'}
             onClick={goPreviousMonth}
           >
             <img src={arrowIcon} alt="" width={9} height={18} />
@@ -47,7 +44,7 @@ export const AttendanceCalendar = () => {
             <button
               type="button"
               className="size-9 flex items-center justify-center rounded-control hover:bg-fill-neutral"
-              aria-label={t('다음 달')}
+              aria-label={'다음 달'}
               onClick={goNextMonth}
             >
               <img src={arrowIcon} alt="" width={9} height={18} className="rotate-180" />
@@ -67,7 +64,7 @@ export const AttendanceCalendar = () => {
           ))}
         </div>
         {isPending ? (
-          <LoadingRegion label={t('출석 기록을 불러오는 중')}>
+          <LoadingRegion label={'출석 기록을 불러오는 중'}>
             <div className="gap-2 grid grid-cols-7">
               {Array.from({ length: weeks.length * 7 }, (_, i) => (
                 <Skeleton key={i} className="size-8 mx-auto rounded-pill" />
@@ -77,7 +74,7 @@ export const AttendanceCalendar = () => {
         ) : isError ? (
           <StatusState
             isError
-            title={t('출석 기록을 불러오지 못했어요')}
+            title={'출석 기록을 불러오지 못했어요'}
             onRetry={() => void refetch()}
             isRetrying={isFetching}
           />
@@ -96,7 +93,7 @@ export const AttendanceCalendar = () => {
                       }`}
                     >
                       {day.date}
-                      {day.isAttended && <span className="sr-only">{t('일 출석')}</span>}
+                      {day.isAttended && <span className="sr-only">{'일 출석'}</span>}
                     </span>
                   )}
                 </div>

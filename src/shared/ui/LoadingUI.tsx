@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { experienceConfig } from '@shared/config'
 import type { PropsWithChildren, ReactNode } from 'react'
 
@@ -8,10 +7,9 @@ export const LoadingRegion = ({
   label = '불러오는 중',
   className = '',
 }: PropsWithChildren<{ label?: string; className?: string }>) => {
-  const { t } = useTranslation()
   return (
-    <div role="status" aria-busy="true" aria-label={t(label)} className={className}>
-      <span className="sr-only">{t(label)}</span>
+    <div role="status" aria-busy="true" aria-label={label} className={className}>
+      <span className="sr-only">{label}</span>
       {experienceConfig.skeletons ? (
         <div aria-hidden="true">{children}</div>
       ) : (
@@ -20,7 +18,7 @@ export const LoadingRegion = ({
           className="gap-2 py-8 flex items-center justify-center text-label text-label-alternative"
         >
           <LoadingSpinner />
-          {t(label)}
+          {label}
         </div>
       )}
     </div>
@@ -56,9 +54,8 @@ export const ListSkeleton = ({
   label?: string
   className?: string
 }) => {
-  const { t } = useTranslation()
   return (
-    <LoadingRegion label={t(label)} className={`space-y-3 ${className}`}>
+    <LoadingRegion label={label} className={`space-y-3 ${className}`}>
       {Array.from({ length: count }, (_, index) => (
         <div
           key={index}
@@ -78,9 +75,8 @@ export const ListSkeleton = ({
 
 /** 프로필·상세·설정의 데이터가 채워질 콘텐츠 형태를 유지합니다. */
 export const ContentSkeleton = ({ label = '내용을 불러오는 중' }: { label?: string }) => {
-  const { t } = useTranslation()
   return (
-    <LoadingRegion label={t(label)} className="p-6 rounded-dialog bg-background-normal">
+    <LoadingRegion label={label} className="p-6 rounded-dialog bg-background-normal">
       <div className="gap-5 flex items-center">
         <Skeleton className="size-20 rounded-pill" />
         <div className="space-y-3 w-1/2">
@@ -113,14 +109,13 @@ export const StatusState = ({
   action?: ReactNode
   isError?: boolean
 }) => {
-  const { t } = useTranslation()
   return (
     <div
       role={isError ? 'alert' : 'status'}
       className="gap-3 px-4 py-8 flex min-h-[120px] flex-col items-center justify-center text-center"
     >
-      <p className="text-body font-medium text-label-neutral">{t(title)}</p>
-      {description && <p className="text-label text-label-alternative">{t(description)}</p>}
+      <p className="text-body font-medium text-label-neutral">{title}</p>
+      {description && <p className="text-label text-label-alternative">{description}</p>}
       {onRetry && (
         <button
           type="button"
@@ -130,7 +125,7 @@ export const StatusState = ({
           className="gap-2 px-4 py-2 flex items-center rounded-control bg-fill-neutral text-label font-bold text-label-normal disabled:opacity-50"
         >
           {isRetrying && <LoadingSpinner />}
-          {t('다시 불러오기')}
+          {'다시 불러오기'}
         </button>
       )}
       {action}

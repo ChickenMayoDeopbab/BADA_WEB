@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { StatusState, LoadingRegion, Skeleton, BackIcon } from '@shared/ui'
 import type { SelfDiagnosis } from '../model/useSelfDiagnosis'
 import { AnswerScale } from './AnswerScale'
@@ -11,8 +10,6 @@ type QuestionCardProps = {
 
 // 진행률, 현재 문항, 5점 척도 응답과 다음 문항 버튼을 보여줍니다.
 export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
-  const { t } = useTranslation()
-
   const {
     questionsStatus,
     currentQuestion,
@@ -32,13 +29,13 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
       <header className="flex w-full items-center justify-between">
         <button
           type="button"
-          aria-label={t('이전으로')}
+          aria-label={'이전으로'}
           onClick={goBack}
           className="size-10 flex items-center justify-center rounded-component text-label-normal hover:bg-fill-normal"
         >
           <BackIcon />
         </button>
-        <h1 className="text-headline2 font-bold text-label-normal">{t('자가진단')}</h1>
+        <h1 className="text-headline2 font-bold text-label-normal">{'자가진단'}</h1>
         <span className="size-10" aria-hidden />
       </header>
 
@@ -47,7 +44,7 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
           <div className="gap-2.5 flex w-full flex-col">
             <div className="flex items-center justify-between">
               <span className="text-label font-medium text-label-alternative">
-                {t('콜포비아 자가진단')}
+                {'콜포비아 자가진단'}
               </span>
               <span className="text-label font-bold text-label-normal">
                 {currentIndex + 1}/{totalCount}
@@ -55,7 +52,7 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
             </div>
             <div
               role="progressbar"
-              aria-label={t('자가진단 진행률')}
+              aria-label={'자가진단 진행률'}
               aria-valuemin={1}
               aria-valuemax={totalCount}
               aria-valuenow={currentIndex + 1}
@@ -67,7 +64,7 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
               />
             </div>
             <p className="text-caption font-medium text-label-alternative">
-              {t('콜포비아는 모두가 겪을 수 있는 자연스러운 현상이에요.')}
+              {'콜포비아는 모두가 겪을 수 있는 자연스러운 현상이에요.'}
             </p>
           </div>
 
@@ -96,23 +93,21 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
           {questionsStatus === 'error' ? (
             <>
               <p className="text-body font-medium text-label-alternative">
-                {t('문항을 불러오지 못했어요.')}
+                {'문항을 불러오지 못했어요.'}
               </p>
               <DiagnosisButton
-                label={t('다시 불러오기')}
+                label={'다시 불러오기'}
                 variant="secondary"
                 onClick={retryQuestions}
               />
             </>
           ) : questionsStatus === 'success' ? (
             <StatusState
-              title={t('현재 진행할 자가진단 문항이 없어요.')}
-              action={
-                <DiagnosisButton label={t('이전으로')} variant="secondary" onClick={goBack} />
-              }
+              title={'현재 진행할 자가진단 문항이 없어요.'}
+              action={<DiagnosisButton label={'이전으로'} variant="secondary" onClick={goBack} />}
             />
           ) : (
-            <LoadingRegion label={t('문항을 불러오는 중')} className="w-full">
+            <LoadingRegion label={'문항을 불러오는 중'} className="w-full">
               <Skeleton className="h-3" />
               <Skeleton className="mt-10 h-16" />
               <div className="mt-10 gap-3 flex">

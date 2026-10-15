@@ -117,20 +117,17 @@ test('creates a 30-second WARMUP session and opens the app meditation video', as
   await expect(page.getByRole('button', { name: '명상을 마치고 통화 시작' })).toBeVisible()
 })
 
-test('changes display language immediately, persists on reload, and translates navigation', async ({
+test('keeps Korean display and removes language settings even with an old saved preference', async ({
   page,
 }) => {
   await prepare(page)
+  await page.addInitScript(() => localStorage.setItem('bada:display-language', 'en'))
   await page.goto('/profile')
-  await page.getByRole('link', { name: /언어 설정/ }).click()
-  await page.getByRole('button', { name: /English/ }).click()
-  await expect(page.getByRole('heading', { name: 'Language settings' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Community', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '프로필', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: /언어 설정|Language settings/ })).toHaveCount(0)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ko')
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Language settings' })).toBeVisible()
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-  await page.getByRole('button', { name: /한국어/ }).click()
-  await expect(page.getByRole('heading', { name: '언어 설정' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '프로필', exact: true })).toBeVisible()
 })
 
 test('loads more community posts and searches all pages of my posts', async ({ page }) => {

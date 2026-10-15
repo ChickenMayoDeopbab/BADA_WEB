@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { useCallback, useLayoutEffect, useState, type PropsWithChildren } from 'react'
 import { experienceConfig } from '@shared/config'
 import { ToastContext, type ToastMessage } from './toastContext'
@@ -6,8 +5,6 @@ import { ToastItem } from './ToastItem'
 
 /** 공통 효과 설정과 작업 결과 알림을 제공합니다. 페이지/데이터 상태를 변경하지 않습니다. */
 export const ExperienceProvider = ({ children }: PropsWithChildren) => {
-  const { t } = useTranslation()
-
   const [toasts, setToasts] = useState<(ToastMessage & { id: number })[]>([])
   useLayoutEffect(() => {
     const root = document.documentElement
@@ -55,7 +52,7 @@ export const ExperienceProvider = ({ children }: PropsWithChildren) => {
   return (
     <ToastContext value={notify}>
       {children}
-      <div aria-label={t('작업 결과 알림')}>
+      <div aria-label={'작업 결과 알림'}>
         {(['top-right', 'bottom-right'] as const).map((position) => (
           <div
             key={position}

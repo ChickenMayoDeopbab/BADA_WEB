@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import { useState } from 'react'
 import { ConfirmDialog } from '@shared/ui'
 import {
@@ -23,14 +22,12 @@ export const ReportCommunityContentDialog = ({
   onClose,
   onConfirm,
 }: ReportCommunityContentDialogProps) => {
-  const { t } = useTranslation()
-
   const [reason, setReason] = useState<CommunityReportReason | null>(null)
   return (
     <ConfirmDialog
       title={`${target.label} 신고하기`}
-      description={t('신고 사유를 선택해 주세요. 검토 후 운영정책에 따라 조치합니다.')}
-      confirmLabel={t('신고하기')}
+      description={'신고 사유를 선택해 주세요. 검토 후 운영정책에 따라 조치합니다.'}
+      confirmLabel={'신고하기'}
       danger
       pending={isPending}
       confirmDisabled={!reason}
@@ -41,7 +38,7 @@ export const ReportCommunityContentDialog = ({
       }}
     >
       <fieldset className="mt-4 space-y-1" disabled={isPending}>
-        <legend className="sr-only">{t('신고 사유')}</legend>
+        <legend className="sr-only">{'신고 사유'}</legend>
         {communityReportReasons.map((option) => (
           <label
             key={option.value}
@@ -60,7 +57,7 @@ export const ReportCommunityContentDialog = ({
               data-radio-indicator
               className={`size-4 shrink-0 rounded-pill border transition-colors duration-300 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-normal ${reason === option.value ? 'border-primary-normal bg-primary-normal' : 'border-line-normal bg-background-normal'}`}
             />
-            {t(option.label)}
+            {option.label}
           </label>
         ))}
       </fieldset>

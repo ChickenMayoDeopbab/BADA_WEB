@@ -1,4 +1,3 @@
-import { useTranslation } from '@shared/lib'
 import checkIcon from '@shared/assets/auth/check.svg'
 import checkboxCircle from '@shared/assets/auth/checkbox-circle.svg'
 
@@ -19,8 +18,6 @@ const maskStyle = (icon: string) => ({
 
 // 로그인 상태 유지 여부를 선택하는 체크박스입니다.
 export const KeepSignedInCheckbox = ({ checked, onToggle }: KeepSignedInCheckboxProps) => {
-  const { t } = useTranslation()
-
   const iconColorClassName = checked ? 'bg-primary-normal' : 'bg-line-normal'
 
   return (
@@ -39,7 +36,7 @@ export const KeepSignedInCheckbox = ({ checked, onToggle }: KeepSignedInCheckbox
           style={maskStyle(checkIcon)}
         />
       </span>
-      <span className="text-label font-medium text-label-neutral">{t('로그인 상태 유지')}</span>
+      <span className="text-label font-medium text-label-neutral">{'로그인 상태 유지'}</span>
     </label>
   )
 }
