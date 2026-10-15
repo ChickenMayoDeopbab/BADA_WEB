@@ -235,20 +235,24 @@ export const CustomScenarioView = () => {
           </div>
         )}
 
-        <button
-          type="button"
-          disabled={
-            customScenario.step === 'info'
-              ? !customScenario.isInfoValid
-              : !customScenario.isDetailValid
-          }
-          onClick={
-            customScenario.step === 'info' ? customScenario.handleNext : customScenario.handleSubmit
-          }
-          className="h-14 mt-auto w-full rounded-component bg-primary-normal text-headline2 font-bold text-common-0 disabled:cursor-not-allowed disabled:bg-fill-alternative disabled:text-label-alternative"
-        >
-          {customScenario.step === 'info' ? '다음으로' : '시나리오 생성하기'}
-        </button>
+        <div className="pt-8 mt-auto">
+          <button
+            type="button"
+            disabled={
+              customScenario.step === 'info'
+                ? !customScenario.isInfoValid
+                : !customScenario.isDetailValid
+            }
+            onClick={
+              customScenario.step === 'info'
+                ? customScenario.handleNext
+                : customScenario.handleSubmit
+            }
+            className="h-14 w-full rounded-component bg-primary-normal text-headline2 font-bold text-common-0 disabled:cursor-not-allowed disabled:bg-fill-alternative disabled:text-label-alternative"
+          >
+            {customScenario.step === 'info' ? '다음으로' : '시나리오 생성하기'}
+          </button>
+        </div>
       </div>
 
       {customScenario.isExitDialogOpen && (
