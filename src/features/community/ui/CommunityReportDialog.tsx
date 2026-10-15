@@ -56,7 +56,7 @@ export const CommunityReportDialog = ({
           {communityReportReasons.map((option) => (
             <label
               key={option.value}
-              className="gap-3 p-3 flex items-center rounded-control bg-fill-normal text-label"
+              className={`gap-3 p-3 flex items-center rounded-control text-label transition-colors duration-300 ${report.reason === option.value ? 'bg-primary-alternative' : 'bg-fill-normal'}`}
             >
               <input
                 type="radio"
@@ -64,7 +64,12 @@ export const CommunityReportDialog = ({
                 value={option.value}
                 checked={report.reason === option.value}
                 onChange={() => report.setReason(option.value)}
-                className="size-4 shrink-0 appearance-none rounded-pill border border-line-normal bg-background-normal transition-colors duration-300 checked:border-primary-normal checked:bg-primary-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-normal"
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden="true"
+                data-radio-indicator
+                className={`size-4 shrink-0 rounded-pill border transition-colors duration-300 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-normal ${report.reason === option.value ? 'border-primary-normal bg-primary-normal' : 'border-line-normal bg-background-normal'}`}
               />
               {option.label}
             </label>

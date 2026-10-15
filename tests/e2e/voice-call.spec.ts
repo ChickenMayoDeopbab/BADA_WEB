@@ -45,7 +45,7 @@ const prepareCall = async (page: Page) => {
   await page.route('**/api/v1/scenario/recommendation', (route) =>
     route.fulfill({ json: { scenario } }),
   )
-  await page.route('**/api/v1/users/me', (route) => route.fulfill({ json: { data: {} } }))
+  await page.route('**/api/v1/user/mypage', (route) => route.fulfill({ json: { data: {} } }))
   await page.route('**/api/v1/training-call-schedules/ringing', (route) =>
     route.fulfill({ json: { data: null } }),
   )

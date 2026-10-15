@@ -1,9 +1,22 @@
-import { clearAuthSession, setAccessToken, setAuthTokens } from '../model/authSession'
+import {
+  clearAuthSession,
+  setAccessToken,
+  setAuthTokens,
+  replaceAuthTokens,
+} from '../model/authSession'
 import { RequireAuth } from './RequireAuth'
+import { AuthProvider } from './AuthProvider'
+import { getCurrentUser } from '@entities/user'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('@entities/user', () => ({ getCurrentUser: vi.fn() }))
+const user = { username: 'bada', name: '바다', email: 'bada@example.test' }
+beforeEach(() => {
+  vi.mocked(getCurrentUser).mockReset().mockResolvedValue(user)
+})
 
 vi.mock('@shared/config', () => ({
   authStorageKeys: { accessToken: 'bada.accessToken', refreshToken: 'bada.refreshToken' },
@@ -17,15 +30,17 @@ const renderProtectedRoute = () => {
   queryClient.setQueryData(['private-profile'], { name: '이전 사용자' })
   render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <Routes>
-          <Route element={<RequireAuth />}>
-            <Route path="/dashboard" element={<h1>대시보드</h1>} />
-          </Route>
-          <Route path="/" element={<h1>랜딩 페이지</h1>} />
-          <Route path="/login" element={<h1>로그인</h1>} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/dashboard']}>
+          <Routes>
+            <Route element={<RequireAuth />}>
+              <Route path="/dashboard" element={<h1>대시보드</h1>} />
+            </Route>
+            <Route path="/" element={<h1>랜딩 페이지</h1>} />
+            <Route path="/login" element={<h1>로그인</h1>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     </QueryClientProvider>,
   )
   return queryClient
@@ -44,17 +59,19 @@ describe('RequireAuth', () => {
     expect(screen.queryByRole('heading', { name: '대시보드' })).not.toBeInTheDocument()
   })
 
-  it('세션이 있으면 보호 화면을 표시하고 토큰 제거 즉시 랜딩으로 보낸다', () => {
+  it('서버가 확인한 세션만 표시하고 토큰 제거 즉시 랜딩으로 보낸다', async () => {
     setAccessToken('test-access-token')
     renderProtectedRoute()
-    expect(screen.getByRole('heading', { name: '대시보드' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '대시보드' })).toBeInTheDocument()
     act(() => clearAuthSession())
     expect(screen.getByRole('heading', { name: '랜딩 페이지' })).toBeInTheDocument()
   })
 
-  it('다른 탭의 로그아웃 저장소 이벤트도 즉시 반영한다', () => {
+  it('다른 탭의 로그아웃 저장소 이벤트도 즉시 반영한다', async () => {
     setAccessToken('test-access-token')
     const client = renderProtectedRoute()
+    await screen.findByRole('heading', { name: '대시보드' })
+    client.setQueryData(['private-profile'], { name: '이전 사용자' })
     act(() => {
       localStorage.removeItem('bada.accessToken')
       window.dispatchEvent(new StorageEvent('storage', { key: 'bada.accessToken', newValue: null }))
@@ -63,13 +80,14 @@ describe('RequireAuth', () => {
     expect(screen.getByRole('heading', { name: '랜딩 페이지' })).toBeInTheDocument()
   })
 
-  it('화면을 이동하지 않아도 마지막 유효 토큰이 만료되면 랜딩으로 보낸다', () => {
+  it('화면을 이동하지 않아도 마지막 유효 토큰이 만료되면 랜딩으로 보낸다', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-10-15T01:00:00Z'))
     const token = (seconds: number) =>
       `header.${btoa(JSON.stringify({ sub: '34', exp: Date.now() / 1000 + seconds }))}.signature`
     setAuthTokens({ accessToken: token(1), refreshToken: token(2) }, true)
     renderProtectedRoute()
+    await act(async () => {})
     act(() => {
       vi.advanceTimersByTime(1000)
     })
@@ -80,10 +98,55 @@ describe('RequireAuth', () => {
     expect(screen.getByRole('heading', { name: '랜딩 페이지' })).toBeInTheDocument()
   })
 
-  it('토큰 교체 중에는 보호 화면을 이탈하지 않는다', () => {
+  it('토큰 교체 중에는 새 세션의 서버 확인이 끝날 때까지 보호 화면을 숨긴다', async () => {
     setAuthTokens({ accessToken: 'old-access', refreshToken: 'old-refresh' }, true)
     renderProtectedRoute()
+    await screen.findByRole('heading', { name: '대시보드' })
     act(() => setAuthTokens({ accessToken: 'new-access', refreshToken: 'new-refresh' }, false))
+    expect(screen.queryByRole('heading', { name: '대시보드' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '대시보드' })).toBeInTheDocument()
+  })
+
+  it('토큰이 저장돼 있어도 서버 확인이 끝나기 전에는 보호 화면을 렌더링하지 않는다', async () => {
+    let finish!: (value: typeof user) => void
+    vi.mocked(getCurrentUser).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+    )
+    setAccessToken('unverified-token')
+    renderProtectedRoute()
+    expect(screen.queryByRole('heading', { name: '대시보드' })).not.toBeInTheDocument()
+    await act(async () => {})
+    await act(async () => finish(user))
+    expect(await screen.findByRole('heading', { name: '대시보드' })).toBeInTheDocument()
+  })
+
+  it('서버가 발급한 같은 사용자 토큰 갱신은 진행 중인 화면을 해제하지 않는다', async () => {
+    setAuthTokens({ accessToken: 'old-access', refreshToken: 'old-refresh' }, true)
+    renderProtectedRoute()
+    await screen.findByRole('heading', { name: '대시보드' })
+    let finish!: (value: typeof user) => void
+    vi.mocked(getCurrentUser).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+    )
+    act(() => replaceAuthTokens({ accessToken: 'new-access', refreshToken: 'new-refresh' }))
     expect(screen.getByRole('heading', { name: '대시보드' })).toBeInTheDocument()
+    await act(async () => {})
+    await act(async () => finish(user))
+    expect(screen.getByRole('heading', { name: '대시보드' })).toBeInTheDocument()
+  })
+
+  it('서버 인증 실패는 오류 문구를 노출하지 않고 세션을 지운 뒤 랜딩으로 보낸다', async () => {
+    vi.mocked(getCurrentUser).mockRejectedValue(new Error('인증이 필요합니다.'))
+    setAccessToken('rejected-token')
+    const client = renderProtectedRoute()
+    expect(await screen.findByRole('heading', { name: '랜딩 페이지' })).toBeInTheDocument()
+    expect(screen.queryByText('인증이 필요합니다.')).not.toBeInTheDocument()
+    expect(client.getQueryData(['private-profile'])).toBeUndefined()
   })
 })

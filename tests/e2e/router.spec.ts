@@ -5,6 +5,7 @@ test('renders the landing page', async ({ page }) => {
   await page.goto('/')
 
   await expect(page.getByRole('heading', { name: '랜딩 페이지' })).toBeVisible()
+  await expect(page.getByRole('link', { name: /대시보드/ })).toHaveCount(0)
   await expect
     .poll(() => page.evaluate(() => document.fonts.check('16px "Pretendard Variable"')))
     .toBe(true)
@@ -13,9 +14,14 @@ test('renders the landing page', async ({ page }) => {
 test('renders a service route with an authenticated session', async ({ page }) => {
   await authenticate(page)
   await page.route('**/api/v1/**', (route) => route.abort())
+  await page.route('**/api/v1/user/mypage', (route) =>
+    route.fulfill({
+      json: { data: { username: 'bada-test', name: '바다', email: 'bada@example.test' } },
+    }),
+  )
   await page.goto('/dashboard')
 
-  await expect(page.getByRole('heading', { name: '다시 만나서 반가워요!' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '다시 만나서 반가워요, 바다님!' })).toBeVisible()
   await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible()
 })
 

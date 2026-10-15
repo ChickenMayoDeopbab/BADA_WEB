@@ -148,13 +148,15 @@ test('reports posts, comments and replies using each content ID and allows retry
     await page.getByRole('button', { name: '신고하기', exact: true }).click()
     const dialog = page.getByRole('dialog')
     const reason = dialog.getByRole('radio', { name: '스팸 및 광고' })
-    await reason.check()
-    expect(await reason.evaluate((input) => getComputedStyle(input).appearance)).toBe('none')
+    await reason.locator('..').click()
+    await expect(reason).toBeChecked()
+    const indicator = reason.locator('..').locator('[data-radio-indicator]')
+    expect(await reason.evaluate((input) => getComputedStyle(input).clipPath)).toBe('inset(50%)')
     const selectedColor = await dialog
       .getByRole('button', { name: '신고하기', exact: true })
       .evaluate((button) => getComputedStyle(button).backgroundColor)
     await expect
-      .poll(() => reason.evaluate((input) => getComputedStyle(input).backgroundColor))
+      .poll(() => indicator.evaluate((mark) => getComputedStyle(mark).backgroundColor))
       .toBe(selectedColor)
     if (name === '작성자')
       await page.screenshot({ path: testInfo.outputPath('report-dialog.png'), fullPage: true })

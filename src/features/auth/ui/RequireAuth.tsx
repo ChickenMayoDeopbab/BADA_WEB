@@ -6,9 +6,10 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 export const RequireAuth = () => {
   // 같은 탭에서 저장소를 직접 비운 경우도 다음 경로 이동 때 확인합니다.
   useLocation()
-  const hasSession = useAuthSession()
+  const status = useAuthSession()
 
-  if (hasSession) {
+  if (status === 'checking') return null
+  if (status === 'authenticated') {
     return <Outlet />
   }
 

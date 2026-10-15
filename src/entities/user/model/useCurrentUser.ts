@@ -10,7 +10,7 @@ const userKeys = {
 export const useCurrentUser = () =>
   useQuery({
     queryKey: userKeys.current,
-    queryFn: getCurrentUser,
+    queryFn: ({ signal }) => getCurrentUser(signal),
   })
 
 /** 프로필 이미지가 있을 때만 조회 URL을 발급합니다. */

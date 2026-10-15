@@ -3,6 +3,13 @@ import { authStorageKeys } from '@shared/config'
 
 const { accessToken: ACCESS_TOKEN_KEY, refreshToken: REFRESH_TOKEN_KEY } = authStorageKeys
 const AUTH_SESSION_EVENT = 'bada:auth-session-changed'
+let sessionVersion = 0
+
+/** 같은 토큰으로 다시 로그인해도 이전 인증 확인 결과를 재사용하지 않습니다. */
+const publishSessionChange = () => {
+  sessionVersion += 1
+  window.dispatchEvent(new Event(AUTH_SESSION_EVENT))
+}
 
 const getStorages = () => [window.localStorage, window.sessionStorage]
 
@@ -56,23 +63,30 @@ export const setAccessToken = (accessToken: string, persist = true) => {
   window.localStorage.removeItem(ACCESS_TOKEN_KEY)
   window.sessionStorage.removeItem(ACCESS_TOKEN_KEY)
   getTargetStorage(persist).setItem(ACCESS_TOKEN_KEY, accessToken)
-  window.dispatchEvent(new Event(AUTH_SESSION_EVENT))
+  publishSessionChange()
 }
 
-/** 로그인 후 전달받은 토큰을 저장합니다. persist가 false면 브라우저를 닫을 때 제거됩니다. */
-export const setAuthTokens = ({ accessToken, refreshToken }: AuthTokens, persist: boolean) => {
+/** 로그인과 갱신에서 토큰 쌍을 같은 저장소에 한 번에 교체합니다. */
+const writeAuthTokens = ({ accessToken, refreshToken }: AuthTokens, persist: boolean) => {
   clearStoredTokens()
 
   const storage = getTargetStorage(persist)
   storage.setItem(ACCESS_TOKEN_KEY, accessToken)
   storage.setItem(REFRESH_TOKEN_KEY, refreshToken)
-  window.dispatchEvent(new Event(AUTH_SESSION_EVENT))
+}
+
+/** 새 로그인은 이전 사용자의 서버 인증 확인 결과를 무효화합니다. */
+export const setAuthTokens = (tokens: AuthTokens, persist: boolean) => {
+  writeAuthTokens(tokens, persist)
+  publishSessionChange()
 }
 
 /** 갱신된 토큰을 기존 로그인 세션과 동일한 저장소에 교체합니다. */
 export const replaceAuthTokens = (tokens: AuthTokens) => {
   const persist = window.localStorage.getItem(REFRESH_TOKEN_KEY) !== null
-  setAuthTokens(tokens, persist)
+  writeAuthTokens(tokens, persist)
+  // 서버가 확인한 같은 사용자의 토큰 갱신은 진행 중인 화면을 해제하지 않습니다.
+  window.dispatchEvent(new Event(AUTH_SESSION_EVENT))
 }
 
 /** 현재 브라우저에 인증 세션이 존재하는지 확인합니다. */
@@ -85,6 +99,13 @@ export const hasAuthSession = () => {
   return Boolean(refreshToken && !isTokenExpired(refreshToken))
 }
 
+/** 토큰 교체·로그아웃·만료 시 인증 확인 결과를 무효화하는 스냅샷입니다. */
+export const getAuthSessionKey = () =>
+  hasAuthSession() ? `${sessionVersion}:${getAccessToken()}:${getRefreshToken() ?? ''}` : ''
+
+/** 새 로그인과 로그아웃을 구분하고 같은 사용자 토큰 갱신은 유지합니다. */
+export const getAuthSessionVersion = () => sessionVersion
+
 /** 저장소 교체 중에는 중간 로그아웃 상태를 알리지 않고 토큰만 정리합니다. */
 const clearStoredTokens = () => {
   getStorages().forEach((storage) => {
@@ -96,7 +117,7 @@ const clearStoredTokens = () => {
 /** 로그아웃 시 인증 세션을 제거하고 현재 화면의 인증 검사에 알립니다. */
 export const clearAuthSession = () => {
   clearStoredTokens()
-  window.dispatchEvent(new Event(AUTH_SESSION_EVENT))
+  publishSessionChange()
 }
 
 /** 세션 변경·다른 탭 로그아웃·만료 시점을 구독합니다. */
@@ -123,8 +144,10 @@ export const subscribeAuthSession = (onChange: () => void) => {
 
   /** 인증 키 또는 저장소 전체가 변경된 경우에만 반영합니다. */
   const handleStorage = (event: StorageEvent) => {
-    if (event.key === null || event.key === ACCESS_TOKEN_KEY || event.key === REFRESH_TOKEN_KEY)
+    if (event.key === null || event.key === ACCESS_TOKEN_KEY || event.key === REFRESH_TOKEN_KEY) {
+      sessionVersion += 1
       handleChange()
+    }
   }
 
   window.addEventListener(AUTH_SESSION_EVENT, handleChange)

@@ -1,6 +1,68 @@
 import { expect, test } from '@playwright/test'
 import { authenticate } from './authFixture'
 
+test('stored tokens cannot render service content or load its data before server verification completes', async ({
+  page,
+}) => {
+  await authenticate(page)
+  let finishVerification!: () => void
+  const verification = new Promise<void>((resolve) => {
+    finishVerification = resolve
+  })
+  let verificationStarted = false
+  let recordRequests = 0
+  await page.route('**/api/v1/user/mypage', async (route) => {
+    verificationStarted = true
+    await verification
+    await route.fulfill({
+      json: { data: { username: 'bada', name: '바다', email: 'bada@example.test' } },
+    })
+  })
+  await page.route('**/api/v1/training-records**', (route) => {
+    recordRequests += 1
+    return route.fulfill({
+      json: { data: { totalPages: 0, totalElements: 0, number: 0, content: [] } },
+    })
+  })
+  await page.goto('/records')
+  await expect.poll(() => verificationStarted).toBe(true)
+  await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: '훈련 기록', exact: true })).toHaveCount(0)
+  expect(recordRequests).toBe(0)
+  finishVerification()
+  await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible()
+  await expect.poll(() => recordRequests).toBeGreaterThan(0)
+})
+
+test('rejected credentials silently redirect to landing without ever mounting protected content', async ({
+  page,
+}) => {
+  await authenticate(page)
+  await page.addInitScript(() => {
+    new MutationObserver(() => {
+      if (document.querySelector('nav[aria-label="주요 메뉴"]'))
+        document.documentElement.dataset.privateContentRendered = 'true'
+    }).observe(document, { childList: true, subtree: true })
+  })
+  let recordRequests = 0
+  await page.route('**/api/v1/user/mypage', (route) =>
+    route.fulfill({ status: 401, json: { message: '인증이 필요합니다.' } }),
+  )
+  await page.route('**/api/v1/training-records**', (route) => {
+    recordRequests += 1
+    return route.abort()
+  })
+  await page.goto('/records')
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('heading', { name: '랜딩 페이지' })).toBeVisible()
+  await expect(page.getByText('인증이 필요합니다.')).toHaveCount(0)
+  expect(
+    await page.evaluate(() => document.documentElement.dataset.privateContentRendered),
+  ).toBeUndefined()
+  expect(recordRequests).toBe(0)
+  expect(await page.evaluate(() => localStorage.getItem('bada.accessToken'))).toBeNull()
+})
+
 test('guests always return to landing from protected and unknown URLs', async ({ page }) => {
   const protectedRequests: string[] = []
   await page.route('**/api/v1/**', (route) => {

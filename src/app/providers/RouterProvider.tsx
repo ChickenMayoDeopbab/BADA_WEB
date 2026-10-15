@@ -1,5 +1,5 @@
 import { ServiceLayout } from '../layouts/ServiceLayout'
-import { RequireAuth } from '@features/auth'
+import { AuthProvider, RequireAuth } from '@features/auth'
 import {
   FindIdPage,
   LoginPage,
@@ -29,9 +29,16 @@ import {
 } from '@pages/training'
 import { SelfDiagnosisPage } from '@pages/self-diagnosis'
 import { routePaths } from '@shared/config'
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  RouterProvider,
+  useLocation,
+  type RouteObject,
+} from 'react-router-dom'
 
-const router = createBrowserRouter([
+const applicationRoutes: RouteObject[] = [
   {
     path: routePaths.landing,
     element: <PlaceholderPage title="랜딩 페이지" />,
@@ -154,6 +161,18 @@ const router = createBrowserRouter([
     path: '*',
     element: <Navigate to={routePaths.landing} replace />,
   },
-])
+]
+
+/** 경로 전환마다 저장소를 다시 읽으며 앱 전체의 서버 인증 상태를 제공합니다. */
+const AuthRoot = () => {
+  useLocation()
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  )
+}
+
+const router = createBrowserRouter([{ element: <AuthRoot />, children: applicationRoutes }])
 
 export const AppRouter = () => <RouterProvider router={router} />
