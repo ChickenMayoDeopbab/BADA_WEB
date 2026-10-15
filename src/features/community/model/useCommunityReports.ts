@@ -13,7 +13,7 @@ export const useCommunityReports = () => {
   /** 서버 접수 성공 시 창을 닫고 잠시 완료 메시지를 표시합니다. */
   const handleReportSuccess = () => {
     setReportTarget(null)
-    toast({ message: '신고가 접수되었습니다.', position: 'top-right', duration: 3000 })
+    toast({ message: '신고가 접수되었습니다.', position: 'top-right' })
   }
 
   return {

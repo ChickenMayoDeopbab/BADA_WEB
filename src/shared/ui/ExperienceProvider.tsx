@@ -18,6 +18,7 @@ export const ExperienceProvider = ({ children }: PropsWithChildren) => {
       overlay: experienceConfig.overlayMotion,
       skeleton: experienceConfig.skeletonMotion,
       spinner: experienceConfig.spinnerMotion,
+      toast: experienceConfig.toastMotion,
     }
     Object.entries(flags).forEach(([key, value]) => {
       root.dataset[`ux${key[0].toUpperCase()}${key.slice(1)}`] = String(value)

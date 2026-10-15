@@ -11,6 +11,7 @@ export const experienceConfig = {
   skeletonMotion: true,
   spinnerMotion: true,
   toasts: true,
+  toastMotion: true,
   durations: {
     drawerEnter: 320,
     drawerExit: 260,
@@ -22,6 +23,7 @@ export const experienceConfig = {
     accordion: 400,
     toggle: 350,
     tab: 420,
-    toast: 4500,
+    toast: 2500,
+    toastExit: 280,
   },
 } as const

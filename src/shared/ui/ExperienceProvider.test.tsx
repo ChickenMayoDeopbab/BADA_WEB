@@ -37,59 +37,83 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-it('신고 완료는 공통 토스트에서도 3초 뒤 사라지고 중복 메시지는 한 개만 표시한다', () => {
+it('2.5초 진행 막대가 끝나면 퇴장 상태로 바뀌고 애니메이션 후 제거한다', () => {
   vi.useFakeTimers()
-  renderToast({ message: '신고가 접수되었습니다.', position: 'top-right', duration: 3000 })
+  renderToast({ message: '신고가 접수되었습니다.', position: 'top-right' })
   fireEvent.click(screen.getByRole('button', { name: '완료 알림' }))
   fireEvent.click(screen.getByRole('button', { name: '완료 알림' }))
   expect(screen.getAllByRole('status')).toHaveLength(1)
-  act(() => {
-    vi.advanceTimersByTime(2999)
-  })
-  expect(screen.getByRole('status')).toHaveTextContent('신고가 접수되었습니다.')
-  act(() => {
-    vi.advanceTimersByTime(1)
-  })
+  const toast = screen.getByRole('status').parentElement!
+  expect(toast.querySelector('[data-toast-progress]')).toHaveStyle({ animationDuration: '2500ms' })
+  act(() => vi.advanceTimersByTime(2499))
+  expect(toast).toHaveAttribute('data-toast-state', 'visible')
+  act(() => vi.advanceTimersByTime(1))
+  expect(toast).toHaveAttribute('data-toast-state', 'exiting')
+  act(() => vi.advanceTimersByTime(280))
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
 
-it('옵션이 없는 기존 토스트는 공통 유지 시간을 사용한다', () => {
+it('개별 표시 시간 옵션도 진행 막대와 자동 닫힘에 함께 적용한다', () => {
   vi.useFakeTimers()
-  renderToast({ message: '저장했어요.' })
+  renderToast({ message: '저장했어요.', duration: 1000 })
   fireEvent.click(screen.getByRole('button', { name: '완료 알림' }))
-  act(() => {
-    vi.advanceTimersByTime(3000)
-  })
-  expect(screen.getByRole('status')).toHaveTextContent('저장했어요.')
-  act(() => {
-    vi.advanceTimersByTime(1500)
-  })
+  const toast = screen.getByRole('status').parentElement!
+  expect(toast.querySelector('[data-toast-progress]')).toHaveStyle({ animationDuration: '1000ms' })
+  act(() => vi.advanceTimersByTime(1000))
+  expect(toast).toHaveAttribute('data-toast-state', 'exiting')
+  act(() => vi.advanceTimersByTime(280))
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
 
 it('전역 토스트를 끄면 위치·유지 시간 옵션이 있어도 표시하지 않는다', () => {
   flags.toasts = false
-  renderToast({ message: '신고가 접수되었습니다.', position: 'top-right', duration: 3000 })
+  renderToast({ message: '신고가 접수되었습니다.', position: 'top-right' })
   fireEvent.click(screen.getByRole('button', { name: '완료 알림' }))
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
 
-it('위에 마우스를 올린 알림은 유지하고 닫기 버튼과 화면 해제로 정리한다', () => {
+it('호버와 포커스 중에는 멈추고 남은 시간부터 재개한다', () => {
   vi.useFakeTimers()
-  const view = renderToast({
-    message: '신고가 접수되었습니다.',
-    position: 'top-right',
-    duration: 3000,
-  })
+  renderToast({ message: '저장했어요.' })
   fireEvent.click(screen.getByRole('button', { name: '완료 알림' }))
-  fireEvent.mouseEnter(screen.getByRole('status').parentElement!)
-  act(() => {
-    vi.advanceTimersByTime(5000)
-  })
-  expect(screen.getByRole('status')).toBeInTheDocument()
+  const toast = screen.getByRole('status').parentElement!
+  act(() => vi.advanceTimersByTime(1000))
+  fireEvent.mouseEnter(toast)
+  fireEvent.focus(screen.getByRole('button', { name: '알림 닫기' }))
+  act(() => vi.advanceTimersByTime(5000))
+  expect(toast.querySelector('[data-toast-progress]')).toHaveStyle({ animationPlayState: 'paused' })
+  fireEvent.mouseLeave(toast)
+  act(() => vi.advanceTimersByTime(1000))
+  expect(toast).toHaveAttribute('data-toast-state', 'visible')
+  fireEvent.blur(screen.getByRole('button', { name: '알림 닫기' }))
+  act(() => vi.advanceTimersByTime(1499))
+  expect(toast).toHaveAttribute('data-toast-state', 'visible')
+  act(() => vi.advanceTimersByTime(1))
+  expect(toast).toHaveAttribute('data-toast-state', 'exiting')
+  act(() => vi.advanceTimersByTime(280))
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+})
+
+it('수동 닫기도 퇴장 효과를 거치고 언마운트 시 타이머를 정리한다', () => {
+  vi.useFakeTimers()
+  const view = renderToast({ message: '저장했어요.' })
+  fireEvent.click(screen.getByRole('button', { name: '완료 알림' }))
   fireEvent.click(screen.getByRole('button', { name: '알림 닫기' }))
+  expect(screen.getByRole('status').parentElement).toHaveAttribute('data-toast-state', 'exiting')
+  act(() => vi.advanceTimersByTime(280))
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: '완료 알림' }))
   view.unmount()
   expect(vi.getTimerCount()).toBe(0)
+})
+
+it('동작 줄이기 환경에서는 퇴장 애니메이션 대기 없이 제거한다', () => {
+  vi.useFakeTimers()
+  vi.stubGlobal('matchMedia', () => ({ matches: true }))
+  renderToast({ message: '저장했어요.' })
+  fireEvent.click(screen.getByRole('button', { name: '완료 알림' }))
+  act(() => vi.advanceTimersByTime(2500))
+  act(() => vi.runOnlyPendingTimers())
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  vi.unstubAllGlobals()
 })
