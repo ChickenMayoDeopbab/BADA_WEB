@@ -13,23 +13,6 @@ const readUrlEnvironment = (key: UrlEnvironmentKey, value: string | undefined) =
   }
 }
 
-// 문자열 환경변수를 boolean 값으로 변환합니다.
-const readBooleanEnvironment = (value: string | undefined, defaultValue: boolean) => {
-  if (value === undefined) {
-    return defaultValue
-  }
-
-  if (value === 'true') {
-    return true
-  }
-
-  if (value === 'false') {
-    return false
-  }
-
-  throw new Error('[환경변수 오류] VITE_AUTH_GUARD_ENABLED는 true 또는 false여야 합니다.')
-}
-
 /** 배포 서버에 맞는 음성 인증 모드를 검증합니다. */
 const readVoiceAuthMode = (value: string | undefined): 'frame' | 'query' => {
   if (value === undefined || value === 'frame') return 'frame'
@@ -47,6 +30,5 @@ export const env = {
   aiApiBaseUrl: import.meta.env.DEV
     ? new URL('/__bada_ai', window.location.origin).toString()
     : configuredAiApiBaseUrl,
-  isAuthGuardEnabled: readBooleanEnvironment(import.meta.env.VITE_AUTH_GUARD_ENABLED, true),
   voiceAuthMode: readVoiceAuthMode(import.meta.env.VITE_VOICE_AUTH_MODE),
 } as const

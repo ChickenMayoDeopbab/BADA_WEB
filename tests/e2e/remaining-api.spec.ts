@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test'
+import { authenticate } from './authFixture'
 
 test.beforeEach(async ({ page }) => {
+  await authenticate(page)
   await page.route('**/api/v1/**', (route) => {
     const path = new URL(route.request().url()).pathname
     if (path.endsWith('/ringtones')) return route.fulfill({ json: { data: [] } })
@@ -48,13 +50,11 @@ test('uploads, previews, saves and deletes a ringtone through the existing profi
   })
   await page.goto('/profile/ringtone')
   await expect(page.getByRole('radio', { name: /내 파도 소리/ })).toBeChecked()
-  await page
-    .getByLabel('벨소리 파일')
-    .setInputFiles({
-      name: '새 벨소리.mp3',
-      mimeType: 'audio/mpeg',
-      buffer: Buffer.from('mock audio upload'),
-    })
+  await page.getByLabel('벨소리 파일').setInputFiles({
+    name: '새 벨소리.mp3',
+    mimeType: 'audio/mpeg',
+    buffer: Buffer.from('mock audio upload'),
+  })
   await expect(page.getByRole('radio', { name: /새 벨소리.mp3/ })).toBeChecked()
   expect(uploadCount).toBe(1)
   await page.getByRole('button', { name: '새 벨소리.mp3 미리듣기' }).click()
@@ -130,12 +130,32 @@ test('reports posts, comments and replies using each content ID and allows retry
     return route.fulfill({ status: 201, json: { report_id: reports.length } })
   })
   await page.goto('/community/11')
+  const refreshButton = page.getByRole('button', { name: '댓글 새로고침' })
+  await expect(refreshButton).toBeEnabled()
+  const refreshIcon = refreshButton.locator('svg')
+  await refreshIcon.evaluate((icon) => {
+    icon.addEventListener('animationiteration', () =>
+      icon.setAttribute('data-completed-rotation', 'true'),
+    )
+  })
+  await refreshButton.click()
+  await expect(refreshButton).toHaveAttribute('aria-busy', 'true')
+  await expect(refreshIcon).toHaveAttribute('data-completed-rotation', 'true')
+  await expect(refreshButton).toHaveAttribute('aria-busy', 'false')
   for (const name of ['작성자', '댓글작성자', '답글작성자']) {
     if (name === '답글작성자') await page.getByRole('button', { name: '↳ 답글 1개 보기' }).click()
     await page.getByRole('button', { name: `@${name} 사용자 메뉴`, exact: true }).click()
     await page.getByRole('button', { name: '신고하기', exact: true }).click()
     const dialog = page.getByRole('dialog')
-    await dialog.getByRole('radio', { name: '스팸 및 광고' }).check()
+    const reason = dialog.getByRole('radio', { name: '스팸 및 광고' })
+    await reason.check()
+    expect(await reason.evaluate((input) => getComputedStyle(input).appearance)).toBe('none')
+    const selectedColor = await dialog
+      .getByRole('button', { name: '신고하기', exact: true })
+      .evaluate((button) => getComputedStyle(button).backgroundColor)
+    await expect
+      .poll(() => reason.evaluate((input) => getComputedStyle(input).backgroundColor))
+      .toBe(selectedColor)
     if (name === '작성자')
       await page.screenshot({ path: testInfo.outputPath('report-dialog.png'), fullPage: true })
     await dialog.getByRole('button', { name: '신고하기', exact: true }).click()
@@ -144,8 +164,18 @@ test('reports posts, comments and replies using each content ID and allows retry
       await expect(dialog.getByRole('radio', { name: '스팸 및 광고' })).toBeChecked()
       await dialog.getByRole('button', { name: '신고하기', exact: true }).click()
     }
-    await expect(dialog.getByRole('status')).toHaveText('신고가 접수되었습니다.')
-    await dialog.getByRole('button', { name: '확인' }).click()
+    await expect(dialog).toHaveCount(0)
+    const toast = page.getByRole('status')
+    await expect(toast).toHaveText('신고가 접수되었습니다.')
+    if (name === '작성자') {
+      await page.screenshot({ path: testInfo.outputPath('report-toast.png'), fullPage: true })
+      const bounds = await toast.boundingBox()
+      expect(bounds!.x).toBeGreaterThan(page.viewportSize()!.width / 2)
+      expect(bounds!.y).toBeLessThan(50)
+      await expect(toast).toHaveCount(0, { timeout: 4000 })
+    } else {
+      await page.getByRole('button', { name: '메시지 닫기' }).click()
+    }
   }
   expect(reports).toEqual([
     '/api/v1/community/posts/11/reports',
@@ -159,10 +189,6 @@ test('the sidebar retains the session after failed signout and clears it after r
   page,
 }) => {
   let attempts = 0
-  await page.addInitScript(() => {
-    localStorage.setItem('bada.accessToken', 'test-access-token')
-    localStorage.setItem('bada.refreshToken', 'test-refresh-token')
-  })
   await page.route('**/api/v1/auth/signout', (route) => {
     expect(route.request().method()).toBe('DELETE')
     expect(route.request().headers().authorization).toBe('Bearer test-access-token')

@@ -152,7 +152,7 @@ const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <PlaceholderPage title="페이지를 찾을 수 없습니다." />,
+    element: <Navigate to={routePaths.landing} replace />,
   },
 ])
 

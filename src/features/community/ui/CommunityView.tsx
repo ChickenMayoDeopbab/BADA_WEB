@@ -1,7 +1,9 @@
 import type { CommunityAttachment, CommunityPost, ReactionKind } from '@entities/community'
 import { BlockUserButton } from './BlockUserButton'
 import { CommunityReportDialog } from './CommunityReportDialog'
-import type { CommunityReportTarget } from '../model/report'
+import { useCommunityReports } from '../model/useCommunityReports'
+import { useCommentRefresh } from '../model/useCommentRefresh'
+import { Toast } from '@shared/ui'
 import scenarioImage from '@shared/assets/community/figma-1.png'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
@@ -580,11 +582,10 @@ const EditModal = ({
 const PostDetail = ({ post }: { post: CommunityPost }) => {
   const navigate = useNavigate()
   const currentUserId = getCurrentUserId()
-  const [reportTarget, setReportTarget] = useState<CommunityReportTarget | null>(null)
+  const reports = useCommunityReports()
   const [expanded, setExpanded] = useState<string[]>([])
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [comment, setComment] = useState('')
-  const [isRefreshingComments, setIsRefreshingComments] = useState(false)
   const [editingComment, setEditingComment] = useState<{ id: string; content: string } | null>(null)
   const [deletingTarget, setDeletingTarget] = useState<
     { type: 'post' } | { type: 'comment'; id: string } | null
@@ -612,17 +613,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
     )
   }
 
-  const refreshCommentList = async () => {
-    setIsRefreshingComments(true)
-    try {
-      await Promise.all([
-        refreshComments(),
-        new Promise((resolve) => window.setTimeout(resolve, 1000)),
-      ])
-    } finally {
-      setIsRefreshingComments(false)
-    }
-  }
+  const commentRefresh = useCommentRefresh(refreshComments)
 
   return (
     <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
@@ -645,7 +636,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
               <BlockUserButton
                 id={post.authorId}
                 name={post.author}
-                onReport={() => setReportTarget({ type: 'post', id: post.id })}
+                onReport={() => reports.handleOpenReport({ type: 'post', id: post.id })}
                 onBlocked={() => navigate(routePaths.community)}
               />
             )}
@@ -686,11 +677,15 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
             <button
               type="button"
               aria-label="댓글 새로고침"
-              onClick={() => void refreshCommentList()}
-              disabled={areCommentsLoading || isRefreshingComments}
+              onClick={() => void commentRefresh.handleRefresh()}
+              disabled={areCommentsLoading || commentRefresh.isRefreshing}
+              aria-busy={commentRefresh.isRefreshing}
               className="p-1 rounded-pill text-label-alternative hover:bg-fill-normal disabled:cursor-wait"
             >
-              <FiRotateCw className={`size-5 ${isRefreshingComments ? 'animate-spin' : ''}`} />
+              <FiRotateCw
+                onAnimationIteration={commentRefresh.handleRotationComplete}
+                className={`size-5 ${commentRefresh.isRefreshing ? 'animate-[comment-refresh_600ms_linear_infinite]' : ''}`}
+              />
             </button>
           </div>
           <div className="divide-y divide-line-alternative">
@@ -707,7 +702,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                       <BlockUserButton
                         id={item.authorId}
                         name={item.author}
-                        onReport={() => setReportTarget({ type: 'comment', id: Number(item.id) })}
+                        onReport={() => reports.handleOpenReport({ type: 'comment', id: Number(item.id) })}
                       />
                     )}
                     {item.authorId === currentUserId && (
@@ -746,7 +741,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                             <BlockUserButton
                               id={reply.authorId}
                               name={reply.author}
-                              onReport={() => setReportTarget({ type: 'comment', id: Number(reply.id) })}
+                              onReport={() => reports.handleOpenReport({ type: 'comment', id: Number(reply.id) })}
                             />
                           )}
                           {reply.authorId === currentUserId && (
@@ -799,11 +794,13 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
           </div>
         </aside>
       </div>
-      {reportTarget && (
+      <Toast message={reports.toast.message} onDismiss={reports.toast.dismissToast} />
+      {reports.reportTarget && (
         <CommunityReportDialog
-          key={`${reportTarget.type}-${reportTarget.id}`}
-          target={reportTarget}
-          onClose={() => setReportTarget(null)}
+          key={`${reports.reportTarget.type}-${reports.reportTarget.id}`}
+          target={reports.reportTarget}
+          onClose={reports.handleCloseReport}
+          onReported={reports.handleReportSuccess}
         />
       )}
       {editingComment && (

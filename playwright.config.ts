@@ -23,7 +23,6 @@ export default defineConfig({
     env: {
       VITE_API_BASE_URL: 'http://127.0.0.1:8080',
       VITE_AI_API_BASE_URL: 'http://127.0.0.1:8000',
-      VITE_AUTH_GUARD_ENABLED: 'false',
       VITE_VOICE_AUTH_MODE: 'frame',
     },
   },

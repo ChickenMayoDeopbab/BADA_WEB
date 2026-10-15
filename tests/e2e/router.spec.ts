@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { authenticate } from './authFixture'
 
 test('renders the landing page', async ({ page }) => {
   await page.goto('/')
@@ -9,7 +10,8 @@ test('renders the landing page', async ({ page }) => {
     .toBe(true)
 })
 
-test('renders a service route while the auth guard is disabled', async ({ page }) => {
+test('renders a service route with an authenticated session', async ({ page }) => {
+  await authenticate(page)
   await page.route('**/api/v1/**', (route) => route.abort())
   await page.goto('/dashboard')
 
@@ -20,6 +22,7 @@ test('renders a service route while the auth guard is disabled', async ({ page }
 test('uses the training records calendar and closes the detail panel from the backdrop', async ({
   page,
 }) => {
+  await authenticate(page)
   const selectedDate = new Date()
   const weeklyStartDate = new Date(
     selectedDate.getFullYear(),

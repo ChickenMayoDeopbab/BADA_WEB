@@ -4,10 +4,11 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 
 /** 선택한 게시글 또는 댓글의 신고 접수 상태를 관리합니다. */
-export const useCommunityReport = (target: CommunityReportTarget) => {
+export const useCommunityReport = (target: CommunityReportTarget, onReported: () => void) => {
   const [reason, setReason] = useState<CommunityReportReason | ''>('')
   const mutation = useMutation({
     mutationFn: (value: CommunityReportReason) => reportCommunityContent(target, value),
+    onSuccess: onReported,
   })
 
   /** 사유를 선택한 경우에만 중복 없이 신고를 접수합니다. */

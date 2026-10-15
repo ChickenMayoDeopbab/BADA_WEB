@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test'
+import { authenticate } from './authFixture'
+
+test.beforeEach(async ({ page }) => { await authenticate(page) })
 
 test('only deletes owned custom copies after confirmation and retains the dialog on failure', async ({
   page,
