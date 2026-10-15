@@ -19,11 +19,9 @@ body,
   margin: 0;
 }
 
-@layer base {
-  button,
-  input {
-    font: inherit;
-  }
+button,
+input {
+  font: inherit;
 }
 
 button {

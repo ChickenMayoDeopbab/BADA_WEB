@@ -116,6 +116,7 @@ export const AppSidebar = () => {
           ))}
           <LogoutButton
             icon={<SidebarIcon icon={logoutIcon} />}
+            labelClassName="text-headline2 font-medium"
             className="h-12 gap-2 px-2 flex w-full items-center rounded-control text-left text-headline2 font-medium text-label-normal transition-colors duration-200 enabled:hover:bg-status-error/10 enabled:hover:text-status-error disabled:cursor-wait disabled:opacity-50"
           />
         </nav>

@@ -214,9 +214,10 @@ test('the sidebar retains the session after failed signout and clears it after r
       const style = getComputedStyle(element)
       return { family: style.fontFamily, size: style.fontSize, weight: style.fontWeight }
     })
-  await expect(logout).toHaveCSS('font-family', menuFont.family)
-  await expect(logout).toHaveCSS('font-size', menuFont.size)
-  await expect(logout).toHaveCSS('font-weight', menuFont.weight)
+  const logoutLabel = logout.getByText('로그아웃', { exact: true })
+  await expect(logoutLabel).toHaveCSS('font-family', menuFont.family)
+  await expect(logoutLabel).toHaveCSS('font-size', menuFont.size)
+  await expect(logoutLabel).toHaveCSS('font-weight', menuFont.weight)
   await logout.hover()
   await expect(logout).toHaveCSS('color', 'rgb(255, 0, 0)')
   await logout.click()

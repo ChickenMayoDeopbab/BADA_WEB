@@ -6,12 +6,14 @@ import { logoutMutationKey, useLogout } from '../model/useLogout'
 
 interface LogoutButtonProps {
   className?: string
+  labelClassName?: string
   icon?: ReactNode
 }
 
 /** 데스크톱·모바일에서 서버 로그아웃과 진행/실패 상태를 동일하게 제공합니다. */
 export const LogoutButton = ({
   className = 'gap-2 px-5 h-11 flex items-center justify-center rounded-component border border-line-neutral text-label font-medium text-label-normal transition-colors duration-200 enabled:hover:bg-status-error/10 enabled:hover:text-status-error disabled:opacity-50',
+  labelClassName = 'text-label font-medium',
   icon,
 }: LogoutButtonProps) => {
   const logout = useLogout()
@@ -29,7 +31,7 @@ export const LogoutButton = ({
         className={className}
       >
         {isLoggingOut ? <LoadingSpinner /> : icon}
-        <span>{isLoggingOut ? '로그아웃 중...' : '로그아웃'}</span>
+        <span className={labelClassName}>{isLoggingOut ? '로그아웃 중...' : '로그아웃'}</span>
       </button>
       {logout.isError && (
         <p role="alert" className="px-2 py-2 text-caption text-status-error">
