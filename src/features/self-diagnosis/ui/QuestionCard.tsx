@@ -1,8 +1,8 @@
+import { StatusState, LoadingRegion, Skeleton, BackIcon } from '@shared/ui'
 import type { SelfDiagnosis } from '../model/useSelfDiagnosis'
 import { AnswerScale } from './AnswerScale'
 import { DiagnosisButton } from './DiagnosisButton'
 import { DiagnosisCard } from './DiagnosisCard'
-import { IoChevronBack } from 'react-icons/io5'
 
 type QuestionCardProps = {
   diagnosis: SelfDiagnosis
@@ -33,7 +33,7 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
           onClick={goBack}
           className="size-10 flex items-center justify-center rounded-component text-label-normal hover:bg-fill-normal"
         >
-          <IoChevronBack size={24} aria-hidden />
+          <BackIcon />
         </button>
         <h1 className="text-headline2 font-bold text-label-normal">자가진단</h1>
         <span className="size-10" aria-hidden />
@@ -68,7 +68,11 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
             </p>
           </div>
 
-          <h2 className="py-12 max-w-[420px] text-center text-title1 font-bold break-keep text-label-normal">
+          <h2
+            key={currentQuestion.questionId}
+            aria-live="polite"
+            className="ux-page py-12 max-w-[420px] text-center text-title1 font-bold break-keep text-label-normal"
+          >
             {currentQuestion.content}
           </h2>
 
@@ -85,7 +89,7 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
           />
         </>
       ) : (
-        <div className="gap-4 py-24 flex flex-col items-center text-center">
+        <div className="gap-4 py-12 flex w-full flex-col items-center text-center">
           {questionsStatus === 'error' ? (
             <>
               <p className="text-body font-medium text-label-alternative">
@@ -93,10 +97,21 @@ export const QuestionCard = ({ diagnosis }: QuestionCardProps) => {
               </p>
               <DiagnosisButton label="다시 불러오기" variant="secondary" onClick={retryQuestions} />
             </>
+          ) : questionsStatus === 'success' ? (
+            <StatusState
+              title="현재 진행할 자가진단 문항이 없어요."
+              action={<DiagnosisButton label="이전으로" variant="secondary" onClick={goBack} />}
+            />
           ) : (
-            <p className="text-body font-medium text-label-alternative" role="status">
-              문항을 불러오는 중이에요.
-            </p>
+            <LoadingRegion label="문항을 불러오는 중" className="w-full">
+              <Skeleton className="h-3" />
+              <Skeleton className="mt-10 h-16" />
+              <div className="mt-10 gap-3 flex">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <Skeleton key={i} className="h-14 flex-1" />
+                ))}
+              </div>
+            </LoadingRegion>
           )}
         </div>
       )}

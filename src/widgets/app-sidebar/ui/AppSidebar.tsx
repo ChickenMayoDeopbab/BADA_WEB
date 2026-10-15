@@ -1,5 +1,5 @@
 import { SidebarUserProfile } from './SidebarUserProfile'
-import { useLogout } from '@features/auth'
+import { LogoutButton } from '@features/auth'
 import badaLogo from '@shared/assets/training-records/bada-logo.svg'
 import bellIcon from '@shared/assets/training-records/nav-bell.svg'
 import callIcon from '@shared/assets/training-records/nav-call.svg'
@@ -26,12 +26,6 @@ const utilityItems = [
     to: routePaths.notifications,
     hasNeutralActiveState: true,
   },
-  {
-    label: '로그아웃',
-    icon: logoutIcon,
-    to: routePaths.landing,
-    end: true,
-  },
 ]
 
 interface SidebarItemProps {
@@ -40,7 +34,6 @@ interface SidebarItemProps {
   to: string
   end?: boolean
   hasNeutralActiveState?: boolean
-  onClick?: React.MouseEventHandler<HTMLAnchorElement>
 }
 
 interface SidebarIconProps {
@@ -71,12 +64,10 @@ const SidebarItem = ({
   to,
   end = false,
   hasNeutralActiveState = false,
-  onClick,
 }: SidebarItemProps) => (
   <NavLink
     to={to}
     end={end}
-    onClick={onClick}
     className={({ isActive }) =>
       `h-12 gap-2 px-2 max-md:h-auto max-md:min-w-0 max-md:flex-1 max-md:flex-col max-md:gap-1 max-md:px-1 max-md:py-2 flex w-full items-center rounded-control text-left text-headline2 font-medium transition-colors duration-200 ${
         isActive
@@ -94,10 +85,8 @@ const SidebarItem = ({
 
 // 애플리케이션 공통 사이드바를 표시합니다.
 export const AppSidebar = () => {
-  const { handleLogout, isLoggingOut, logoutError } = useLogout()
-
   return (
-    <aside className="top-4 pb-1 pt-7 max-md:inset-x-3 max-md:bottom-3 max-md:top-auto max-md:z-50 max-md:h-auto max-md:min-h-0 max-md:w-auto max-md:p-1 md:sticky min-h-0 fixed flex h-[calc(100vh-32px)] w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+    <aside className="pb-1 pt-7 max-md:fixed max-md:inset-x-3 max-md:bottom-3 max-md:z-50 max-md:h-auto max-md:min-h-0 max-md:w-auto max-md:p-1 min-h-0 flex h-full w-[233px] shrink-0 flex-col justify-between overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
       <div className="gap-2.5 max-md:gap-0 flex flex-col">
         <div className="py-5 max-md:hidden flex items-center justify-center border-b border-line-alternative">
           <img src={badaLogo} alt="Bada" />
@@ -112,26 +101,13 @@ export const AppSidebar = () => {
       <div className="gap-2.5 max-md:hidden flex flex-col">
         <nav className="px-3" aria-label="계정 메뉴">
           {utilityItems.map((item) => (
-            <SidebarItem
-              key={item.label}
-              {...item}
-              onClick={
-                item.label === '로그아웃'
-                  ? (event) => {
-                      event.preventDefault()
-                      handleLogout()
-                    }
-                  : undefined
-              }
-              label={item.label === '로그아웃' && isLoggingOut ? '로그아웃 중...' : item.label}
-            />
+            <SidebarItem key={item.label} {...item} />
           ))}
+          <LogoutButton
+            icon={<SidebarIcon icon={logoutIcon} />}
+            className="h-12 gap-2 px-2 flex w-full items-center rounded-control text-left text-headline2 font-medium text-label-normal transition-colors duration-200 hover:bg-fill-normal disabled:cursor-wait disabled:opacity-50"
+          />
         </nav>
-        {logoutError && (
-          <p role="alert" className="px-4 text-caption text-status-error">
-            {logoutError}
-          </p>
-        )}
         <div className="px-4 py-3 border-t border-line-alternative">
           <SidebarUserProfile />
         </div>

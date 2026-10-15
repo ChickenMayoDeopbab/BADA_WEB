@@ -1,6 +1,12 @@
+import {
+  ContentSkeleton,
+  StatusState,
+  LoadingSpinner,
+  ServicePageContent,
+  BackIcon,
+} from '@shared/ui'
 import { useTrainingSettings } from '../model/useTrainingSettings'
 import type { ScenarioDifficulty, ScenarioPersonality } from '@entities/scenario'
-import { IoArrowBack } from 'react-icons/io5'
 import { useMinutePicker, minuteValues } from '../model/useMinutePicker'
 
 const difficultyOptions: Array<{ value: ScenarioDifficulty; label: string }> = [
@@ -40,7 +46,7 @@ const ScaleField = <Value extends string>({
     <fieldset>
       <legend className="text-headline1 font-bold text-label-normal">{label}</legend>
       <div className="mt-7">
-        <div className="h-8 relative">
+        <div className="h-8 relative focus-within:rounded-pill focus-within:outline-2 focus-within:outline-primary-normal">
           <span className="inset-x-0 top-1.5 h-5 absolute rounded-pill bg-fill-neutral" />
           {options.map((option, index) => (
             <span
@@ -61,7 +67,8 @@ const ScaleField = <Value extends string>({
             value={selectedIndex}
             onChange={(event) => onChange(options[Number(event.target.value)].value)}
             aria-label={label}
-            className="inset-0 h-8 absolute z-10 w-full cursor-pointer opacity-0"
+            aria-valuetext={options[selectedIndex].label}
+            className="peer inset-0 h-8 absolute z-10 w-full cursor-pointer opacity-0"
           />
         </div>
         <div className="mt-3 flex items-center justify-between">
@@ -158,9 +165,10 @@ export const ScenarioSettingsView = () => {
 
   if (settings.isLoading) {
     return (
-      <main className="min-w-0 flex flex-1 items-center justify-center rounded-card bg-background-normal">
-        <span className="size-10 animate-spin rounded-pill border-4 border-fill-alternative border-t-primary-normal" />
-      </main>
+      <ServicePageContent>
+        <h1 className="mb-4 text-title1 font-bold text-label-neutral">훈련 설정</h1>
+        <ContentSkeleton label="훈련 설정을 불러오는 중" />
+      </ServicePageContent>
     )
   }
 
@@ -168,6 +176,14 @@ export const ScenarioSettingsView = () => {
     return (
       <main className="min-w-0 flex flex-1 flex-col items-center justify-center rounded-card bg-background-normal text-center">
         <h1 className="text-title2 font-bold text-label-normal">시나리오를 찾지 못했어요.</h1>
+        {settings.errorMessage && (
+          <StatusState
+            isError
+            title={settings.errorMessage}
+            onRetry={() => void settings.retryScenario()}
+            isRetrying={settings.isRetryingScenario}
+          />
+        )}
         <button
           type="button"
           onClick={settings.handleBack}
@@ -180,7 +196,7 @@ export const ScenarioSettingsView = () => {
   }
 
   return (
-    <main className="min-w-0 px-10 pt-6 gap-4 flex h-[calc(100vh-32px)] flex-1 flex-col">
+    <main className="min-w-0 px-10 pt-6 max-sm:px-4 max-sm:pt-5 gap-4 max-sm:h-auto max-sm:min-h-[calc(100dvh-128px)] flex h-[calc(100dvh-32px)] flex-1 flex-col">
       <header className="h-11 gap-3.5 flex shrink-0 items-center">
         <button
           type="button"
@@ -188,13 +204,13 @@ export const ScenarioSettingsView = () => {
           aria-label="이전"
           className="size-11 flex items-center justify-center rounded-component bg-background-normal text-label-normal"
         >
-          <IoArrowBack size={24} aria-hidden="true" />
+          <BackIcon />
         </button>
         <h1 className="text-title1 font-bold text-label-neutral">훈련 설정</h1>
       </header>
 
-      <section className="min-h-0 px-10 py-12 flex flex-1 items-center rounded-dialog bg-background-normal">
-        <div className="mx-auto flex h-full w-[640px] flex-col">
+      <section className="min-h-0 px-10 py-12 max-sm:p-5 flex flex-1 items-center rounded-dialog bg-background-normal">
+        <div className="mx-auto flex h-full w-[640px] max-w-full flex-col">
           <div
             className="gap-2 flex"
             aria-label={`2단계 중 ${settings.step === 'level' ? 1 : 2}단계`}
@@ -256,7 +272,7 @@ export const ScenarioSettingsView = () => {
             </div>
           )}
 
-          <div className="mt-auto">
+          <div className="pt-6 mt-auto">
             {settings.errorMessage && (
               <p className="mb-3 text-center text-caption text-status-error">
                 {settings.errorMessage}
@@ -278,11 +294,13 @@ export const ScenarioSettingsView = () => {
             <button
               type="button"
               onClick={settings.step === 'level' ? settings.handleNext : settings.handleComplete}
+              aria-busy={settings.isCreatingSession}
               disabled={
                 (settings.step === 'time' && settings.isDelayInvalid) || settings.isCreatingSession
               }
               className="h-14 w-full rounded-component bg-primary-normal text-headline2 font-bold text-common-0 disabled:cursor-not-allowed disabled:bg-fill-alternative disabled:text-label-alternative"
             >
+              {settings.isCreatingSession && <LoadingSpinner className="mr-2" />}
               {settings.step === 'level'
                 ? '다음으로'
                 : settings.isCreatingSession

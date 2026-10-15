@@ -1,9 +1,22 @@
+import { ProfileSkeleton } from './ProfileSkeleton'
+import { useDialogFocus } from '@shared/lib'
+import { ProfileRingtoneSettings } from './ProfileRingtoneSettings'
 import defaultProfileLarge from '@shared/assets/profile/default-profile-large.svg'
 import { ProfileBackLink } from './ProfileBackLink'
+import { ProfileImageConsentDialog } from './ProfileImageConsentDialog'
+import { useProfileImageConsent } from '../model/useProfileImageConsent'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
-import { clearAuthSession } from '@features/auth'
+import { clearAuthSession, LogoutButton } from '@features/auth'
 import { getApiErrorMessage } from '@shared/api'
 import { routePaths } from '@shared/config'
+import {
+  LoadingRegion,
+  Skeleton,
+  ListSkeleton,
+  StatusState,
+  LoadingSpinner,
+  ServicePageContent,
+} from '@shared/ui'
 import {
   useCheckUsername,
   useMyPage,
@@ -24,7 +37,6 @@ import {
   useState,
 } from 'react'
 import { FiChevronRight } from 'react-icons/fi'
-import { ProfileRingtoneSettings } from './ProfileRingtoneSettings'
 import { Link, useNavigate } from 'react-router-dom'
 
 const EMPTY_VALUE = '-'
@@ -33,18 +45,20 @@ interface PageFrameProps {
   title: string
   description: string
   showBack?: boolean
+  action?: ReactNode
   children: ReactNode
 }
 
-const PageFrame = ({ title, description, children, showBack = false }: PageFrameProps) => (
-  <main className="px-16 pt-9 pb-10 min-w-0 max-xl:px-6 max-md:px-4 max-md:pt-6 flex-1">
-    <header className="mb-[18px] gap-3 flex flex-wrap items-center">
+const PageFrame = ({ title, description, children, showBack = false, action }: PageFrameProps) => (
+  <ServicePageContent className="pb-10">
+    <header className="gap-3 mb-[18px] flex flex-wrap items-center">
       {showBack && <ProfileBackLink />}
       <h1 className="text-title1 font-bold text-label-normal">{title}</h1>
       <p className="text-body font-medium text-neutral-60">{description}</p>
+      {action}
     </header>
     {children}
-  </main>
+  </ServicePageContent>
 )
 
 const Card = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
@@ -107,27 +121,7 @@ const AccountWithdrawalDialog = ({ isOpen, onClose }: AccountWithdrawalDialogPro
   const withdrawAccount = useWithdrawAccount()
   const [withdrawError, setWithdrawError] = useState('')
 
-  useEffect(() => {
-    if (!isOpen) return
-
-    const previousBodyOverflow = document.body.style.overflow
-    const previousRootOverflow = document.documentElement.style.overflow
-    const previousTouchAction = document.body.style.touchAction
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !withdrawAccount.isPending) onClose()
-    }
-
-    document.body.style.overflow = 'hidden'
-    document.documentElement.style.overflow = 'hidden'
-    document.body.style.touchAction = 'none'
-    window.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.body.style.overflow = previousBodyOverflow
-      document.documentElement.style.overflow = previousRootOverflow
-      document.body.style.touchAction = previousTouchAction
-      window.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [isOpen, onClose, withdrawAccount.isPending])
+  const dialogRef = useDialogFocus(isOpen, onClose, withdrawAccount.isPending)
 
   if (!isOpen) return null
 
@@ -147,14 +141,16 @@ const AccountWithdrawalDialog = ({ isOpen, onClose }: AccountWithdrawalDialogPro
 
   return (
     <div
-      className="inset-0 z-50 fixed flex items-center justify-center bg-common-100/30"
+      className="inset-0 fixed z-50 flex items-center justify-center bg-common-100/30"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !withdrawAccount.isPending) onClose()
       }}
     >
       <section
-        className="p-10 max-sm:p-6 w-[500px] max-w-[calc(100%-32px)] rounded-card bg-common-0 shadow-[0_14px_36px_rgba(0,0,0,0.16)]"
+        ref={dialogRef}
+        tabIndex={-1}
+        className="ux-overlay p-10 max-sm:p-6 w-[500px] max-w-[calc(100%-32px)] rounded-card bg-common-0 shadow-[0_14px_36px_rgba(0,0,0,0.16)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="withdraw-dialog-title"
@@ -214,6 +210,12 @@ export const ProfileOverviewPage = () => {
   const profileImageQuery = useProfileImage(profileQuery.data?.s3Key)
   const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false)
 
+  const mobileLogout = (
+    <div className="max-md:ml-auto max-md:block hidden">
+      <LogoutButton />
+    </div>
+  )
+
   const summaryCards = [
     [
       '총 훈련 횟수',
@@ -241,140 +243,201 @@ export const ProfileOverviewPage = () => {
       : item,
   )
 
+  if (profileQuery.isPending && !profileData)
+    return (
+      <PageFrame
+        title="프로필"
+        description="계정 정보와 서비스 설정을 관리하세요."
+        action={mobileLogout}
+      >
+        <ProfileSkeleton />
+      </PageFrame>
+    )
+  if (profileQuery.isError && !profileData)
+    return (
+      <PageFrame
+        title="프로필"
+        description="계정 정보와 서비스 설정을 관리하세요."
+        action={mobileLogout}
+      >
+        <StatusState
+          isError
+          title="프로필 정보를 불러오지 못했어요."
+          onRetry={() => void profileQuery.refetch()}
+          isRetrying={profileQuery.isFetching}
+        />
+      </PageFrame>
+    )
+
   return (
-    <PageFrame title="프로필" description="계정 정보와 서비스 설정을 관리하세요.">
-      <div className="gap-4 grid max-w-[1024px] grid-cols-3 max-sm:grid-cols-1">
-      <Card className="gap-6 p-6 max-sm:gap-4 max-sm:p-4 max-sm:flex-wrap col-span-3 max-sm:col-span-1 flex items-center">
-        <div className="size-20 flex shrink-0 items-center justify-center rounded-pill bg-fill-normal">
-          <img
-            className={
-              profileImageQuery.data
-                ? 'size-full rounded-pill object-cover'
-                : 'size-[54px] rounded-pill'
-            }
-            src={profileImageQuery.data ?? defaultProfileSummary}
-            alt={`${profileData?.name || EMPTY_VALUE} 프로필`}
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-title2 font-bold text-label-normal">
-            {profileData?.name || EMPTY_VALUE}
-          </h2>
-          <p className="mt-1 text-[15px] font-medium text-label-alternative">
-            {profileData?.username ? `@${profileData.username}` : EMPTY_VALUE}
-          </p>
-          <p className="mt-2 break-all text-label text-label-alternative">
-            {profileData?.email || EMPTY_VALUE}
-          </p>
-        </div>
-        <Link
-          className="h-12 px-6 flex shrink-0 items-center justify-center rounded-component bg-primary-normal text-body font-bold text-common-0"
-          to={routePaths.profileEdit}
-        >
-          프로필 수정
-        </Link>
-      </Card>
-
-      {summaryCards.map(([label, value, note]) => (
-        <Card className="h-32 p-6" key={label}>
-          <div className="gap-2 flex items-center justify-between">
-            <p className="text-label font-medium text-label-alternative">{label}</p>
-            {label === '콜포비아 레벨' && (
-              <Link className="shrink-0 rounded-control text-caption font-bold text-primary-normal hover:underline" to={routePaths.welcome}>
-                자가진단 다시 하기
-              </Link>
-            )}
+    <PageFrame
+      title="프로필"
+      description="계정 정보와 서비스 설정을 관리하세요."
+      action={mobileLogout}
+    >
+      <div className="gap-4 max-sm:grid-cols-1 grid grid-cols-3">
+        <Card className="gap-6 p-6 max-sm:gap-4 max-sm:p-4 max-sm:flex-wrap max-sm:col-span-1 col-span-3 flex items-center">
+          <div className="size-20 flex shrink-0 items-center justify-center rounded-pill bg-fill-normal">
+            <img
+              className={
+                profileImageQuery.data
+                  ? 'size-full rounded-pill object-cover'
+                  : 'size-[54px] rounded-pill'
+              }
+              src={profileImageQuery.data ?? defaultProfileSummary}
+              alt={`${profileData?.name || EMPTY_VALUE} 프로필`}
+            />
           </div>
-          <p className="mt-1 text-title2 font-bold text-label-normal">{value}</p>
-          <p className="mt-1 text-[13px] text-label-alternative">{note}</p>
-        </Card>
-      ))}
-
-      <Card className="p-5 col-span-3 max-sm:col-span-1">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-headline1 font-bold text-label-normal">최근 훈련</h2>
-            <p className="mt-1 text-label text-label-alternative">
-              최근 진행한 훈련을 빠르게 확인하세요.
+          <div className="min-w-0 flex-1">
+            <h2 className="text-title2 font-bold text-label-normal">
+              {profileData?.name || EMPTY_VALUE}
+            </h2>
+            <p className="mt-1 text-[15px] font-medium text-label-alternative">
+              {profileData?.username ? `@${profileData.username}` : EMPTY_VALUE}
+            </p>
+            <p className="mt-2 text-label break-all text-label-alternative">
+              {profileData?.email || EMPTY_VALUE}
             </p>
           </div>
-          <Link className="text-label font-bold text-primary-normal" to={routePaths.records}>
-            전체 기록 보기
+          <Link
+            className="h-12 px-6 flex shrink-0 items-center justify-center rounded-component bg-primary-normal text-body font-bold text-common-0"
+            to={routePaths.profileEdit}
+          >
+            프로필 수정
           </Link>
-        </div>
-        <ul className="mt-4 space-y-2">
-          {recentTrainings.map((training) => (
-            <li
-              key={training.recordId}
-            >
-              <Link
-                className="gap-3 px-4 py-3 max-sm:flex-wrap flex min-h-16 items-center rounded-component border border-line-alternative bg-background-normal transition-colors hover:border-line-neutral hover:bg-fill-normal"
-                to={`${routePaths.records}?recordId=${training.recordId}&trainedAt=${encodeURIComponent(training.trainedAt)}`}
-                aria-label={`${training.scenarioName} 기록 보기`}
-              >
-                <span className="size-10 flex shrink-0 items-center justify-center rounded-component bg-fill-normal text-headline2" aria-hidden="true">
-                  {training.thumbnailUrl ? (
-                    <img className="size-full rounded-component object-cover" src={training.thumbnailUrl} alt="" />
-                  ) : training.detail?.emoji}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-headline2 font-bold text-label-normal">
-                  {training.scenarioName}
-                </span>
-                <span className="px-3 py-2 grid w-64 max-sm:order-last max-sm:w-full shrink-0 grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-2 rounded-control bg-fill-normal text-center text-caption text-label-alternative">
-                  <span>{training.detail?.duration ?? '-'}</span>
-                  <span className="h-3 w-px bg-line-neutral" aria-hidden="true" />
-                  <span>피드백 {training.detail?.feedbackCount ?? '-'}개</span>
-                  <span className="h-3 w-px bg-line-neutral" aria-hidden="true" />
-                  <span>{formatTrainingDate(training.trainedAt)}</span>
-                </span>
-                <FiChevronRight className="shrink-0 text-label-normal" aria-hidden="true" />
-              </Link>
-            </li>
-          ))}
-          {!trainingQuery.isLoading && recentTrainings.length === 0 && (
-            <li className="py-10 flex items-center justify-center text-label text-label-alternative">
-              최근 훈련 기록이 없습니다.
-            </li>
-          )}
-        </ul>
-      </Card>
+        </Card>
 
-      <Card className="gap-6 p-5 max-xl:flex-col max-xl:items-stretch col-span-3 max-sm:col-span-1 flex items-center">
-        <div className="shrink-0">
-        <h2 className="text-headline1 font-bold text-label-normal">빠른 설정</h2>
-        <p className="mt-1 whitespace-nowrap text-label text-label-alternative">자주 사용하는 설정을 관리하세요.</p>
-        </div>
-        <div className="gap-3 grid min-w-0 flex-1 grid-cols-4 max-lg:grid-cols-2 max-sm:grid-cols-1">
-          {quickSettingsWithApiState.map((item) => (
-            <Link
-              className="px-4 py-3 flex min-h-16 items-center justify-between rounded-component bg-fill-normal hover:bg-fill-pressed"
-              key={item.title}
-              to={item.to}
-            >
-              <span>
-                <span className="block text-[15px] font-bold text-label-normal">{item.title}</span>
-                <span className="mt-1 block text-caption text-label-alternative">{item.value}</span>
-              </span>
-              <FiChevronRight className="text-label-alternative" aria-hidden="true" />
+        {summaryCards.map(([label, value, note]) => (
+          <Card className="h-32 p-6" key={label}>
+            <div className="gap-2 flex items-center justify-between">
+              <p className="text-label font-medium text-label-alternative">{label}</p>
+              {label === '콜포비아 레벨' && (
+                <Link
+                  className="shrink-0 rounded-control text-caption font-bold text-primary-normal hover:underline"
+                  to={routePaths.welcome}
+                >
+                  자가진단 다시 하기
+                </Link>
+              )}
+            </div>
+            <p className="mt-1 text-title2 font-bold text-label-normal">{value}</p>
+            <p className="mt-1 text-[13px] text-label-alternative">{note}</p>
+          </Card>
+        ))}
+
+        <Card className="p-5 max-sm:col-span-1 col-span-3">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-headline1 font-bold text-label-normal">최근 훈련</h2>
+              <p className="mt-1 text-label text-label-alternative">
+                최근 진행한 훈련을 빠르게 확인하세요.
+              </p>
+            </div>
+            <Link className="text-label font-bold text-primary-normal" to={routePaths.records}>
+              전체 기록 보기
             </Link>
-          ))}
-        </div>
-      </Card>
-      <Card className="p-6 col-span-3 max-sm:col-span-1 flex items-center justify-between">
-        <div>
-          <h2 className="text-headline1 font-bold text-label-normal">계정 관리</h2>
-          <p className="mt-1 text-label text-label-alternative">
-            더 이상 Bada를 이용하지 않는다면 계정을 삭제할 수 있습니다.
-          </p>
-        </div>
-        <button
-          className="px-5 flex h-11 items-center justify-center rounded-component border border-status-error text-label font-bold text-status-error hover:bg-red-90/20"
-          type="button"
-          onClick={() => setIsWithdrawalDialogOpen(true)}
-        >
-          회원 탈퇴
-        </button>
-      </Card>
+          </div>
+          <ul className="mt-4 space-y-2">
+            {recentTrainings.map((training) => (
+              <li key={training.recordId}>
+                <Link
+                  className="gap-3 px-4 py-3 max-sm:flex-wrap min-h-16 flex items-center rounded-component border border-line-alternative bg-background-normal transition-colors hover:border-line-neutral hover:bg-fill-normal"
+                  to={`${routePaths.records}?recordId=${training.recordId}&trainedAt=${encodeURIComponent(training.trainedAt)}`}
+                  aria-label={`${training.scenarioName} 기록 보기`}
+                >
+                  <span
+                    className="size-10 flex shrink-0 items-center justify-center rounded-component bg-fill-normal text-headline2"
+                    aria-hidden="true"
+                  >
+                    {training.thumbnailUrl ? (
+                      <img
+                        className="size-full rounded-component object-cover"
+                        src={training.thumbnailUrl}
+                        alt=""
+                      />
+                    ) : (
+                      training.detail?.emoji
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-headline2 font-bold text-label-normal">
+                    {training.scenarioName}
+                  </span>
+                  <span className="px-3 py-2 w-64 max-sm:order-last max-sm:w-full gap-2 grid shrink-0 grid-cols-[1fr_auto_1fr_auto_1fr] items-center rounded-control bg-fill-normal text-center text-caption text-label-alternative">
+                    <span>{training.detail?.duration ?? '-'}</span>
+                    <span className="h-3 w-px bg-line-neutral" aria-hidden="true" />
+                    <span>피드백 {training.detail?.feedbackCount ?? '-'}개</span>
+                    <span className="h-3 w-px bg-line-neutral" aria-hidden="true" />
+                    <span>{formatTrainingDate(training.trainedAt)}</span>
+                  </span>
+                  <FiChevronRight className="shrink-0 text-label-normal" aria-hidden="true" />
+                </Link>
+              </li>
+            ))}
+            {trainingQuery.isPending && (
+              <li>
+                <ListSkeleton label="최근 훈련을 불러오는 중" />
+              </li>
+            )}
+            {trainingQuery.isError && (
+              <li>
+                <StatusState
+                  isError
+                  title="최근 훈련을 불러오지 못했어요."
+                  onRetry={() => void trainingQuery.refetch()}
+                  isRetrying={trainingQuery.isFetching}
+                />
+              </li>
+            )}
+            {!trainingQuery.isPending && !trainingQuery.isError && recentTrainings.length === 0 && (
+              <li className="py-10 flex items-center justify-center text-label text-label-alternative">
+                최근 훈련 기록이 없습니다.
+              </li>
+            )}
+          </ul>
+        </Card>
+
+        <Card className="gap-6 p-5 max-xl:flex-col max-xl:items-stretch max-sm:col-span-1 col-span-3 flex items-center">
+          <div className="shrink-0">
+            <h2 className="text-headline1 font-bold text-label-normal">빠른 설정</h2>
+            <p className="mt-1 text-label whitespace-nowrap text-label-alternative">
+              자주 사용하는 설정을 관리하세요.
+            </p>
+          </div>
+          <div className="gap-3 min-w-0 max-lg:grid-cols-2 max-sm:grid-cols-1 grid flex-1 grid-cols-4">
+            {quickSettingsWithApiState.map((item) => (
+              <Link
+                className="px-4 py-3 min-h-16 flex items-center justify-between rounded-component bg-fill-normal hover:bg-fill-pressed"
+                key={item.title}
+                to={item.to}
+              >
+                <span>
+                  <span className="block text-[15px] font-bold text-label-normal">
+                    {item.title}
+                  </span>
+                  <span className="mt-1 block text-caption text-label-alternative">
+                    {item.value}
+                  </span>
+                </span>
+                <FiChevronRight className="text-label-alternative" aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        </Card>
+        <Card className="p-6 max-sm:col-span-1 gap-4 max-sm:flex-col max-sm:items-start col-span-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-headline1 font-bold text-label-normal">계정 관리</h2>
+            <p className="mt-1 text-label text-label-alternative">
+              더 이상 Bada를 이용하지 않는다면 계정을 삭제할 수 있습니다.
+            </p>
+          </div>
+          <button
+            className="px-5 h-11 flex items-center justify-center rounded-component border border-status-error text-label font-bold text-status-error hover:bg-red-90/20"
+            type="button"
+            onClick={() => setIsWithdrawalDialogOpen(true)}
+          >
+            회원 탈퇴
+          </button>
+        </Card>
       </div>
       <AccountWithdrawalDialog
         isOpen={isWithdrawalDialogOpen}
@@ -386,13 +449,16 @@ export const ProfileOverviewPage = () => {
 
 interface FieldProps {
   label: string
+  htmlFor: string
   description: string
   children: ReactNode
 }
 
-const Field = ({ label, description, children }: FieldProps) => (
+const Field = ({ label, htmlFor, description, children }: FieldProps) => (
   <div>
-    <label className="block text-body font-bold text-label-normal">{label}</label>
+    <label htmlFor={htmlFor} className="block text-body font-bold text-label-normal">
+      {label}
+    </label>
     <div className="mt-2">{children}</div>
     <p className="mt-2 text-caption text-label-alternative">{description}</p>
   </div>
@@ -402,6 +468,7 @@ const inputClass =
   'h-12 min-w-0 w-full rounded-control border border-line-alternative bg-fill-field px-4 text-body text-label-normal outline-none focus:border-primary-normal'
 
 export const ProfileEditPage = () => {
+  const consent = useProfileImageConsent()
   const navigate = useNavigate()
   const inputId = useId()
   const uploadImage = useUploadProfileImage()
@@ -419,12 +486,17 @@ export const ProfileEditPage = () => {
   const profileData = profileQuery.data
   const displayedName = name ?? profileData?.name ?? EMPTY_VALUE
   const displayedUsername = username ?? profileData?.username ?? EMPTY_VALUE
-  const displayedImage = useDefaultImage ? defaultProfileLarge : (preview ?? profileImageQuery.data ?? defaultProfileLarge)
+  const displayedImage = useDefaultImage
+    ? defaultProfileLarge
+    : (preview ?? profileImageQuery.data ?? defaultProfileLarge)
   const hasPhoto = !useDefaultImage && Boolean(preview || profileImageQuery.data)
 
-  useEffect(() => () => {
-    if (preview) URL.revokeObjectURL(preview)
-  }, [preview])
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview)
+    },
+    [preview],
+  )
 
   const choosePhoto = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -453,15 +525,20 @@ export const ProfileEditPage = () => {
 
     try {
       const available = await checkUsername.mutateAsync(displayedUsername.trim())
-      setUsernameMessage(available ? '사용할 수 있는 아이디입니다.' : '이미 사용 중인 아이디입니다.')
+      setUsernameMessage(
+        available ? '사용할 수 있는 아이디입니다.' : '이미 사용 중인 아이디입니다.',
+      )
     } catch {
       setUsernameMessage('중복 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.')
     }
   }
 
   const handleSubmit = async () => {
+    if (consent.isChecking || uploadImage.isPending || updateProfile.isPending || !profileData)
+      return
     setSubmitError('')
     try {
+      if (selectedFile && !(await consent.ensureConsent())) return
       const uploaded = selectedFile ? await uploadImage.mutateAsync(selectedFile) : undefined
       await updateProfile.mutateAsync({
         name: displayedName.trim(),
@@ -469,49 +546,79 @@ export const ProfileEditPage = () => {
         s3Key: useDefaultImage ? '' : (uploaded?.s3Key ?? profileQuery.data?.s3Key),
       })
       navigate(routePaths.profile)
-    } catch {
-      setSubmitError('프로필을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+    } catch (error) {
+      setSubmitError(
+        getApiErrorMessage(error, '프로필을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.'),
+      )
     }
   }
 
+  if (profileQuery.isPending && !profileData)
+    return (
+      <PageFrame title="프로필 수정" description="계정에 표시되는 정보를 변경하세요.">
+        <ProfileSkeleton isEditing />
+      </PageFrame>
+    )
+  if (profileQuery.isError && !profileData)
+    return (
+      <PageFrame title="프로필 수정" description="계정에 표시되는 정보를 변경하세요.">
+        <StatusState
+          isError
+          title="프로필 정보를 불러오지 못했어요."
+          onRetry={() => void profileQuery.refetch()}
+          isRetrying={profileQuery.isFetching}
+        />
+      </PageFrame>
+    )
+
   return (
     <PageFrame title="프로필 수정" description="계정에 표시되는 정보를 변경하세요.">
-      <Card className="flex max-lg:flex-col min-h-[720px] max-w-[1024px] overflow-hidden">
+      <Card className="max-lg:flex-col flex min-h-[720px] max-w-[1024px] overflow-hidden">
         <aside className="p-6 max-sm:p-4 max-lg:w-full max-lg:flex-row max-lg:justify-center gap-6 max-lg:gap-16 max-sm:gap-6 flex w-[300px] shrink-0 flex-col items-center bg-fill-normal">
           <div className="min-w-0 flex flex-col items-center">
-          <div className="flex size-[92px] items-center justify-center rounded-pill bg-label-disabled">
-            <img
-              className={
-                hasPhoto
-                  ? 'size-full rounded-pill object-cover'
-                  : 'size-[54px] rounded-pill'
-              }
-              src={displayedImage}
-              alt="현재 프로필"
+            <div className="flex size-[92px] items-center justify-center rounded-pill bg-label-disabled">
+              <img
+                className={
+                  hasPhoto ? 'size-full rounded-pill object-cover' : 'size-[54px] rounded-pill'
+                }
+                src={displayedImage}
+                alt="현재 프로필"
+              />
+            </div>
+            <p className="mt-4 max-w-full truncate text-headline1 font-bold text-label-normal">
+              {displayedName}
+            </p>
+            <p className="mt-1 max-w-full truncate text-label font-medium text-label-alternative">
+              @{displayedUsername}
+            </p>
+          </div>
+          <div className="max-sm:w-40 flex w-[204px] shrink-0 flex-col items-center">
+            <label
+              className="h-12 max-sm:h-10 flex w-full cursor-pointer items-center justify-center rounded-component bg-primary-alternative text-label font-bold text-primary-normal"
+              htmlFor={inputId}
+            >
+              프로필 사진 변경
+            </label>
+            <input
+              id={inputId}
+              className="sr-only"
+              type="file"
+              accept="image/png,image/jpeg"
+              onChange={choosePhoto}
             />
-          </div>
-          <p className="mt-4 max-w-full truncate text-headline1 font-bold text-label-normal">{displayedName}</p>
-          <p className="mt-1 max-w-full truncate text-label font-medium text-label-alternative">
-            @{displayedUsername}
-          </p>
-          </div>
-          <div className="w-[204px] max-sm:w-40 shrink-0 flex flex-col items-center">
-          <label
-            className="h-12 max-sm:h-10 flex w-full cursor-pointer items-center justify-center rounded-component bg-primary-alternative text-label font-bold text-primary-normal"
-            htmlFor={inputId}
-          >
-            프로필 사진 변경
-          </label>
-          <input id={inputId} className="sr-only" type="file" accept="image/png,image/jpeg" onChange={choosePhoto} />
-          <SecondaryButton className="mt-3 w-full max-sm:h-10 max-sm:px-2 max-sm:text-label" type="button" onClick={() => {
-            setSelectedFile(null)
-            setPreview(null)
-            setUseDefaultImage(true)
-            setSubmitError('')
-          }}>
-            기본 이미지로 변경
-          </SecondaryButton>
-          <p className="mt-3 text-caption text-label-alternative">JPG, PNG · 최대 5MB</p>
+            <SecondaryButton
+              className="mt-3 max-sm:h-10 max-sm:px-2 max-sm:text-label w-full"
+              type="button"
+              onClick={() => {
+                setSelectedFile(null)
+                setPreview(null)
+                setUseDefaultImage(true)
+                setSubmitError('')
+              }}
+            >
+              기본 이미지로 변경
+            </SecondaryButton>
+            <p className="mt-3 text-caption text-label-alternative">JPG, PNG · 최대 5MB</p>
           </div>
         </aside>
         <form
@@ -525,18 +632,32 @@ export const ProfileEditPage = () => {
           <p className="mt-1 text-label text-label-alternative">
             계정에 표시되는 프로필 정보를 수정하세요.
           </p>
-          <div className="mt-7 gap-x-6 gap-y-6 grid grid-cols-2 max-sm:grid-cols-1">
-            <Field label="이름" description="서비스에 표시되는 이름입니다.">
+          <div className="mt-7 gap-x-6 gap-y-6 max-sm:grid-cols-1 grid grid-cols-2">
+            <Field
+              htmlFor={`${inputId}-name`}
+              label="이름"
+              description="서비스에 표시되는 이름입니다."
+            >
               <input
                 className={inputClass}
+                id={`${inputId}-name`}
+                autoComplete="name"
+                disabled={uploadImage.isPending || updateProfile.isPending || consent.isChecking}
                 value={displayedName}
                 onChange={(event) => setName(event.target.value)}
               />
             </Field>
-            <Field label="아이디" description="영문과 숫자를 사용할 수 있습니다.">
+            <Field
+              htmlFor={`${inputId}-username`}
+              label="아이디"
+              description="영문과 숫자를 사용할 수 있습니다."
+            >
               <div className="gap-2 flex">
                 <input
                   className={inputClass}
+                  id={`${inputId}-username`}
+                  autoComplete="username"
+                  disabled={uploadImage.isPending || updateProfile.isPending || consent.isChecking}
                   value={displayedUsername}
                   onChange={(event) => {
                     setUsername(event.target.value)
@@ -546,7 +667,10 @@ export const ProfileEditPage = () => {
                 <PrimaryButton
                   className="w-28 px-3 shrink-0 whitespace-nowrap"
                   type="button"
-                  disabled={checkUsername.isPending}
+                  disabled={
+                    checkUsername.isPending || uploadImage.isPending || updateProfile.isPending
+                  }
+                  aria-busy={checkUsername.isPending}
                   onClick={handleUsernameCheck}
                 >
                   {checkUsername.isPending ? '확인 중' : '중복 확인'}
@@ -558,12 +682,22 @@ export const ProfileEditPage = () => {
                 </p>
               )}
             </Field>
-            <div className="col-span-2 max-sm:col-span-1">
-              <Field label="이메일" description="인증 및 알림에 사용되는 이메일입니다.">
-                <input className={inputClass} value={profileData?.email || EMPTY_VALUE} readOnly />
+            <div className="max-sm:col-span-1 col-span-2">
+              <Field
+                htmlFor={`${inputId}-email`}
+                label="이메일"
+                description="인증 및 알림에 사용되는 이메일입니다."
+              >
+                <input
+                  id={`${inputId}-email`}
+                  aria-label="이메일"
+                  className={`${inputClass} cursor-not-allowed disabled:bg-fill-normal disabled:text-label-alternative`}
+                  value={profileData?.email || EMPTY_VALUE}
+                  disabled
+                />
               </Field>
             </div>
-            <div className="pt-6 col-span-2 max-sm:col-span-1 border-t border-line-alternative">
+            <div className="pt-6 max-sm:col-span-1 col-span-2 border-t border-line-alternative">
               <p className="text-body font-bold text-label-normal">비밀번호</p>
               <p className="mt-2 text-caption text-label-alternative">
                 보안을 위해 주기적으로 비밀번호를 변경해 주세요.
@@ -588,19 +722,27 @@ export const ProfileEditPage = () => {
             </SecondaryButton>
             <PrimaryButton
               type="submit"
+              aria-busy={updateProfile.isPending || uploadImage.isPending || consent.isChecking}
               disabled={
                 updateProfile.isPending ||
                 uploadImage.isPending ||
+                consent.isChecking ||
                 !profileData ||
                 !displayedName.trim() ||
                 !displayedUsername.trim()
               }
             >
-              {updateProfile.isPending || uploadImage.isPending ? '저장 중' : '변경사항 저장'}
+              {(updateProfile.isPending || uploadImage.isPending || consent.isChecking) && (
+                <LoadingSpinner className="mr-2" />
+              )}
+              {updateProfile.isPending || uploadImage.isPending || consent.isChecking
+                ? '저장 중'
+                : '변경사항 저장'}
             </PrimaryButton>
           </div>
         </form>
       </Card>
+      <ProfileImageConsentDialog consent={consent} />
     </PageFrame>
   )
 }
@@ -622,26 +764,35 @@ const SelectRow = ({
   onSelect,
   action,
 }: SelectRowProps) => (
-  <button
-    className={`px-5 flex min-h-[82px] w-full items-center rounded-component text-left ${selected ? 'bg-primary-alternative' : 'bg-fill-normal'} ${className}`}
-    type="button"
-    onClick={onSelect}
+  <div
+    className={`flex items-center rounded-component ${selected ? 'bg-primary-alternative' : 'bg-fill-normal'}`}
   >
-    <span
-      className={`mr-5 size-5 flex items-center justify-center rounded-pill border-2 ${selected ? 'border-primary-normal' : 'border-line-normal'}`}
+    <button
+      className={`px-5 ux-accordion ease-out min-w-0 flex min-h-[82px] flex-1 items-center rounded-component text-left transition-colors motion-reduce:transition-none ${selected ? 'bg-primary-alternative hover:bg-primary-alternative/80' : 'bg-fill-normal hover:bg-fill-pressed'} ${className}`}
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
     >
-      {selected && <span className="size-2.5 rounded-pill bg-primary-normal" />}
-    </span>
-    <span className="min-w-0 flex-1">
-      <span className="block text-body font-bold text-label-normal">{title}</span>
-      <span className="mt-1 block text-[13px] text-label-alternative">{description}</span>
-    </span>
-    {action ??
-      (selected && <span className="text-[13px] font-bold text-primary-normal">사용 중</span>)}
-  </button>
+      <span
+        className={`mr-5 size-5 ux-accordion ease-out flex items-center justify-center rounded-pill border-2 transition-colors motion-reduce:transition-none ${selected ? 'border-primary-normal' : 'border-line-normal'}`}
+      >
+        <span
+          className={`size-2.5 ux-accordion ease-out rounded-pill bg-primary-normal transition-[opacity,scale] motion-reduce:transition-none ${selected ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}
+        />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-body font-bold text-label-normal">{title}</span>
+        <span className="mt-1 block text-[13px] text-label-alternative">{description}</span>
+      </span>
+      {!action && selected && (
+        <span className="text-caption font-bold text-primary-normal">선택됨</span>
+      )}
+    </button>
+    {action && <div className="pr-4 shrink-0">{action}</div>}
+  </div>
 )
 
-/** 기존 프로필 틀 안에서 서버 벨소리 설정을 표시합니다. */
+/** 서버와 연결된 벨소리 관리를 프로필 화면에서 표시합니다. */
 export const ProfileRingtonePage = () => (
   <PageFrame title="벨소리" description="통화 훈련에 사용할 벨소리를 선택하세요." showBack>
     <ProfileRingtoneSettings />
@@ -652,19 +803,25 @@ const Toggle = ({
   checked,
   onChange,
   label,
+  disabled,
 }: {
   checked: boolean
   onChange: () => void
   label: string
+  disabled?: boolean
 }) => (
   <button
     aria-label={label}
     aria-pressed={checked}
-    className={`h-6 p-1 flex w-10 shrink-0 items-center rounded-pill transition-colors ${checked ? 'justify-end bg-primary-normal' : 'justify-start bg-label-disabled'}`}
+    aria-busy={disabled}
+    className={`h-6 p-1 w-10 ux-toggle ease-out flex shrink-0 items-center rounded-pill transition-colors motion-reduce:transition-none ${checked ? 'bg-primary-normal' : 'bg-label-disabled'}`}
     type="button"
+    disabled={disabled}
     onClick={onChange}
   >
-    <span className="size-4 rounded-pill bg-common-0 shadow-subtle-card" />
+    <span
+      className={`size-4 ux-toggle rounded-pill bg-common-0 shadow-subtle-card transition-transform ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${checked ? 'translate-x-4' : 'translate-x-0'}`}
+    />
   </button>
 )
 
@@ -679,7 +836,8 @@ export const ProfileNotificationsPage = () => {
     ['전체 알림', '모든 알림을 관리합니다.'],
   ]
 
-  const settings = settingOverrides ??
+  const settings =
+    settingOverrides ??
     (notificationQuery.data
       ? [
           notificationQuery.data.trainingEnabled,
@@ -689,7 +847,7 @@ export const ProfileNotificationsPage = () => {
       : null)
 
   const toggleSetting = async (index: number) => {
-    if (!settings) return
+    if (!settings || updateNotifications.isPending) return
 
     const previous = settings
     const next = settings.map((value, itemIndex) => (itemIndex === index ? !value : value))
@@ -702,6 +860,7 @@ export const ProfileNotificationsPage = () => {
         communityEnabled: next[1],
         allEnabled: next[2],
       })
+      setSettingOverrides(null)
     } catch {
       setSettingOverrides(previous)
       setUpdateError('알림 설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
@@ -710,22 +869,45 @@ export const ProfileNotificationsPage = () => {
 
   return (
     <PageFrame title="알림 설정" description="받고 싶은 알림을 항목별로 관리하세요." showBack>
-      <div className="max-w-[1024px] space-y-3">
+      <div className="space-y-3 max-w-[1024px]">
         {(notificationQuery.isError || updateError) && (
           <p className="text-label text-status-error" role="alert">
             {updateError || '알림 설정을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'}
           </p>
         )}
+        {notificationQuery.isError && (
+          <StatusState
+            isError
+            title="알림 설정을 다시 불러와 주세요."
+            onRetry={() => void notificationQuery.refetch()}
+            isRetrying={notificationQuery.isFetching}
+          />
+        )}
         {[[2], [1, 0]].map((indices) => (
           <Card className="px-4" key={indices[0]}>
             {indices.map((index) => {
               const title = options[index][0]
-              return <div className="gap-4 flex min-h-14 items-center justify-between" key={title}>
-                <p className="text-body font-bold text-label-normal">{title}</p>
-                {settings?.[index] == null ? <span className="text-label text-label-alternative">{EMPTY_VALUE}</span> : (
-                  <Toggle checked={settings[index]} label={`${title} ${settings[index] ? '끄기' : '켜기'}`} onChange={() => void toggleSetting(index)} />
-                )}
-              </div>
+              return (
+                <div className="gap-4 min-h-14 flex items-center justify-between" key={title}>
+                  <p className="text-body font-bold text-label-normal">{title}</p>
+                  {settings?.[index] == null ? (
+                    notificationQuery.isPending ? (
+                      <LoadingRegion label={`${title} 설정을 불러오는 중`}>
+                        <Skeleton className="h-6 w-10 rounded-pill" />
+                      </LoadingRegion>
+                    ) : (
+                      <span className="text-label text-label-alternative">{EMPTY_VALUE}</span>
+                    )
+                  ) : (
+                    <Toggle
+                      checked={settings[index]}
+                      disabled={updateNotifications.isPending}
+                      label={`${title} ${settings[index] ? '끄기' : '켜기'}`}
+                      onChange={() => void toggleSetting(index)}
+                    />
+                  )}
+                </div>
+              )
             })}
           </Card>
         ))}
@@ -747,7 +929,7 @@ export const ProfileLanguagePage = () => {
       <Card className="p-7 max-sm:p-4 min-h-[430px] max-w-[1024px]">
         <h2 className="text-[22px] font-bold text-label-normal">표시 언어</h2>
         <p className="mt-1 text-label text-label-alternative">
-          BADA 서비스에서 사용할 언어를 선택하세요.
+          언어 선택을 미리 확인할 수 있어요. 실제 표시 언어 변경 기능은 준비 중이에요.
         </p>
         <div className="mt-7 space-y-3">
           {languages.map(([title, description]) => (
@@ -766,6 +948,7 @@ export const ProfileLanguagePage = () => {
 }
 
 export const ProfilePhotoPage = () => {
+  const consent = useProfileImageConsent()
   const navigate = useNavigate()
   const inputId = useId()
   const profileQuery = useMyPage()
@@ -807,6 +990,7 @@ export const ProfilePhotoPage = () => {
   }
 
   const savePhoto = async () => {
+    if (consent.isChecking || uploadImage.isPending || updateProfile.isPending) return
     if (!profileQuery.data) {
       setPhotoError('프로필 정보를 불러온 뒤 다시 시도해 주세요.')
       return
@@ -814,6 +998,7 @@ export const ProfilePhotoPage = () => {
 
     setPhotoError('')
     try {
+      if (selectedFile && !(await consent.ensureConsent())) return
       const uploaded = selectedFile ? await uploadImage.mutateAsync(selectedFile) : undefined
       await updateProfile.mutateAsync({
         name: profileQuery.data.name,
@@ -821,8 +1006,10 @@ export const ProfilePhotoPage = () => {
         s3Key: useDefaultImage ? '' : (uploaded?.s3Key ?? profileQuery.data.s3Key),
       })
       navigate(routePaths.profile)
-    } catch {
-      setPhotoError('프로필 사진을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+    } catch (error) {
+      setPhotoError(
+        getApiErrorMessage(error, '프로필 사진을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.'),
+      )
     }
   }
 
@@ -833,10 +1020,12 @@ export const ProfilePhotoPage = () => {
   return (
     <PageFrame title="프로필 사진 변경" description="기본 프로필 또는 새 사진을 선택하세요.">
       <Card className="p-8 gap-12 max-lg:flex-col max-sm:p-4 flex min-h-[680px] max-w-[1024px]">
-        <div className="flex w-[420px] max-lg:w-full max-lg:pb-8 shrink-0 flex-col items-center rounded-[16px] bg-fill-normal pt-[58px]">
+        <div className="max-lg:w-full max-lg:pb-8 flex w-[420px] shrink-0 flex-col items-center rounded-[16px] bg-fill-normal pt-[58px]">
           <div className="flex size-[156px] items-center justify-center overflow-hidden rounded-pill bg-label-disabled">
             <img
-              className={preview || profileImageQuery.data ? 'size-full object-cover' : 'size-[104px]'}
+              className={
+                preview || profileImageQuery.data ? 'size-full object-cover' : 'size-[104px]'
+              }
               src={displayedImage}
               alt="선택한 프로필 미리보기"
             />
@@ -887,14 +1076,17 @@ export const ProfilePhotoPage = () => {
           <div className="gap-3 mt-auto flex justify-end">
             <SecondaryButton onClick={() => navigate(routePaths.profile)}>취소</SecondaryButton>
             <PrimaryButton
-              disabled={uploadImage.isPending || updateProfile.isPending}
+              disabled={uploadImage.isPending || updateProfile.isPending || consent.isChecking}
               onClick={() => void savePhoto()}
             >
-              {uploadImage.isPending || updateProfile.isPending ? '저장 중' : '저장'}
+              {uploadImage.isPending || updateProfile.isPending || consent.isChecking
+                ? '저장 중'
+                : '저장'}
             </PrimaryButton>
           </div>
         </div>
       </Card>
+      <ProfileImageConsentDialog consent={consent} />
     </PageFrame>
   )
 }

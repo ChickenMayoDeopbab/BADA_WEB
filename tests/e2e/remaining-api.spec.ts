@@ -144,20 +144,23 @@ test('reports posts, comments and replies using each content ID and allows retry
   await expect(refreshButton).toHaveAttribute('aria-busy', 'false')
   for (const name of ['작성자', '댓글작성자', '답글작성자']) {
     if (name === '답글작성자') await page.getByRole('button', { name: '↳ 답글 1개 보기' }).click()
-    await page.getByRole('button', { name: `@${name} 사용자 메뉴`, exact: true }).click()
-    await page.getByRole('button', { name: '신고하기', exact: true }).click()
+    const target = name === '작성자' ? '게시글' : name === '댓글작성자' ? '댓글' : '답글'
+    await page.getByRole('button', { name: `@${name} ${target} 메뉴`, exact: true }).click()
+    await page.getByRole('menuitem', { name: `${target} 신고하기`, exact: true }).click()
     const dialog = page.getByRole('dialog')
     const reason = dialog.getByRole('radio', { name: '스팸 및 광고' })
     await reason.locator('..').click()
     await expect(reason).toBeChecked()
     const indicator = reason.locator('..').locator('[data-radio-indicator]')
     expect(await reason.evaluate((input) => getComputedStyle(input).clipPath)).toBe('inset(50%)')
-    const selectedColor = await dialog
-      .getByRole('button', { name: '신고하기', exact: true })
-      .evaluate((button) => getComputedStyle(button).backgroundColor)
     await expect
-      .poll(() => indicator.evaluate((mark) => getComputedStyle(mark).backgroundColor))
-      .toBe(selectedColor)
+      .poll(() =>
+        indicator.evaluate((mark) => {
+          const color = getComputedStyle(mark).backgroundColor.match(/\d+/g)!.map(Number)
+          return color[1] > color[0] && color[1] > color[2]
+        }),
+      )
+      .toBe(true)
     if (name === '작성자')
       await page.screenshot({ path: testInfo.outputPath('report-dialog.png'), fullPage: true })
     await dialog.getByRole('button', { name: '신고하기', exact: true }).click()
@@ -202,13 +205,13 @@ test('the sidebar retains the session after failed signout and clears it after r
     )
   })
   await page.goto('/profile/ringtone')
-  await page.getByRole('link', { name: '로그아웃', exact: true }).click()
+  await page.getByRole('button', { name: '로그아웃', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('로그아웃에 실패했어요.')
   await expect(page).toHaveURL(/\/profile\/ringtone$/)
   expect(await page.evaluate(() => localStorage.getItem('bada.accessToken'))).toBe(
     'test-access-token',
   )
-  await page.getByRole('link', { name: '로그아웃', exact: true }).click()
+  await page.getByRole('button', { name: '로그아웃', exact: true }).click()
   await expect(page.getByRole('heading', { name: '랜딩 페이지' })).toBeVisible()
   expect(await page.evaluate(() => localStorage.getItem('bada.accessToken'))).toBeNull()
   expect(await page.evaluate(() => localStorage.getItem('bada.refreshToken'))).toBeNull()

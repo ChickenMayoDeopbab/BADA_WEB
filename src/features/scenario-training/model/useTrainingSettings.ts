@@ -129,6 +129,8 @@ export const useTrainingSettings = () => {
     delayFrom,
     delayTo,
     isLoading: scenariosQuery.isPending && !routeScenario,
+    retryScenario: scenariosQuery.refetch,
+    isRetryingScenario: scenariosQuery.isFetching,
     shouldKeepSchedule,
     setShouldKeepSchedule,
     isCreatingSession: sessionMutation.isPending || scheduleMutation.isPending,

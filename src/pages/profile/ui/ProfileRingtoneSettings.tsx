@@ -67,7 +67,7 @@ export const ProfileRingtoneSettings = () => {
         {options.map((option) => (
           <div
             key={option.fileId ?? 'default'}
-            className={`px-5 py-4 min-h-20 gap-3 flex flex-wrap items-center rounded-component ${settings.selectedId === option.fileId ? 'bg-primary-alternative' : 'bg-fill-normal'}`}
+            className={`px-5 py-4 min-h-20 gap-3 ux-accordion ease-out flex flex-wrap items-center rounded-component transition-colors motion-reduce:transition-none ${settings.selectedId === option.fileId ? 'bg-primary-alternative hover:bg-primary-alternative/80' : 'bg-fill-normal hover:bg-fill-pressed'}`}
           >
             <label className="min-w-0 gap-4 flex flex-1 cursor-pointer items-center">
               <input

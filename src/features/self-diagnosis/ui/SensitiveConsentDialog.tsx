@@ -1,5 +1,5 @@
 import { DiagnosisButton } from './DiagnosisButton'
-import { useEffect } from 'react'
+import { useDialogFocus } from '@shared/lib'
 
 type SensitiveConsentDialogProps = {
   isSaving: boolean
@@ -13,24 +13,18 @@ export const SensitiveConsentDialog = ({
   onAccept,
   onDecline,
 }: SensitiveConsentDialogProps) => {
-  // Escape 키로 다이얼로그를 닫습니다.
-  useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !isSaving) onDecline()
-    }
-
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [isSaving, onDecline])
+  const dialogRef = useDialogFocus(true, onDecline, isSaving)
 
   return (
     <div className="px-4 inset-0 fixed z-50 flex items-center justify-center bg-neutral-5/40">
       <section
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="sensitive-consent-title"
         aria-describedby="sensitive-consent-description"
-        className="gap-6 p-6 flex w-full max-w-[420px] flex-col rounded-dialog bg-background-normal shadow-elevated-card"
+        className="ux-overlay gap-6 p-6 flex w-full max-w-[420px] flex-col rounded-dialog bg-background-normal shadow-elevated-card"
       >
         <div className="gap-2 flex flex-col">
           <h2 id="sensitive-consent-title" className="text-headline1 font-bold text-label-normal">

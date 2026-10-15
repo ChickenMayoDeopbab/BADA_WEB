@@ -113,7 +113,7 @@ test('logout prevents history navigation, direct URL access and reload from reop
   await page.goto('/notifications?first=1')
   await expect(page.getByRole('heading', { name: '알림 화면' })).toBeVisible()
   await page.goto('/notifications?second=1')
-  await page.getByRole('link', { name: '로그아웃', exact: true }).click()
+  await page.getByRole('button', { name: '로그아웃', exact: true }).click()
   await expect(page).toHaveURL(/\/$/)
   await page.goBack()
   await expect(page).toHaveURL(/\/$/)

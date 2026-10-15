@@ -47,13 +47,13 @@ export const EmailStep = ({ signup }: EmailStepProps) => {
           <AuthButton
             label={emailVerification.isSent ? '인증번호 다시 받기' : '인증번호 받기'}
             onClick={() => void emailVerification.sendCode()}
-            disabled={emailVerification.isSending}
+            isLoading={emailVerification.isSending}
           />
           <AuthButton
             type="submit"
             variant="secondary"
             label="다음"
-            disabled={emailVerification.isVerifying}
+            isLoading={emailVerification.isVerifying}
           />
         </div>
       </form>

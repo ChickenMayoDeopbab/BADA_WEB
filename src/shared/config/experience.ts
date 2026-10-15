@@ -1,0 +1,27 @@
+/** UI 효과를 개별적으로 끄거나 시간을 조정합니다. 데이터 요청에는 영향을 주지 않습니다. */
+export const experienceConfig = {
+  skeletons: true,
+  pageMotion: false,
+  drawerMotion: true,
+  tabMotion: true,
+  accordionMotion: true,
+  toggleMotion: true,
+  interactions: true,
+  overlayMotion: false,
+  skeletonMotion: true,
+  spinnerMotion: true,
+  toasts: true,
+  durations: {
+    drawerEnter: 320,
+    drawerExit: 260,
+    skeleton: 1600,
+    spinner: 800,
+    page: 220,
+    interaction: 180,
+    overlay: 200,
+    accordion: 400,
+    toggle: 350,
+    tab: 420,
+    toast: 4500,
+  },
+} as const

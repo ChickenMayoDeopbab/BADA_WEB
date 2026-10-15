@@ -1,40 +1,41 @@
-import { useLogout } from './useLogout'
-import { getAccessToken, setAuthTokens, clearAuthSession } from './authSession'
+import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
+import { useLogout } from './useLogout'
+import { signout } from '../api/authApi'
 
-const { remove } = vi.hoisted(() => ({ remove: vi.fn() }))
-vi.mock('@shared/api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@shared/api')>()),
-  httpClient: { delete: remove },
-}))
+vi.mock('../api/authApi', () => ({ signout: vi.fn() }))
 
-/** 로그아웃 요청 상태와 오류를 테스트 화면에 표시합니다. */
-const LogoutControl = () => {
-  const { handleLogout, isLoggingOut, logoutError } = useLogout()
+/** 실제 훅의 진행·실패 상태를 표시하는 테스트 화면입니다. */
+const LogoutHarness = () => {
+  const logout = useLogout()
   return (
     <>
-      <button disabled={isLoggingOut} onClick={handleLogout}>
+      <button disabled={logout.isPending} onClick={() => logout.mutate()}>
         로그아웃
       </button>
-      {logoutError && <p role="alert">{logoutError}</p>}
+      {logout.isError && <p role="alert">failed</p>}
     </>
   )
 }
 
-/** 로그아웃 완료 전후의 라우트와 캐시를 확인합니다. */
-const renderLogout = () => {
-  setAuthTokens({ accessToken: 'current-token', refreshToken: 'refresh-token' }, true)
-  const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
-  client.setQueryData(['private-profile'], { name: '사용자' })
+/** 서버 성공 후에만 랜딩 화면으로 이동하는 실제 훅을 마운트합니다. */
+const setup = () => {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  client.setQueryData(['user', 'current'], { name: '이전 사용자' })
+  localStorage.setItem('bada.accessToken', 'access-token')
+  localStorage.setItem('bada.refreshToken', 'refresh-token')
+  sessionStorage.setItem('bada.accessToken', 'session-access')
+  sessionStorage.setItem('bada.refreshToken', 'session-refresh')
   render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={['/account']}>
+      <MemoryRouter initialEntries={['/profile']}>
         <Routes>
-          <Route path="/account" element={<LogoutControl />} />
-          <Route path="/" element={<h1>시작 화면</h1>} />
+          <Route path="/profile" element={<LogoutHarness />} />
+          <Route path="/" element={<h1>랜딩 화면</h1>} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -44,37 +45,59 @@ const renderLogout = () => {
 
 afterEach(() => {
   cleanup()
-  clearAuthSession()
+  localStorage.clear()
+  sessionStorage.clear()
   vi.clearAllMocks()
 })
 
-it('서버 종료를 기다린 뒤 토큰과 사용자 캐시를 지우고 이동한다', async () => {
-  let finish!: () => void
-  remove.mockImplementation(
-    () =>
-      new Promise<void>((resolve) => {
-        finish = resolve
-      }),
+it('서버 성공 응답 후 조회를 취소하고 양쪽 저장소와 사용자 캐시를 삭제한다', async () => {
+  let resolve!: () => void
+  vi.mocked(signout).mockReturnValue(
+    new Promise<void>((done) => {
+      resolve = done
+    }),
   )
-  const client = renderLogout()
-  fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
+  const client = setup()
+  let aborted = false
+  void client
+    .fetchQuery({
+      queryKey: ['private', 'pending'],
+      queryFn: ({ signal }) =>
+        new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => {
+            aborted = true
+            reject(new Error('aborted'))
+          })
+        }),
+    })
+    .catch(() => undefined)
+  fireEvent.click(screen.getByRole('button'))
   await waitFor(() => expect(screen.getByRole('button')).toBeDisabled())
-  expect(remove).toHaveBeenCalledWith('/api/v1/auth/signout')
-  expect(getAccessToken()).toBe('current-token')
-  expect(client.getQueryData(['private-profile'])).toBeDefined()
-  finish()
-  expect(await screen.findByRole('heading', { name: '시작 화면' })).toBeInTheDocument()
-  expect(getAccessToken()).toBeNull()
+  expect(localStorage.getItem('bada.accessToken')).toBe('access-token')
+  expect(client.getQueryData(['user', 'current'])).toEqual({ name: '이전 사용자' })
+  resolve()
+  await screen.findByRole('heading', { name: '랜딩 화면' })
+  expect(aborted).toBe(true)
   expect(client.getQueryCache().getAll()).toHaveLength(0)
+  for (const storage of [localStorage, sessionStorage]) {
+    expect(storage.getItem('bada.accessToken')).toBeNull()
+    expect(storage.getItem('bada.refreshToken')).toBeNull()
+  }
 })
 
-it('서버 종료 실패 시 세션과 화면을 유지하고 재시도할 수 있다', async () => {
-  remove.mockRejectedValueOnce(new Error('network')).mockResolvedValueOnce(undefined)
-  const client = renderLogout()
-  fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
-  expect(await screen.findByRole('alert')).toHaveTextContent('로그아웃하지 못했습니다')
-  expect(getAccessToken()).toBe('current-token')
-  expect(client.getQueryData(['private-profile'])).toBeDefined()
-  fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
-  expect(await screen.findByRole('heading', { name: '시작 화면' })).toBeInTheDocument()
+it('서버 실패 시 세션과 캐시를 보존하고 명시적으로 재시도할 수 있다', async () => {
+  vi.mocked(signout)
+    .mockRejectedValueOnce(new Error('server unavailable'))
+    .mockResolvedValueOnce(undefined)
+  const client = setup()
+  fireEvent.click(screen.getByRole('button'))
+  await screen.findByRole('alert')
+  expect(localStorage.getItem('bada.accessToken')).toBe('access-token')
+  expect(client.getQueryData(['user', 'current'])).toEqual({ name: '이전 사용자' })
+  expect(signout).toHaveBeenCalledTimes(1)
+  fireEvent.click(screen.getByRole('button'))
+  await waitFor(() =>
+    expect(screen.getByRole('heading', { name: '랜딩 화면' })).toBeInTheDocument(),
+  )
+  expect(signout).toHaveBeenCalledTimes(2)
 })

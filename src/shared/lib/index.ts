@@ -8,3 +8,6 @@ export {
   parseDateKey,
   toDateKey,
 } from './date'
+export { useDialogFocus } from './useDialogFocus'
+export { getDrawerCloseDelay } from './getDrawerCloseDelay'
+export { lockPageScroll } from './lockPageScroll'

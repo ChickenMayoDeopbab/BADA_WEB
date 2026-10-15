@@ -85,7 +85,7 @@ export const ResetPasswordFlow = () => {
               <AuthButton
                 type="submit"
                 label="비밀번호 재설정"
-                disabled={resetPassword.isSubmitting}
+                isLoading={resetPassword.isSubmitting}
               />
               <AuthButton
                 variant="secondary"
@@ -122,7 +122,7 @@ export const ResetPasswordFlow = () => {
             <AuthButton
               type="submit"
               label="다음으로"
-              disabled={resetPassword.emailVerification.isVerifying}
+              isLoading={resetPassword.emailVerification.isVerifying}
             />
             <AuthButton
               variant="secondary"

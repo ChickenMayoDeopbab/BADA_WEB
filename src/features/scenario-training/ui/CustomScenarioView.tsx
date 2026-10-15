@@ -1,9 +1,10 @@
+import { ActionDropdown, ConfirmDialog, LoadingSpinner, BackIcon } from '@shared/ui'
 import { useCustomScenario } from '../model/useCustomScenario'
 import type { ScenarioCategory } from '@entities/scenario'
 import customError from '@shared/assets/scenario-training/custom-error.svg'
 import customLoading from '@shared/assets/scenario-training/custom-loading.svg'
 import customSuccess from '@shared/assets/scenario-training/custom-success.svg'
-import { IoArrowBack, IoChevronDown } from 'react-icons/io5'
+import { IoChevronDown } from 'react-icons/io5'
 import type { ReactNode } from 'react'
 
 const categoryOptions: Array<{ value: ScenarioCategory; label: string }> = [
@@ -20,7 +21,7 @@ interface CustomShellProps {
 
 /** 커스텀 생성 화면의 공통 헤더와 카드 프레임입니다. */
 const CustomShell = ({ onBack, children }: CustomShellProps) => (
-  <main className="min-w-0 px-10 pt-6 gap-4 flex h-[calc(100vh-32px)] flex-1 flex-col">
+  <main className="min-w-0 px-10 pt-6 max-sm:px-4 max-sm:pt-5 gap-4 max-sm:h-auto max-sm:min-h-[calc(100dvh-128px)] flex h-[calc(100dvh-32px)] flex-1 flex-col">
     <header className="h-11 gap-3.5 flex shrink-0 items-center">
       <button
         type="button"
@@ -28,11 +29,11 @@ const CustomShell = ({ onBack, children }: CustomShellProps) => (
         className="size-11 flex items-center justify-center rounded-component bg-background-normal text-label-normal"
         aria-label="이전"
       >
-        <IoArrowBack size={24} aria-hidden="true" />
+        <BackIcon />
       </button>
       <h1 className="text-title1 font-bold text-label-neutral">커스텀 시나리오 생성</h1>
     </header>
-    <section className="min-h-0 px-12 flex flex-1 justify-center rounded-dialog bg-background-normal">
+    <section className="min-h-0 px-12 max-sm:px-5 flex flex-1 justify-center rounded-dialog bg-background-normal">
       {children}
     </section>
   </main>
@@ -61,7 +62,11 @@ export const CustomScenarioView = () => {
   if (customScenario.step === 'loading') {
     return (
       <CustomShell onBack={customScenario.handleGoToCatalog}>
-        <div className="flex h-full flex-col items-center justify-center text-center">
+        <div
+          role="status"
+          className="flex h-full min-h-[500px] flex-col items-center justify-center text-center"
+        >
+          <LoadingSpinner className="mb-4 size-7 text-primary-normal" />
           <img src={customLoading} alt="" className="size-24" />
           <h2 className="mt-5 text-title2 font-bold text-label-normal">
             나만을 위한 커스텀 시나리오가 만들어지고 있어요!
@@ -75,7 +80,10 @@ export const CustomScenarioView = () => {
   if (customScenario.step === 'success') {
     return (
       <CustomShell onBack={customScenario.handleGoToCatalog}>
-        <div className="flex h-full flex-col items-center justify-center text-center">
+        <div
+          role="status"
+          className="flex h-full min-h-[500px] flex-col items-center justify-center text-center"
+        >
           <div className="size-24 flex items-center justify-center rounded-pill border-[6px] border-primary-normal">
             <img src={customSuccess} alt="" className="size-[53px]" />
           </div>
@@ -85,7 +93,7 @@ export const CustomScenarioView = () => {
           <p className="mt-5 text-body font-medium text-label-alternative">
             내가 만든 시나리오로 훈련을 시작해볼까요?
           </p>
-          <div className="mt-5 space-y-3 w-[360px]">
+          <div className="mt-5 space-y-3 w-[360px] max-w-full">
             <button
               type="button"
               onClick={customScenario.handleStartTraining}
@@ -109,7 +117,10 @@ export const CustomScenarioView = () => {
   if (customScenario.step === 'error') {
     return (
       <CustomShell onBack={customScenario.handleGoToCatalog}>
-        <div className="flex h-full flex-col items-center justify-center text-center">
+        <div
+          role="status"
+          className="flex h-full min-h-[500px] flex-col items-center justify-center text-center"
+        >
           <img src={customError} alt="" className="size-24" />
           <h2 className="mt-5 text-title2 font-bold text-label-normal">
             시나리오 생성에 실패했어요.
@@ -117,7 +128,7 @@ export const CustomScenarioView = () => {
           <p className="mt-5 text-body font-medium text-label-alternative">
             {customScenario.errorMessage || '생성 시 입력한 내용을 다시 확인해주세요.'}
           </p>
-          <div className="mt-5 space-y-3 w-[360px]">
+          <div className="mt-5 space-y-3 w-[360px] max-w-full">
             <button
               type="button"
               onClick={customScenario.handleRetry}
@@ -153,38 +164,26 @@ export const CustomScenarioView = () => {
               <label className="mb-2.5 block text-body font-bold text-label-neutral">
                 카테고리
               </label>
-              <button
-                type="button"
-                aria-label="카테고리"
-                aria-expanded={customScenario.isCategoryOpen}
-                onClick={() => customScenario.setIsCategoryOpen(!customScenario.isCategoryOpen)}
-                className={`h-14 px-5 flex w-full items-center justify-between rounded-component bg-fill-normal text-left text-body ${
-                  customScenario.isCategoryOpen ? 'outline-2 outline-primary-normal' : ''
-                }`}
-              >
-                <span className={selectedCategory ? 'text-label-normal' : 'text-label-alternative'}>
-                  {selectedCategory?.label ?? '카테고리를 선택해주세요.'}
-                </span>
-                <IoChevronDown size={16} className="text-label-alternative" aria-hidden="true" />
-              </button>
-              {customScenario.isCategoryOpen && (
-                <div className="py-1 absolute top-[92px] z-10 w-full rounded-component bg-background-normal shadow-elevated-card">
-                  {categoryOptions.map((category) => (
-                    <button
-                      key={category.value}
-                      type="button"
-                      onClick={() => customScenario.handleFieldChange('category', category.value)}
-                      className={`h-12 px-5 w-full text-left text-body hover:bg-fill-normal ${
-                        customScenario.form.category === category.value
-                          ? 'bg-fill-normal font-bold text-primary-normal'
-                          : 'text-label-normal'
-                      }`}
+              <ActionDropdown
+                label="카테고리"
+                placementClassName="inset-x-0 top-14"
+                className="w-full"
+                triggerClassName="h-14 px-5 flex w-full items-center justify-between rounded-component bg-fill-normal text-left text-body text-label-normal"
+                icon={
+                  <>
+                    <span
+                      className={selectedCategory ? 'text-label-normal' : 'text-label-alternative'}
                     >
-                      {category.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+                      {selectedCategory?.label ?? '카테고리를 선택해주세요.'}
+                    </span>
+                    <IoChevronDown size={16} aria-hidden="true" />
+                  </>
+                }
+                items={categoryOptions.map((category) => ({
+                  label: category.label,
+                  onSelect: () => customScenario.handleFieldChange('category', category.value),
+                }))}
+              />
             </div>
             <label className="block">
               <span className="mb-2.5 block text-body font-bold text-label-neutral">
@@ -245,34 +244,13 @@ export const CustomScenarioView = () => {
       </div>
 
       {customScenario.isExitDialogOpen && (
-        <div className="inset-0 px-6 fixed z-50 flex items-center justify-center bg-common-100/30">
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="p-8 w-[440px] rounded-dialog bg-background-normal shadow-elevated-card"
-          >
-            <h2 className="text-headline1 font-bold text-label-normal">정말 나갈까요?</h2>
-            <p className="mt-2 text-body text-label-alternative">
-              작성하시던 커스텀 시나리오는 저장되지 않아요.
-            </p>
-            <div className="mt-6 gap-3 flex">
-              <button
-                type="button"
-                onClick={customScenario.handleCloseExitDialog}
-                className="h-[52px] flex-1 rounded-component bg-background-alternative text-body font-bold text-label-neutral"
-              >
-                취소하기
-              </button>
-              <button
-                type="button"
-                onClick={customScenario.handleGoToCatalog}
-                className="h-[52px] flex-1 rounded-component bg-primary-normal text-body font-bold text-common-0"
-              >
-                나가기
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="정말 나갈까요?"
+          description="작성하시던 커스텀 시나리오는 저장되지 않아요."
+          confirmLabel="나가기"
+          onClose={customScenario.handleCloseExitDialog}
+          onConfirm={customScenario.handleGoToCatalog}
+        />
       )}
     </CustomShell>
   )

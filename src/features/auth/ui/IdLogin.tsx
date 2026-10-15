@@ -47,7 +47,7 @@ export const IdLogin = () => {
           </div>
 
           <div className="gap-3 flex w-full flex-col">
-            <AuthButton type="submit" label="로그인" disabled={login.isSubmitting} />
+            <AuthButton type="submit" label="로그인" isLoading={login.isSubmitting} />
             <AuthButton variant="secondary" label="회원가입" onClick={login.goToSignup} />
             <div className="gap-4 flex text-label font-medium text-label-neutral">
               <button type="button" onClick={login.goToFindId}>

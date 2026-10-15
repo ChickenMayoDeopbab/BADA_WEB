@@ -1,3 +1,4 @@
+import { RouteErrorPage } from './RouteErrorPage'
 import { ServiceLayout } from '../layouts/ServiceLayout'
 import { AuthProvider, RequireAuth } from '@features/auth'
 import {
@@ -173,6 +174,8 @@ const AuthRoot = () => {
   )
 }
 
-const router = createBrowserRouter([{ element: <AuthRoot />, children: applicationRoutes }])
+const router = createBrowserRouter([
+  { element: <AuthRoot />, errorElement: <RouteErrorPage />, children: applicationRoutes },
+])
 
 export const AppRouter = () => <RouterProvider router={router} />

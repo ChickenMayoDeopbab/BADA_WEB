@@ -6,7 +6,7 @@ export const DashboardHeader = () => {
   const { data: user } = useCurrentUser()
 
   return (
-    <header className="gap-5 flex h-[77px] items-center">
+    <header className="gap-5 max-lg:flex-col max-lg:items-start max-lg:gap-4 flex min-h-[77px] items-start">
       <div className="min-w-0 gap-1 flex flex-1 flex-col">
         <h1 className="text-title1 font-bold text-label-normal">
           {user ? `다시 만나서 반가워요, ${user.name}님!` : '다시 만나서 반가워요!'}

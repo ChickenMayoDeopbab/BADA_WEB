@@ -36,11 +36,22 @@ export const useCommunityComments = (postId: number) =>
     queryFn: () => getCommunityComments(postId),
   })
 
-export const useCreateCommunityPost = () => useMutation({ mutationFn: createCommunityPost })
+export const useCreateCommunityPost = () =>
+  useMutation({
+    meta: {
+      successMessage: '게시글을 등록했어요.',
+      errorMessage: '게시글을 등록하지 못했어요. 입력 내용을 유지했으니 다시 시도해 주세요.',
+    },
+    mutationFn: createCommunityPost,
+  })
 
 export const useUpdateCommunityPost = (postId: number) => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: {
+      successMessage: '게시글을 수정했어요.',
+      errorMessage: '게시글을 수정하지 못했어요. 다시 시도해 주세요.',
+    },
     mutationFn: (input: Parameters<typeof updateCommunityPost>[1]) =>
       updateCommunityPost(postId, input),
     onSuccess: (post) => {
@@ -53,6 +64,10 @@ export const useUpdateCommunityPost = (postId: number) => {
 export const useDeleteCommunityPost = (postId: number) => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: {
+      successMessage: '게시글을 삭제했어요.',
+      errorMessage: '게시글을 삭제하지 못했어요. 다시 시도해 주세요.',
+    },
     mutationFn: () => deleteCommunityPost(postId),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: communityKeys.post(postId) })
@@ -64,6 +79,10 @@ export const useDeleteCommunityPost = (postId: number) => {
 export const useCreateCommunityComment = (postId: number) => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: {
+      successMessage: '댓글을 등록했어요.',
+      errorMessage: '댓글을 등록하지 못했어요. 다시 시도해 주세요.',
+    },
     mutationFn: ({ content, parentCommentId }: { content: string; parentCommentId?: number }) =>
       createCommunityComment(postId, content, parentCommentId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: communityKeys.comments(postId) }),
@@ -73,6 +92,10 @@ export const useCreateCommunityComment = (postId: number) => {
 export const useUpdateCommunityComment = (postId: number) => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: {
+      successMessage: '댓글을 수정했어요.',
+      errorMessage: '댓글을 수정하지 못했어요. 다시 시도해 주세요.',
+    },
     mutationFn: ({ commentId, content }: { commentId: number; content: string }) =>
       updateCommunityComment(commentId, content),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: communityKeys.comments(postId) }),
@@ -82,6 +105,10 @@ export const useUpdateCommunityComment = (postId: number) => {
 export const useDeleteCommunityComment = (postId: number) => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: {
+      successMessage: '댓글을 삭제했어요.',
+      errorMessage: '댓글을 삭제하지 못했어요. 다시 시도해 주세요.',
+    },
     mutationFn: (commentId: number) => deleteCommunityComment(commentId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: communityKeys.comments(postId) })
@@ -94,6 +121,7 @@ export const useDeleteCommunityComment = (postId: number) => {
 export const useCommunityReaction = (postId: number) => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: { errorMessage: '반응을 저장하지 못했어요. 다시 시도해 주세요.' },
     mutationFn: (kind: Parameters<typeof setCommunityReaction>[1]) =>
       setCommunityReaction(postId, kind),
     onSuccess: () => {
@@ -112,8 +140,11 @@ export const useSavedCommunityScenarioKeys = () =>
 export const useCopyCommunityScenario = (postId: number) => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: {
+      successMessage: '시나리오를 내 목록에 저장했어요.',
+      errorMessage: '시나리오를 저장하지 못했어요. 다시 시도해 주세요.',
+    },
     mutationFn: () => copyCommunityScenario(postId),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: communityKeys.savedScenarios }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: communityKeys.savedScenarios }),
   })
 }

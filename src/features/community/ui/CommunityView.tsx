@@ -1,19 +1,32 @@
 import type { CommunityAttachment, CommunityPost, ReactionKind } from '@entities/community'
-import { BlockUserButton } from './BlockUserButton'
-import { CommunityReportDialog } from './CommunityReportDialog'
+import { CommunityContentMenu } from './CommunityContentMenu'
+import { ReportCommunityContentDialog } from './ReportCommunityContentDialog'
 import { useCommunityReports } from '../model/useCommunityReports'
 import { useCommentRefresh } from '../model/useCommentRefresh'
-import { Toast } from '@shared/ui'
+import { useReportCommunityContent } from '../model/useReportCommunityContent'
+import type { CommunityReportTarget } from '../model/report'
 import scenarioImage from '@shared/assets/community/figma-1.png'
 import defaultProfileSummary from '@shared/assets/profile/default-profile-summary.svg'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
 import { routePaths } from '@shared/config'
-import { getApiErrorMessage } from '@shared/api'
-import { useEffect, useRef, useState } from 'react'
 import {
-  FiArrowLeft,
+  ActionDropdown,
+  ConfirmDialog,
+  ListSkeleton,
+  LoadingRegion,
+  LoadingSpinner,
+  Skeleton,
+  StatusState,
+  Toast,
+  BackIcon,
+  ServicePageContent,
+  ServiceSearchField,
+  ServiceTabs,
+} from '@shared/ui'
+import { getApiErrorMessage } from '@shared/api'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import {
   FiCheck,
-  FiChevronLeft,
   FiChevronRight,
   FiEye,
   FiImage,
@@ -23,7 +36,6 @@ import {
   FiPause,
   FiPlay,
   FiRotateCw,
-  FiSearch,
   FiSend,
   FiTrash2,
   FiX,
@@ -50,13 +62,18 @@ import {
   useUpdateCommunityComment,
   useUpdateCommunityPost,
 } from '../model/useCommunity'
-import { getCurrentUserId } from '@shared/lib'
+import { useDialogFocus, getCurrentUserId } from '@shared/lib'
 
 const reactionMeta: Record<ReactionKind, { emoji: string; label: string }> = {
   helpful: { emoji: '👍', label: '힘내요' },
   empathy: { emoji: '🥺', label: '공감돼요' },
   like: { emoji: '❤️', label: '좋아요' },
 }
+
+const communityTabs = [
+  { value: 'all', label: '전체 글' },
+  { value: 'mine', label: '내 글' },
+] as const
 
 const Profile = ({
   author,
@@ -100,6 +117,65 @@ const CommunityHeader = () => (
     </p>
   </header>
 )
+
+/** 조회 중에는 게시글 본문과 댓글 사이드 영역의 실제 배치를 유지합니다. */
+const CommunityDetailSkeleton = () => (
+  <LoadingRegion label="게시글을 불러오는 중" className="mt-4">
+    <Skeleton className="h-10 w-24" />
+    <div className="gap-4 mt-4 max-lg:grid-cols-1 grid grid-cols-[minmax(0,1fr)_230px]">
+      <div className="space-y-5 p-5 min-h-[580px] rounded-component bg-background-normal">
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="h-5 w-1/3" />
+        <hr className="border-line-alternative" />
+        {[0, 1, 2, 3].map((key) => (
+          <Skeleton key={key} className="h-4" />
+        ))}
+        <Skeleton className="h-40" />
+      </div>
+      <div className="space-y-5 p-4 h-fit rounded-component bg-background-normal">
+        <Skeleton className="h-6 w-20" />
+        <Skeleton className="h-24" />
+        <Skeleton className="h-24" />
+      </div>
+    </div>
+  </LoadingRegion>
+)
+
+/** 이전 글은 유지하면서 최신 조회 실패와 재시도 동작을 함께 알립니다. */
+const CommunityRefreshNotice = ({
+  isError,
+  isFetching,
+  onRetry,
+}: {
+  isError: boolean
+  isFetching: boolean
+  onRetry: () => void
+}) => {
+  if (!isError) return null
+  return (
+    <section
+      role="alert"
+      aria-label="게시글 새로고침 오류"
+      className="gap-3 mt-4 p-4 max-sm:flex-col max-sm:items-start flex items-center justify-between rounded-component border border-line-alternative bg-fill-normal"
+    >
+      <div>
+        <p className="text-body font-medium text-label-normal">최신 게시글을 불러오지 못했어요.</p>
+        <p className="mt-1 text-label text-label-alternative">
+          이전에 불러온 내용을 표시하고 있어요. 다시 불러와 주세요.
+        </p>
+      </div>
+      <button
+        type="button"
+        disabled={isFetching}
+        aria-busy={isFetching}
+        onClick={onRetry}
+        className="gap-2 px-4 py-2 flex shrink-0 items-center rounded-control bg-fill-neutral text-label font-bold text-label-normal disabled:opacity-50"
+      >
+        {isFetching && <LoadingSpinner />}다시 불러오기
+      </button>
+    </section>
+  )
+}
 
 const Reactions = ({
   post,
@@ -154,62 +230,60 @@ const CommunityList = () => {
   const navigate = useNavigate()
   const [tab, setTab] = useState<'all' | 'mine'>('all')
   const [query, setQuery] = useState('')
-  const [focused, setFocused] = useState(false)
-  const { data: posts = [], isLoading, isError } = useCommunityPosts(tab === 'mine', query.trim())
+  const {
+    data: posts = [],
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useCommunityPosts(tab === 'mine', query.trim())
 
   return (
-    <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
+    <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
-      <div className="mt-5 gap-3 flex items-end justify-between">
-        <div className="gap-4 flex shrink-0">
-          {(['all', 'mine'] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setTab(value)}
-              className={`pb-1 text-title2 font-medium ${tab === value ? 'border-b-2 border-green-40 text-green-40' : 'text-neutral-70'}`}
-            >
-              {value === 'all' ? '전체 글' : '내 글'}
-            </button>
-          ))}
-        </div>
+      <div className="mt-4 h-12 gap-6 max-sm:h-auto max-sm:flex-col max-sm:items-stretch max-sm:gap-4 flex items-center justify-between">
+        <ServiceTabs items={communityTabs} value={tab} label="커뮤니티 글 분류" onChange={setTab} />
         <div className="relative w-[300px] max-w-full">
-          <label className="h-12 gap-2 px-3 flex items-center rounded-component bg-fill-alternative">
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onFocus={() => setFocused(true)}
-              onBlur={() => window.setTimeout(() => setFocused(false), 120)}
-              className="min-w-0 flex-1 bg-transparent text-body outline-none placeholder:text-neutral-60"
-              placeholder="제목 또는 설명으로 검색"
-            />
-            <FiSearch className="size-6 text-label-alternative" />
-          </label>
-          {focused && query && (
-            <div className="top-14 absolute z-10 w-full overflow-hidden rounded-control border border-line-alternative bg-background-normal shadow-elevated-card">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className="px-3 py-2 flex w-full items-center justify-between text-body hover:bg-fill-normal"
-                >
-                  <span>{query}</span>
-                  <FiX className="text-neutral-60" />
-                </button>
-              ))}
-            </div>
-          )}
+          <ServiceSearchField
+            label="커뮤니티 검색"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="제목 또는 설명으로 검색"
+          />
         </div>
       </div>
-      <div className="mt-3 gap-3 pb-16 flex flex-1 flex-col overflow-auto">
-        {isLoading && (
-          <p className="py-12 text-center text-label-alternative">게시글을 불러오는 중이에요.</p>
-        )}
+      <div className="mt-4 gap-3 pb-16 flex flex-1 flex-col overflow-auto">
+        {isLoading && <ListSkeleton count={5} label="게시글을 불러오는 중" />}
         {isError && (
-          <p className="py-12 text-center text-status-error">게시글을 불러오지 못했어요.</p>
+          <StatusState
+            isError
+            title="게시글을 불러오지 못했어요."
+            onRetry={() => void refetch()}
+            isRetrying={isFetching}
+          />
         )}
         {!isLoading && !isError && posts.length === 0 && (
-          <p className="py-12 text-center text-label-alternative">아직 게시글이 없어요.</p>
+          <div className="flex flex-1 items-center justify-center">
+            <StatusState
+              title={
+                query
+                  ? '검색 결과가 없어요.'
+                  : tab === 'mine'
+                    ? '아직 작성한 글이 없어요.'
+                    : '아직 게시글이 없어요.'
+              }
+              description={query ? '다른 검색어로 찾아보세요.' : '첫 경험을 커뮤니티에 나눠보세요.'}
+              action={
+                <button
+                  type="button"
+                  onClick={() => (query ? setQuery('') : navigate(routePaths.communityNew))}
+                  className="px-4 py-2 rounded-control bg-primary-normal text-label font-bold"
+                >
+                  {query ? '검색 초기화' : '글 작성하기'}
+                </button>
+              }
+            />
+          </div>
         )}
         {posts.map((post) => (
           <button
@@ -242,7 +316,7 @@ const CommunityList = () => {
       >
         게시글 작성
       </button>
-    </div>
+    </ServicePageContent>
   )
 }
 
@@ -287,7 +361,7 @@ const AttachmentCard = ({
 
   if (isImage) {
     return attachment.url ? (
-      <figure className="mt-5 mr-auto flex w-1/2 justify-start overflow-hidden rounded-component border border-line-alternative bg-fill-normal max-lg:w-2/3 max-sm:w-full">
+      <figure className="mt-5 max-lg:w-2/3 max-sm:w-full mr-auto flex w-1/2 justify-start overflow-hidden rounded-component border border-line-alternative bg-fill-normal">
         <img
           src={attachment.url}
           alt={attachment.title}
@@ -396,58 +470,18 @@ const AttachmentCard = ({
   )
 }
 
-const ActionMenu = ({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!isOpen) return
-
-    const closeOnOutsideClick = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) setIsOpen(false)
-    }
-
-    document.addEventListener('mousedown', closeOnOutsideClick)
-    return () => document.removeEventListener('mousedown', closeOnOutsideClick)
-  }, [isOpen])
-
-  return (
-    <div ref={menuRef} className="relative">
-      <button
-        type="button"
-        aria-label="더보기"
-        onClick={() => setIsOpen((value) => !value)}
-        className="p-1 rounded-pill text-label-alternative hover:bg-fill-normal"
-      >
-        <FiMoreVertical className="size-5" />
-      </button>
-      {isOpen && (
-        <div className="right-0 top-8 w-24 absolute z-20 overflow-hidden rounded-control border border-line-alternative bg-background-normal shadow-elevated-card">
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false)
-              onEdit()
-            }}
-            className="px-3 py-2 block w-full text-left text-label hover:bg-fill-normal"
-          >
-            수정
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false)
-              onDelete()
-            }}
-            className="px-3 py-2 block w-full text-left text-label text-status-error hover:bg-fill-normal"
-          >
-            삭제
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
+/** 작성한 콘텐츠의 수정·삭제 메뉴를 표시합니다. */
+const ActionMenu = ({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) => (
+  <ActionDropdown
+    label="더보기"
+    icon={<FiMoreVertical className="size-5" />}
+    className="w-24"
+    items={[
+      { label: '수정', onSelect: onEdit },
+      { label: '삭제', onSelect: onDelete, isDanger: true },
+    ]}
+  />
+)
 
 const ConfirmDeleteModal = ({
   target,
@@ -460,42 +494,15 @@ const ConfirmDeleteModal = ({
   onClose: () => void
   onConfirm: () => void
 }) => (
-  <div
-    className="inset-0 p-4 bg-black/30 fixed z-40 flex items-center justify-center"
-    role="presentation"
-  >
-    <div
-      className="p-6 max-sm:p-5 w-full max-w-[360px] rounded-dialog bg-background-normal shadow-elevated-card"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="delete-modal-title"
-    >
-      <h3 id="delete-modal-title" className="text-center text-headline1 font-bold">
-        정말 {target}을 삭제하시겠습니까?
-      </h3>
-      <p className="mt-2 text-center text-label text-label-alternative">
-        삭제한 내용은 다시 복구할 수 없어요.
-      </p>
-      <div className="gap-2 mt-6 flex w-full">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isPending}
-          className="px-5 py-2.5 flex-1 rounded-control bg-fill-normal text-label"
-        >
-          취소
-        </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          disabled={isPending}
-          className="px-5 py-2.5 text-white flex-1 rounded-control bg-status-error text-label disabled:opacity-40"
-        >
-          {isPending ? '삭제 중...' : '삭제'}
-        </button>
-      </div>
-    </div>
-  </div>
+  <ConfirmDialog
+    title={`정말 ${target}을 삭제하시겠습니까?`}
+    description="삭제한 내용은 다시 복구할 수 없어요."
+    confirmLabel="삭제"
+    pending={isPending}
+    danger
+    onClose={onClose}
+    onConfirm={onConfirm}
+  />
 )
 
 const EditModal = ({
@@ -513,6 +520,7 @@ const EditModal = ({
   onClose: () => void
   onSave: (value: { title?: string; content: string }) => void
 }) => {
+  const dialogRef = useDialogFocus(true, onClose, isPending)
   const [editedTitle, setEditedTitle] = useState(initialTitle ?? '')
   const [editedContent, setEditedContent] = useState(initialContent)
   const canSave =
@@ -524,7 +532,9 @@ const EditModal = ({
       role="presentation"
     >
       <div
-        className="p-6 max-sm:p-5 w-full max-w-[480px] rounded-dialog bg-background-normal shadow-elevated-card"
+        ref={dialogRef}
+        tabIndex={-1}
+        className="ux-overlay p-6 max-sm:p-5 w-full max-w-[480px] rounded-dialog bg-background-normal shadow-elevated-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-modal-title"
@@ -579,13 +589,29 @@ const EditModal = ({
   )
 }
 
-const PostDetail = ({ post }: { post: CommunityPost }) => {
+const PostDetail = ({
+  post,
+  queryFeedback,
+}: {
+  post: CommunityPost
+  queryFeedback?: ReactNode
+}) => {
   const navigate = useNavigate()
   const currentUserId = getCurrentUserId()
-  const reports = useCommunityReports()
   const [expanded, setExpanded] = useState<string[]>([])
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [comment, setComment] = useState('')
+  const reports = useCommunityReports()
+  const reportingTarget = reports.reportTarget
+  const setReportingTarget = reports.handleOpenReport
+  const report = useReportCommunityContent()
+
+  /** 새 신고를 열 때 이전 선택 결과와 오류를 정리합니다. */
+  const handleOpenReport = (target: CommunityReportTarget) => {
+    if (report.isPending) return
+    report.reset()
+    setReportingTarget(target)
+  }
   const [editingComment, setEditingComment] = useState<{ id: string; content: string } | null>(null)
   const [deletingTarget, setDeletingTarget] = useState<
     { type: 'post' } | { type: 'comment'; id: string } | null
@@ -593,6 +619,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   const {
     data: comments = [],
     isLoading: areCommentsLoading,
+    isError: hasCommentsError,
     refetch: refreshComments,
   } = useCommunityComments(post.id)
   const createComment = useCreateCommunityComment(post.id)
@@ -616,15 +643,16 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
   const commentRefresh = useCommentRefresh(refreshComments)
 
   return (
-    <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
+    <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
+      {queryFeedback}
       <button
         type="button"
         onClick={() => navigate(routePaths.community)}
-        className="gap-2 mt-4 flex w-fit items-center text-body text-label-neutral"
+        className="gap-2 mt-4 pr-3 flex w-fit items-center rounded-control text-body text-label-neutral transition-colors hover:bg-fill-normal"
       >
-        <span className="p-1 rounded-pill bg-fill-alternative">
-          <FiArrowLeft />
+        <span className="size-10 flex shrink-0 items-center justify-center">
+          <BackIcon />
         </span>
         전체 글
       </button>
@@ -633,10 +661,11 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
           <div className="flex items-start justify-between">
             <h2 className="text-title2 font-bold">{post.title}</h2>
             {post.authorId !== currentUserId && (
-              <BlockUserButton
+              <CommunityContentMenu
                 id={post.authorId}
                 name={post.author}
-                onReport={() => reports.handleOpenReport({ type: 'post', id: post.id })}
+                reportTarget="게시글"
+                onReport={() => handleOpenReport({ type: 'post', id: post.id, label: '게시글' })}
                 onBlocked={() => navigate(routePaths.community)}
               />
             )}
@@ -677,9 +706,9 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
             <button
               type="button"
               aria-label="댓글 새로고침"
+              aria-busy={commentRefresh.isRefreshing}
               onClick={() => void commentRefresh.handleRefresh()}
               disabled={areCommentsLoading || commentRefresh.isRefreshing}
-              aria-busy={commentRefresh.isRefreshing}
               className="p-1 rounded-pill text-label-alternative hover:bg-fill-normal disabled:cursor-wait"
             >
               <FiRotateCw
@@ -689,8 +718,17 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
             </button>
           </div>
           <div className="divide-y divide-line-alternative">
-            {areCommentsLoading && (
-              <p className="py-4 text-label text-label-alternative">댓글을 불러오는 중이에요.</p>
+            {areCommentsLoading && <ListSkeleton count={2} label="댓글을 불러오는 중" />}
+            {hasCommentsError && (
+              <StatusState
+                isError
+                title="댓글을 불러오지 못했어요."
+                onRetry={() => void commentRefresh.handleRefresh()}
+                isRetrying={commentRefresh.isRefreshing}
+              />
+            )}
+            {!areCommentsLoading && !hasCommentsError && comments.length === 0 && (
+              <StatusState title="아직 댓글이 없어요." description="첫 댓글을 남겨보세요." />
             )}
             {comments.map((item) => {
               const isExpanded = expanded.includes(item.id)
@@ -699,10 +737,13 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                   <div className="flex items-center justify-between">
                     <Profile author={item.author} />
                     {item.authorId !== currentUserId && (
-                      <BlockUserButton
+                      <CommunityContentMenu
                         id={item.authorId}
                         name={item.author}
-                        onReport={() => reports.handleOpenReport({ type: 'comment', id: Number(item.id) })}
+                        reportTarget="댓글"
+                        onReport={() =>
+                          handleOpenReport({ type: 'comment', id: Number(item.id), label: '댓글' })
+                        }
                       />
                     )}
                     {item.authorId === currentUserId && (
@@ -738,10 +779,17 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
                         <div className="flex items-center justify-between">
                           <Profile author={reply.author} />
                           {reply.authorId !== currentUserId && (
-                            <BlockUserButton
+                            <CommunityContentMenu
                               id={reply.authorId}
                               name={reply.author}
-                              onReport={() => reports.handleOpenReport({ type: 'comment', id: Number(reply.id) })}
+                              reportTarget="답글"
+                              onReport={() =>
+                                handleOpenReport({
+                                  type: 'comment',
+                                  id: Number(reply.id),
+                                  label: '답글',
+                                })
+                              }
                             />
                           )}
                           {reply.authorId === currentUserId && (
@@ -795,12 +843,28 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
         </aside>
       </div>
       <Toast message={reports.toast.message} onDismiss={reports.toast.dismissToast} />
-      {reports.reportTarget && (
-        <CommunityReportDialog
-          key={`${reports.reportTarget.type}-${reports.reportTarget.id}`}
-          target={reports.reportTarget}
-          onClose={reports.handleCloseReport}
-          onReported={reports.handleReportSuccess}
+      {reportingTarget && (
+        <ReportCommunityContentDialog
+          key={`${reportingTarget.type}:${reportingTarget.id}`}
+          target={reportingTarget}
+          isPending={report.isPending}
+          error={
+            report.isError
+              ? getApiErrorMessage(report.error, '신고를 접수하지 못했어요. 다시 시도해 주세요.')
+              : undefined
+          }
+          onClose={() => {
+            if (!report.isPending) setReportingTarget(null)
+          }}
+          onConfirm={(reason) => {
+            if (report.isPending) return
+            report.mutate(
+              { target: reportingTarget, reason },
+              {
+                onSuccess: reports.handleReportSuccess,
+              },
+            )
+          }}
         />
       )}
       {editingComment && (
@@ -835,7 +899,7 @@ const PostDetail = ({ post }: { post: CommunityPost }) => {
           }}
         />
       )}
-    </div>
+    </ServicePageContent>
   )
 }
 
@@ -855,14 +919,18 @@ const SelectionModal = ({
   const [selectedDate, setSelectedDate] = useState('')
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(new Date())
+  const dialogRef = useDialogFocus(true, onClose)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const [requestVersion, setRequestVersion] = useState(0)
   const datePickerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    let isActive = true
     const request = type === 'record' ? getAttachableTrainingRecords() : getAttachableScenarios()
     request
       .then((items) => {
+        if (!isActive) return
         setRecords(items)
         if (type === 'record') {
           const latestDate = items.find((item) => item.trainedAt)?.trainedAt?.slice(0, 10) ?? ''
@@ -870,9 +938,16 @@ const SelectionModal = ({
           if (latestDate) setCalendarMonth(new Date(`${latestDate}T00:00:00`))
         }
       })
-      .catch(() => setHasError(true))
-      .finally(() => setIsLoading(false))
-  }, [type])
+      .catch(() => {
+        if (isActive) setHasError(true)
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false)
+      })
+    return () => {
+      isActive = false
+    }
+  }, [type, requestVersion])
 
   useEffect(() => {
     if (!isDatePickerOpen) return
@@ -922,7 +997,14 @@ const SelectionModal = ({
 
   return (
     <div className="inset-0 p-4 bg-black/30 fixed z-30 flex items-center justify-center">
-      <div className="p-5 max-sm:p-4 flex h-[min(560px,calc(100vh-32px))] w-full max-w-[680px] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="첨부할 항목 선택"
+        tabIndex={-1}
+        className="ux-overlay p-5 max-sm:p-4 flex h-[min(560px,calc(100vh-32px))] w-full max-w-[680px] flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card"
+      >
         <div className="flex shrink-0 items-start justify-between">
           <div>
             <h3 className="text-headline1 font-bold">
@@ -972,7 +1054,7 @@ const SelectionModal = ({
                     }
                     className="size-8 flex items-center justify-center rounded-pill hover:bg-fill-normal"
                   >
-                    <FiChevronLeft className="size-5" />
+                    <BackIcon />
                   </button>
                   <strong className="text-label font-bold">
                     {calendarYear}년 {calendarMonthIndex + 1}월
@@ -1031,11 +1113,18 @@ const SelectionModal = ({
           </div>
         )}
         <div className="mt-4 gap-3 min-h-0 pr-1 flex flex-1 flex-col overflow-y-auto">
-          {isLoading && (
-            <p className="py-6 text-center text-label-alternative">목록을 불러오는 중이에요.</p>
-          )}
+          {isLoading && <ListSkeleton label="첨부할 항목을 불러오는 중" />}
           {hasError && (
-            <p className="py-6 text-center text-status-error">목록을 불러오지 못했어요.</p>
+            <StatusState
+              isError
+              title="목록을 불러오지 못했어요."
+              onRetry={() => {
+                setIsLoading(true)
+                setHasError(false)
+                setRequestVersion((version) => version + 1)
+              }}
+              isRetrying={isLoading}
+            />
           )}
           {!isLoading && !hasError && visibleRecords.length === 0 && (
             <p className="py-6 text-center text-label-alternative">첨부할 항목이 없어요.</p>
@@ -1125,7 +1214,13 @@ const SelectionModal = ({
   )
 }
 
-const PostComposer = ({ post }: { post?: CommunityPost }) => {
+const PostComposer = ({
+  post,
+  queryFeedback,
+}: {
+  post?: CommunityPost
+  queryFeedback?: ReactNode
+}) => {
   const navigate = useNavigate()
   const imageInputRef = useRef<HTMLInputElement>(null)
   const attachmentMenuRef = useRef<HTMLDivElement>(null)
@@ -1173,9 +1268,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
       const fileId = await uploadCommunityImage(file)
       setAttachments((items) => [...items, { id: fileId, type: 'image', title: file.name }])
     } catch (error) {
-      setImageError(
-        getApiErrorMessage(error, '사진을 업로드하지 못했어요. 다시 시도해 주세요.'),
-      )
+      setImageError(getApiErrorMessage(error, '사진을 업로드하지 못했어요. 다시 시도해 주세요.'))
     } finally {
       setIsUploadingImage(false)
       if (imageInputRef.current) imageInputRef.current.value = ''
@@ -1183,6 +1276,7 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
   }
 
   const submitPost = () => {
+    if (isPending || !title.trim() || !content.trim()) return
     const input = {
       title: title.trim(),
       content: content.trim(),
@@ -1207,14 +1301,15 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
   }
 
   return (
-    <div className="py-5 px-12 max-lg:px-8 max-sm:px-4 min-w-0 flex min-h-[calc(100vh-32px)] flex-1 flex-col">
+    <ServicePageContent className="pb-5 flex min-h-[calc(100vh-32px)] flex-col">
       <CommunityHeader />
+      {queryFeedback}
       <button
         type="button"
         onClick={() => navigate(returnPath)}
-        className="gap-2 mt-4 flex w-fit items-center text-body"
+        className="gap-2 mt-4 px-2 min-h-10 flex w-fit items-center rounded-control text-body text-label-neutral transition-colors hover:bg-fill-normal"
       >
-        <FiArrowLeft /> {isEditing ? '게시글로 돌아가기' : '전체 글'}
+        <BackIcon /> {isEditing ? '게시글로 돌아가기' : '전체 글'}
       </button>
       <div className="gap-4 mt-4 max-lg:grid-cols-1 grid flex-1 grid-cols-[minmax(0,1fr)_230px]">
         <section className="p-5 max-sm:p-4 flex flex-col rounded-component bg-background-normal shadow-surface-card">
@@ -1347,30 +1442,106 @@ const PostComposer = ({ post }: { post?: CommunityPost }) => {
           }}
         />
       )}
-    </div>
+    </ServicePageContent>
   )
 }
 
 const CommunityDetailRoute = ({ postId }: { postId: number }) => {
-  const { data: post, isLoading, isError } = useCommunityPost(postId)
+  const { data: post, isLoading, isError, refetch, isFetching } = useCommunityPost(postId)
 
   if (isLoading)
-    return <div className="p-12 flex-1 text-label-alternative">게시글을 불러오는 중이에요.</div>
-  if (isError || !post)
-    return <div className="p-12 flex-1 text-status-error">게시글을 불러오지 못했어요.</div>
-  return <PostDetail post={post} />
+    return (
+      <ServicePageContent>
+        <CommunityHeader />
+        <CommunityDetailSkeleton />
+      </ServicePageContent>
+    )
+  if (!post)
+    return (
+      <ServicePageContent>
+        <CommunityHeader />
+        <StatusState
+          isError
+          title="게시글을 불러오지 못했어요."
+          description="삭제된 글이거나 일시적인 오류일 수 있어요."
+          onRetry={() => void refetch()}
+          isRetrying={isFetching}
+          action={
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="text-label text-label-neutral"
+            >
+              이전으로 돌아가기
+            </button>
+          }
+        />
+      </ServicePageContent>
+    )
+  return (
+    <PostDetail
+      post={post}
+      queryFeedback={
+        <CommunityRefreshNotice
+          isError={isError}
+          isFetching={isFetching}
+          onRetry={() => void refetch()}
+        />
+      }
+    />
+  )
 }
 
 const CommunityEditRoute = ({ postId }: { postId: number }) => {
-  const { data: post, isLoading, isError } = useCommunityPost(postId)
+  const { data: post, isLoading, isError, refetch, isFetching } = useCommunityPost(postId)
 
   if (isLoading)
-    return <div className="p-12 flex-1 text-label-alternative">게시글을 불러오는 중이에요.</div>
-  if (isError || !post)
-    return <div className="p-12 flex-1 text-status-error">게시글을 불러오지 못했어요.</div>
+    return (
+      <ServicePageContent>
+        <CommunityHeader />
+        <CommunityDetailSkeleton />
+      </ServicePageContent>
+    )
+  if (!post)
+    return (
+      <ServicePageContent>
+        <CommunityHeader />
+        <StatusState
+          isError
+          title="게시글을 불러오지 못했어요."
+          description="삭제된 글이거나 일시적인 오류일 수 있어요."
+          onRetry={() => void refetch()}
+          isRetrying={isFetching}
+          action={
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="text-label text-label-neutral"
+            >
+              이전으로 돌아가기
+            </button>
+          }
+        />
+      </ServicePageContent>
+    )
   if (post.authorId !== getCurrentUserId())
-    return <div className="p-12 flex-1 text-status-error">게시글 수정 권한이 없어요.</div>
-  return <PostComposer post={post} />
+    return (
+      <ServicePageContent className="text-status-error">
+        게시글 수정 권한이 없어요.
+      </ServicePageContent>
+    )
+  return (
+    <PostComposer
+      post={post}
+      queryFeedback={
+        <CommunityRefreshNotice
+          isError={isError}
+          isFetching={isFetching}
+          onRetry={() => void refetch()}
+        />
+      }
+    />
+  )
 }
 
 export const CommunityView = () => {
