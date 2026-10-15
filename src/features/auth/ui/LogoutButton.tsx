@@ -11,7 +11,7 @@ interface LogoutButtonProps {
 
 /** 데스크톱·모바일에서 서버 로그아웃과 진행/실패 상태를 동일하게 제공합니다. */
 export const LogoutButton = ({
-  className = 'gap-2 px-5 h-11 flex items-center justify-center rounded-component border border-line-neutral text-label font-medium text-label-normal hover:bg-fill-normal disabled:opacity-50',
+  className = 'gap-2 px-5 h-11 flex items-center justify-center rounded-component border border-line-neutral text-label font-medium text-label-normal transition-colors duration-200 enabled:hover:bg-status-error/10 enabled:hover:text-status-error disabled:opacity-50',
   icon,
 }: LogoutButtonProps) => {
   const logout = useLogout()

@@ -207,7 +207,19 @@ test('the sidebar retains the session after failed signout and clears it after r
     )
   })
   await page.goto('/profile/ringtone')
-  await page.getByRole('button', { name: '로그아웃', exact: true }).click()
+  const logout = page.getByRole('button', { name: '로그아웃', exact: true })
+  const menuFont = await page
+    .getByRole('link', { name: '알림', exact: true })
+    .evaluate((element) => {
+      const style = getComputedStyle(element)
+      return { family: style.fontFamily, size: style.fontSize, weight: style.fontWeight }
+    })
+  await expect(logout).toHaveCSS('font-family', menuFont.family)
+  await expect(logout).toHaveCSS('font-size', menuFont.size)
+  await expect(logout).toHaveCSS('font-weight', menuFont.weight)
+  await logout.hover()
+  await expect(logout).toHaveCSS('color', 'rgb(255, 0, 0)')
+  await logout.click()
   await expect(page.getByRole('alert')).toContainText('로그아웃에 실패했어요.')
   await expect(page).toHaveURL(/\/profile\/ringtone$/)
   expect(await page.evaluate(() => localStorage.getItem('bada.accessToken'))).toBe(
