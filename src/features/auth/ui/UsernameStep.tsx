@@ -48,13 +48,13 @@ export const UsernameStep = ({ signup }: UsernameStepProps) => (
             size="small"
             label="중복 확인"
             onClick={() => void signup.confirmUsername()}
-            disabled={signup.isCheckingUsername}
+            isLoading={signup.isCheckingUsername}
           />
         </div>
       </div>
 
       <div className="mt-8 gap-4 flex flex-col">
-        <AuthButton type="submit" label="회원가입" disabled={signup.isSubmitting} />
+        <AuthButton type="submit" label="회원가입" isLoading={signup.isSubmitting} />
         <AuthButton variant="secondary" label="이전으로" onClick={signup.goToPasswordStep} />
       </div>
     </form>

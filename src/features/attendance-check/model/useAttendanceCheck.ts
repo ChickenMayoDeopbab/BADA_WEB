@@ -7,13 +7,19 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 export const useAttendanceCheck = () => {
   const queryClient = useQueryClient()
   const today = new Date()
-  const { data: attendedDates, isPending: isAttendanceLoading } = useMonthlyAttendance(
-    today.getFullYear(),
-    today.getMonth() + 1,
-  )
+  const {
+    data: attendedDates,
+    isPending: isAttendanceLoading,
+    isError: isAttendanceError,
+  } = useMonthlyAttendance(today.getFullYear(), today.getMonth() + 1)
 
-  const { mutate, isPending: isChecking } = useMutation({
+  const {
+    mutate,
+    isPending: isChecking,
+    isError,
+  } = useMutation({
     mutationFn: checkTodayAttendance,
+    meta: { successMessage: '오늘 출석을 완료했어요.' },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: attendanceKeys.all }),
   })
 
@@ -21,7 +27,9 @@ export const useAttendanceCheck = () => {
 
   return {
     isCheckedToday,
-    isDisabled: isCheckedToday || isAttendanceLoading || isChecking,
+    isChecking,
+    isError,
+    isDisabled: isCheckedToday || isAttendanceLoading || isAttendanceError || isChecking,
     checkAttendance: () => mutate(),
   }
 }

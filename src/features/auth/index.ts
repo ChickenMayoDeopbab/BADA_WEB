@@ -7,6 +7,7 @@ export {
   setAuthTokens,
 } from './model/authSession'
 export { checkUsername } from './api/authApi'
+export { useLogout } from './model/useLogout'
 export { configureAuthHttpClient } from './api/configureAuthHttpClient'
 export { getValidAccessToken } from './model/getValidAccessToken'
 export type { LoginMode } from './model/types'
@@ -17,3 +18,4 @@ export { RequireAuth } from './ui/RequireAuth'
 export { ResetPasswordFlow } from './ui/ResetPasswordFlow'
 export { SignupFlow } from './ui/SignupFlow'
 export { SocialLogin } from './ui/SocialLogin'
+export { LogoutButton } from './ui/LogoutButton'

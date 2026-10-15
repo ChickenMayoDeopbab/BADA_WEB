@@ -1,3 +1,4 @@
+import { OverlayPortal } from '@shared/ui'
 import { useScenarioCatalog, type ScenarioTab } from '../model/useScenarioCatalog'
 import { useScenarioExampleAudio } from '../model/useScenarioExampleAudio'
 import type { Scenario, ScenarioCategory } from '@entities/scenario'
@@ -8,7 +9,6 @@ import otherImage from '@shared/assets/scenario-training/other.png'
 import recommendationImage from '@shared/assets/scenario-training/recommendation.png'
 import schoolImage from '@shared/assets/scenario-training/school.png'
 import workImage from '@shared/assets/scenario-training/work.png'
-import backArrow from '@shared/assets/training-records/back-arrow.svg'
 import menuDots from '@shared/assets/training-records/menu-dots.svg'
 import {
   IoChevronForward,
@@ -19,10 +19,17 @@ import {
   IoSearch,
   IoTimeOutline,
 } from 'react-icons/io5'
+import { useDialogFocus } from '@shared/lib'
 import type { CSSProperties } from 'react'
-import { ServicePageContent } from '@shared/ui'
-
-const tabGap = 15
+import {
+  ConfirmDialog,
+  LoadingRegion,
+  Skeleton,
+  BackIcon,
+  ServicePageContent,
+  ServiceSearchField,
+  ServiceTabs,
+} from '@shared/ui'
 
 const tabs: Array<{ value: ScenarioTab; label: string; width: number }> = [
   { value: 'basic', label: '기본 제공', width: 92 },
@@ -59,6 +66,7 @@ interface ScenarioImageProps {
 /** 서버 이미지가 없을 때 카테고리별 Figma 이미지를 사용합니다. */
 const ScenarioImage = ({ scenario, className = '' }: ScenarioImageProps) => (
   <img
+    draggable={false}
     src={scenario.imageUrl ?? fallbackImages[scenario.category]}
     alt=""
     className={`h-full w-full object-cover ${className}`}
@@ -203,157 +211,167 @@ const ScenarioDetailPanel = ({
   onStart,
   onToggleMenu,
   onOpenDeleteDialog,
-}: ScenarioDetailPanelProps) => (
-  <>
-    <button
-      type="button"
-      className={`inset-0 fixed z-40 cursor-default bg-common-100/10 ${
-        isOpen
-          ? 'animate-[record-backdrop-enter_320ms_ease-out]'
-          : 'animate-[record-backdrop-exit_260ms_ease-in] opacity-0'
-      } motion-reduce:animate-none`}
-      aria-label="시나리오 상세 닫기"
-      onClick={onClose}
-      disabled={!isOpen}
-    />
-    <aside
-      role="dialog"
-      aria-modal="true"
-      aria-label={`${scenario.title} 상세`}
-      aria-hidden={!isOpen}
-      className={`bottom-4 right-4 top-4 fixed z-50 w-[540px] max-w-[calc(100%-32px)] overflow-hidden rounded-dialog bg-background-normal p-[30px] shadow-elevated-card ${
-        isOpen
-          ? 'animate-[record-detail-enter_320ms_cubic-bezier(0.22,1,0.36,1)]'
-          : 'pointer-events-none animate-[record-detail-exit_260ms_cubic-bezier(0.4,0,1,1)]'
-      } motion-reduce:animate-none`}
-    >
-      <div className="gap-5 min-h-0 relative flex h-full flex-col">
-        <div className="h-10 flex shrink-0 items-center justify-between">
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-10 w-5 flex items-center justify-center"
-            aria-label="시나리오 상세 닫기"
-          >
-            <img src={backArrow} alt="" />
-          </button>
-          {scenario.isCustom && (
+}: ScenarioDetailPanelProps) => {
+  const dialogRef = useDialogFocus(isOpen, onClose)
+  return (
+    <OverlayPortal>
+      <button
+        type="button"
+        className="inset-0 fixed z-40 cursor-default bg-transparent"
+        tabIndex={-1}
+        aria-label="시나리오 상세 닫기"
+        onClick={onClose}
+        disabled={!isOpen}
+      />
+      <aside
+        ref={dialogRef}
+        tabIndex={-1}
+        inert={!isOpen}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${scenario.title} 상세`}
+        aria-hidden={!isOpen}
+        className={`ux-drawer bottom-4 right-4 top-4 fixed z-50 w-[540px] max-w-[calc(100%-32px)] overflow-hidden rounded-dialog bg-background-normal p-[30px] shadow-elevated-card ${
+          isOpen
+            ? 'animate-[record-detail-enter_320ms_cubic-bezier(0.22,1,0.36,1)]'
+            : 'pointer-events-none animate-[record-detail-exit_260ms_cubic-bezier(0.4,0,1,1)]'
+        } motion-reduce:animate-none`}
+      >
+        <div className="gap-5 min-h-0 relative flex h-full flex-col">
+          <div className="h-10 flex shrink-0 items-center justify-between">
             <button
               type="button"
-              onClick={onToggleMenu}
-              className="size-8 flex items-center justify-center rounded-control hover:bg-fill-normal"
-              aria-label="시나리오 메뉴 열기"
-              aria-expanded={isMenuOpen}
+              onClick={onClose}
+              className="h-10 w-5 flex items-center justify-center"
+              aria-label="시나리오 상세 닫기"
             >
-              <img src={menuDots} alt="" />
+              <BackIcon />
             </button>
-          )}
-        </div>
-
-        {isMenuOpen && (
-          <div className="top-7 w-44 absolute right-[14px] z-20 overflow-hidden rounded-component bg-background-normal shadow-elevated-card">
-            <button
-              type="button"
-              onClick={onOpenDeleteDialog}
-              className="p-3 flex h-[52px] w-full items-center text-left text-headline2 font-medium text-label-normal hover:bg-fill-normal"
-            >
-              시나리오 삭제하기
-            </button>
-          </div>
-        )}
-
-        <div className="relative h-[260px] w-full shrink-0 overflow-hidden rounded-component bg-fill-neutral shadow-subtle-card">
-          <ScenarioImage scenario={scenario} />
-          <span className="inset-x-0 top-0 pointer-events-none absolute h-[104px] bg-gradient-to-b from-common-100/40 to-transparent" />
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="gap-3 flex flex-col">
-            <section className="px-6 py-3">
-              <p className="text-body font-medium text-label-alternative">
-                {scenario.isCopied
-                  ? '공유 시나리오'
-                  : scenario.isCustom
-                    ? '커스텀 시나리오'
-                    : '기본 제공 시나리오'}
-              </p>
-              <h2 className="mt-0.5 text-title1 font-bold text-label-normal">{scenario.title}</h2>
-              <div className="mt-1 gap-0.5 flex items-center text-headline2 font-medium text-label-alternative">
-                <IoTimeOutline size={28} aria-hidden="true" />
-                <span>{scenario.practiceCount}회</span>
-              </div>
-            </section>
-
-            <section className="px-6">
-              <p className="leading-7 text-body font-medium whitespace-pre-wrap text-label-neutral">
-                {scenario.content}
-              </p>
-            </section>
-
-            <section className="px-6 pb-5">
-              <div className="mb-2 gap-1.5 flex items-center text-label font-bold text-primary-normal">
-                <IoHeadset aria-hidden="true" />
-                예시 음성
-              </div>
-              {isExampleLoading && (
-                <p className="py-5 text-body text-label-alternative">불러오는 중...</p>
-              )}
-              {exampleErrorMessage && (
-                <p className="py-5 text-body text-status-error">{exampleErrorMessage}</p>
-              )}
-              {!isExampleLoading && !exampleErrorMessage && (
-                <ScenarioExampleAudio audioUrl={example?.audioUrl} />
-              )}
-              {example?.dialogue && example.dialogue.length > 0 && (
-                <details className="mt-3 text-label text-label-neutral">
-                  <summary className="cursor-pointer">예시 대화 보기</summary>
-                  <ol className="mt-3 space-y-3">
-                    {example.dialogue.map((turn, index) => (
-                      <li key={index} className="whitespace-pre-wrap">
-                        <strong>{turn.speaker === 'user' ? '나' : '상대방'}: </strong>
-                        {turn.text}
-                      </li>
-                    ))}
-                  </ol>
-                </details>
-              )}
-            </section>
-            {scenario.practiceCount > 0 && (
-              <section className="px-6 pb-5">
-                <h3 className="mb-2 text-label font-bold text-label-normal">최근 훈련 피드백</h3>
-                {isFeedbackLoading ? (
-                  <p className="text-label text-label-alternative">불러오는 중...</p>
-                ) : feedbackErrorMessage ? (
-                  <p role="status" className="text-label text-label-alternative">
-                    {feedbackErrorMessage}
-                  </p>
-                ) : feedback?.goodSegments?.length ? (
-                  <ul className="space-y-2 text-body text-label-neutral">
-                    {feedback.goodSegments.map((segment, index) => (
-                      <li key={index}>{segment.good_point}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-label text-label-alternative">아직 표시할 피드백이 없어요.</p>
-                )}
-              </section>
+            {scenario.isCustom && (
+              <button
+                type="button"
+                onClick={onToggleMenu}
+                className="size-8 flex items-center justify-center rounded-control hover:bg-fill-normal"
+                aria-label="시나리오 메뉴 열기"
+                aria-expanded={isMenuOpen}
+              >
+                <img src={menuDots} alt="" />
+              </button>
             )}
           </div>
-        </div>
 
-        <div className="shrink-0">
-          <button
-            type="button"
-            onClick={onStart}
-            className="flex h-[52px] w-full items-center justify-center rounded-component bg-primary-normal text-headline2 font-bold text-label-button-text transition hover:brightness-95"
-          >
-            훈련 시작하기
-          </button>
+          {isMenuOpen && (
+            <div className="top-7 w-44 absolute right-[14px] z-20 overflow-hidden rounded-component bg-background-normal shadow-elevated-card">
+              <button
+                type="button"
+                onClick={onOpenDeleteDialog}
+                className="p-3 flex h-[52px] w-full items-center text-left text-headline2 font-medium text-label-normal hover:bg-fill-normal"
+              >
+                시나리오 삭제하기
+              </button>
+            </div>
+          )}
+
+          <div className="relative h-[260px] w-full shrink-0 overflow-hidden rounded-component bg-fill-neutral shadow-subtle-card">
+            <ScenarioImage scenario={scenario} />
+            <span className="inset-x-0 top-0 pointer-events-none absolute h-[104px] bg-gradient-to-b from-common-100/40 to-transparent" />
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="gap-3 flex flex-col">
+              <section className="px-6 py-3">
+                <p className="text-body font-medium text-label-alternative">
+                  {scenario.isCopied
+                    ? '공유 시나리오'
+                    : scenario.isCustom
+                      ? '커스텀 시나리오'
+                      : '기본 제공 시나리오'}
+                </p>
+                <h2 className="mt-0.5 text-title1 font-bold text-label-normal">{scenario.title}</h2>
+                <div className="mt-1 gap-0.5 flex items-center text-headline2 font-medium text-label-alternative">
+                  <IoTimeOutline size={28} aria-hidden="true" />
+                  <span>{scenario.practiceCount}회</span>
+                </div>
+              </section>
+
+              <section className="px-6">
+                <p className="leading-7 text-body font-medium whitespace-pre-wrap text-label-neutral">
+                  {scenario.content}
+                </p>
+              </section>
+
+              <section className="px-6 pb-5">
+                <div className="mb-2 gap-1.5 flex items-center text-label font-bold text-primary-normal">
+                  <IoHeadset aria-hidden="true" />
+                  예시 음성
+                </div>
+                {isExampleLoading && (
+                  <LoadingRegion label="예시 음성을 불러오는 중">
+                    <Skeleton className="h-[72px]" />
+                  </LoadingRegion>
+                )}
+                {exampleErrorMessage && (
+                  <p className="py-5 text-body text-status-error">{exampleErrorMessage}</p>
+                )}
+                {!isExampleLoading && !exampleErrorMessage && (
+                  <ScenarioExampleAudio audioUrl={example?.audioUrl} />
+                )}
+                {example?.dialogue && example.dialogue.length > 0 && (
+                  <details className="mt-3 text-label text-label-neutral">
+                    <summary className="cursor-pointer">예시 대화 보기</summary>
+                    <ol className="mt-3 space-y-3">
+                      {example.dialogue.map((turn, index) => (
+                        <li key={index} className="whitespace-pre-wrap">
+                          <strong>{turn.speaker === 'user' ? '나' : '상대방'}: </strong>
+                          {turn.text}
+                        </li>
+                      ))}
+                    </ol>
+                  </details>
+                )}
+              </section>
+              {scenario.practiceCount > 0 && (
+                <section className="px-6 pb-5">
+                  <h3 className="mb-2 text-label font-bold text-label-normal">최근 훈련 피드백</h3>
+                  {isFeedbackLoading ? (
+                    <LoadingRegion label="최근 훈련 피드백을 불러오는 중">
+                      <Skeleton className="h-5" />
+                      <Skeleton className="mt-2 h-5 w-2/3" />
+                    </LoadingRegion>
+                  ) : feedbackErrorMessage ? (
+                    <p role="status" className="text-label text-label-alternative">
+                      {feedbackErrorMessage}
+                    </p>
+                  ) : feedback?.goodSegments?.length ? (
+                    <ul className="space-y-2 text-body text-label-neutral">
+                      {feedback.goodSegments.map((segment, index) => (
+                        <li key={index}>{segment.good_point}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-label text-label-alternative">
+                      아직 표시할 피드백이 없어요.
+                    </p>
+                  )}
+                </section>
+              )}
+            </div>
+          </div>
+
+          <div className="shrink-0">
+            <button
+              type="button"
+              onClick={onStart}
+              className="flex h-[52px] w-full items-center justify-center rounded-component bg-primary-normal text-headline2 font-bold text-label-button-text transition hover:brightness-95"
+            >
+              훈련 시작하기
+            </button>
+          </div>
         </div>
-      </div>
-    </aside>
-  </>
-)
+      </aside>
+    </OverlayPortal>
+  )
+}
 
 interface ScenarioDeleteDialogProps {
   scenario: Scenario
@@ -371,113 +389,47 @@ const ScenarioDeleteDialog = ({
   onClose,
   onDelete,
 }: ScenarioDeleteDialogProps) => (
-  <div
-    className="inset-0 px-6 fixed z-[60] flex items-center justify-center bg-common-100/30"
-    role="presentation"
-    onMouseDown={(event) => {
-      if (event.target === event.currentTarget) onClose()
-    }}
-  >
-    <section
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="scenario-delete-title"
-      aria-describedby="scenario-delete-description"
-      className="p-7 w-full max-w-[420px] rounded-dialog bg-background-normal shadow-elevated-card"
-    >
-      <h2 id="scenario-delete-title" className="text-title2 font-bold text-label-normal">
-        {scenario.title} 시나리오를 삭제할까요?
-      </h2>
-      <p id="scenario-delete-description" className="mt-2 text-body text-label-alternative">
-        삭제한 커스텀 시나리오는 다시 복구할 수 없어요.
-      </p>
-      {errorMessage && <p className="mt-3 text-body text-status-error">{errorMessage}</p>}
-      <div className="mt-6 gap-3 flex">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isDeleting}
-          className="h-12 flex flex-1 items-center justify-center rounded-component bg-fill-normal text-headline2 font-bold text-label-normal disabled:cursor-not-allowed disabled:text-label-disabled"
-        >
-          취소
-        </button>
-        <button
-          type="button"
-          onClick={onDelete}
-          disabled={isDeleting}
-          className="h-12 flex flex-1 items-center justify-center rounded-component bg-status-error text-headline2 font-bold text-common-0 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isDeleting ? '삭제 중...' : '삭제하기'}
-        </button>
-      </div>
-    </section>
-  </div>
+  <ConfirmDialog
+    title={`${scenario.title} 시나리오를 삭제할까요?`}
+    description="삭제한 커스텀 시나리오는 다시 복구할 수 없어요."
+    confirmLabel="삭제하기"
+    pending={isDeleting}
+    danger
+    error={errorMessage}
+    onClose={onClose}
+    onConfirm={onDelete}
+  />
 )
 
 /** Figma 시나리오 훈련 목록과 상세 탐색 화면을 표시합니다. */
 export const ScenarioTrainingView = () => {
   const catalog = useScenarioCatalog()
-  const activeTabIndex = tabs.findIndex((tab) => tab.value === catalog.selectedTab)
-  const activeTab = tabs[activeTabIndex]
-  const activeTabOffset = tabs
-    .slice(0, activeTabIndex)
-    .reduce((offset, tab) => offset + tab.width + tabGap, 0)
 
   return (
     <ServicePageContent>
-      <header className="gap-3 flex items-baseline">
+      <header className="gap-x-3 gap-y-1 flex flex-wrap items-baseline">
         <h1 className="text-title1 font-bold text-label-neutral">시나리오 훈련</h1>
         <p className="text-body font-medium text-neutral-60">
           AI와 함께 실제와 같은 전화 통화를 연습해 보세요.
         </p>
       </header>
 
-      <div className="mt-4 h-12 gap-6 flex items-center justify-between">
-        <nav
-          className="pb-2 relative flex items-center gap-[15px]"
-          aria-label="시나리오 분류"
-          role="tablist"
-        >
-          {tabs.map((tab) => (
-            <button
-              key={tab.value}
-              type="button"
-              role="tab"
-              aria-selected={catalog.selectedTab === tab.value}
-              onClick={() => catalog.handleTabChange(tab.value)}
-              className={`ease-out text-center text-title2 font-bold transition-colors duration-[420ms] motion-reduce:transition-none ${
-                catalog.selectedTab === tab.value
-                  ? 'text-primary-normal'
-                  : 'text-neutral-70 hover:text-label-neutral'
-              }`}
-              style={{ width: tab.width }}
-            >
-              {tab.label}
-            </button>
-          ))}
-          <span
-            className="bottom-0 left-0 h-0.5 ease-out pointer-events-none absolute bg-primary-normal transition-[transform,width] duration-[420ms] motion-reduce:transition-none"
-            style={{
-              width: activeTab.width,
-              transform: `translateX(${activeTabOffset}px)`,
-            }}
-            aria-hidden="true"
-          />
-        </nav>
-
-        <label className="h-12 gap-2 px-4 flex w-[300px] items-center rounded-component bg-fill-alternative text-label-alternative focus-within:outline-2 focus-within:outline-primary-normal">
-          <input
-            type="search"
-            value={catalog.searchQuery}
-            onChange={(event) => catalog.setSearchQuery(event.target.value)}
-            placeholder="제목 또는 설명으로 검색"
-            className="min-w-0 flex-1 bg-transparent text-body text-label-normal outline-none placeholder:text-neutral-70"
-          />
-          <IoSearch size={22} aria-hidden="true" />
-        </label>
+      <div className="mt-4 h-12 gap-6 max-sm:h-auto max-sm:flex-col max-sm:items-stretch max-sm:gap-4 flex items-center justify-between">
+        <ServiceTabs
+          items={tabs}
+          value={catalog.selectedTab}
+          label="시나리오 분류"
+          onChange={catalog.handleTabChange}
+        />
+        <ServiceSearchField
+          label="시나리오 검색"
+          value={catalog.searchQuery}
+          onChange={(event) => catalog.setSearchQuery(event.target.value)}
+          placeholder="제목 또는 설명으로 검색"
+        />
       </div>
 
-      <section className="mt-4 px-9 py-8 min-h-[calc(100vh-140px)] rounded-dialog bg-background-normal">
+      <section className="mt-4 px-9 py-8 max-sm:p-4 min-h-[calc(100vh-140px)] rounded-dialog bg-background-normal">
         {catalog.ringingSchedule && (
           <div
             role="status"
@@ -528,6 +480,7 @@ export const ScenarioTrainingView = () => {
               className="group p-4 hover:-translate-y-1 focus-visible:-translate-y-1 relative flex h-[200px] w-full items-end justify-between overflow-hidden rounded-component text-left shadow-elevated-card transition duration-200 focus-visible:outline-2 focus-visible:outline-primary-normal"
             >
               <img
+                draggable={false}
                 src={
                   catalog.recommendedScenario.imageUrl ??
                   catalog.recommendationIconUrl ??
@@ -578,10 +531,13 @@ export const ScenarioTrainingView = () => {
         </div>
 
         {catalog.isLoading ? (
-          <div className="gap-3 flex min-h-[360px] flex-col items-center justify-center text-label-alternative">
-            <span className="size-9 animate-spin rounded-pill border-4 border-fill-alternative border-t-primary-normal" />
-            시나리오를 불러오는 중입니다.
-          </div>
+          <LoadingRegion label="시나리오를 불러오는 중" className="min-h-[360px]">
+            <div className="gap-3 max-xl:grid-cols-3 max-lg:grid-cols-2 max-sm:grid-cols-1 grid grid-cols-4">
+              {Array.from({ length: 8 }, (_, i) => (
+                <Skeleton key={i} className="h-[220px]" />
+              ))}
+            </div>
+          </LoadingRegion>
         ) : catalog.errorMessage ? (
           <div className="gap-4 flex min-h-[360px] flex-col items-center justify-center text-center">
             <p className="text-body text-label-alternative">{catalog.errorMessage}</p>
@@ -597,7 +553,7 @@ export const ScenarioTrainingView = () => {
           </div>
         ) : catalog.scenarios.length > 0 ||
           (catalog.selectedTab === 'custom' && !catalog.searchQuery) ? (
-          <div className="gap-3 grid grid-cols-4 items-start">
+          <div className="gap-3 max-xl:grid-cols-3 max-lg:grid-cols-2 max-sm:grid-cols-1 grid grid-cols-4 items-start">
             {catalog.scenarios.map((scenario) => (
               <ScenarioCard
                 key={scenario.scenarioId}

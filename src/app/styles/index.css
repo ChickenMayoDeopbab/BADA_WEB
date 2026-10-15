@@ -1,3 +1,4 @@
+@import '../../shared/ui/experience.css';
 @import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 @import 'tailwindcss';
 @import '@shared/design-system/theme.css';

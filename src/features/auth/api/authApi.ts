@@ -14,6 +14,11 @@ import type { ApiResponse } from '@shared/types'
 
 const AUTH_PATH = '/api/v1/auth'
 
+/** 현재 인증된 세션을 서버에서 로그아웃합니다. */
+export const signout = async () => {
+  await httpClient.delete<ApiResponse<null>>(`${AUTH_PATH}/signout`)
+}
+
 /** 아이디와 비밀번호로 로그인합니다. */
 export const login = async (request: LoginRequest) => {
   const { data } = await httpClient.post<ApiResponse<AuthTokens>>(`${AUTH_PATH}/login`, request)

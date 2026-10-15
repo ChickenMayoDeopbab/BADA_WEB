@@ -1,3 +1,5 @@
+import { useDialogFocus } from '@shared/lib'
+import { OverlayPortal, BackIcon } from '@shared/ui'
 import { formatTrainingRecordDateRange } from '../model/formatTrainingRecordDateRange'
 import type { TrainingRecordDateRange } from '../model/useTrainingRecordCalendar'
 
@@ -61,7 +63,7 @@ const CalendarMonth = ({
   const recordDateKeys = new Set(recordDates.map(getDateKey))
 
   return (
-    <section className="min-h-0 min-w-0 px-6 py-5 flex-1">
+    <section className="min-h-0 min-w-0 px-6 py-5 max-sm:px-3 flex-1 overflow-y-auto">
       <div className="mb-5 flex items-center justify-between">
         <button
           type="button"
@@ -69,7 +71,7 @@ const CalendarMonth = ({
           aria-label="이전 달"
           onClick={onPreviousMonth}
         >
-          ‹
+          <BackIcon />
         </button>
         <h3 className="text-center text-headline1 font-bold text-label-normal">
           {month.getFullYear()}년 {month.getMonth() + 1}월
@@ -164,20 +166,24 @@ export const TrainingRecordCalendar = ({
   onNextMonth,
   onSelectDate,
 }: TrainingRecordCalendarProps) => {
+  const dialogRef = useDialogFocus(isOpen, onCancel)
   if (!isOpen) {
     return null
   }
 
   return (
-    <>
+    <OverlayPortal>
       <button
         type="button"
         className="inset-0 fixed z-40 cursor-default bg-common-100/20 backdrop-blur-[2px]"
+        tabIndex={-1}
         aria-label="날짜 선택 취소"
         onClick={onCancel}
       />
       <section
-        className="fixed top-1/2 left-1/2 z-50 flex h-[560px] w-[440px] max-w-[calc(100%-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card"
+        ref={dialogRef}
+        tabIndex={-1}
+        className="fixed top-1/2 left-1/2 z-50 flex h-[560px] max-h-[calc(100dvh-32px)] w-[440px] max-w-[calc(100%-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card"
         role="dialog"
         aria-modal="true"
         aria-label="훈련 기록 날짜 범위 선택"
@@ -217,6 +223,6 @@ export const TrainingRecordCalendar = ({
           </button>
         </footer>
       </section>
-    </>
+    </OverlayPortal>
   )
 }

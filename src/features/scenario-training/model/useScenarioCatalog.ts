@@ -1,3 +1,4 @@
+import { getDrawerCloseDelay } from '@shared/lib'
 import {
   deleteCustomScenario,
   getRecommendedScenario,
@@ -66,6 +67,7 @@ export const useScenarioCatalog = () => {
   })
   const deleteScenarioMutation = useMutation({
     mutationFn: deleteCustomScenario,
+    meta: { successMessage: '시나리오를 삭제했어요.' },
     onSuccess: async (_, deletedScenarioId) => {
       queryClient.removeQueries({ queryKey: ['scenario-example', deletedScenarioId] })
       queryClient.removeQueries({ queryKey: ['scenario-feedback', deletedScenarioId] })
@@ -138,7 +140,7 @@ export const useScenarioCatalog = () => {
     detailCloseTimerRef.current = window.setTimeout(() => {
       setSelectedScenario(null)
       detailCloseTimerRef.current = null
-    }, 260)
+    }, getDrawerCloseDelay())
   }
 
   /** 상세 패널 우측 상단의 시나리오 메뉴를 열거나 닫습니다. */
@@ -200,16 +202,17 @@ export const useScenarioCatalog = () => {
     ringingSchedule: ringingQuery.data,
     handleOpenRingingCall,
     feedback: feedbackQuery.data,
-    isFeedbackLoading: feedbackQuery.isFetching,
+    isFeedbackLoading: feedbackQuery.isPending && !feedbackQuery.data,
     feedbackErrorMessage: feedbackQuery.isError
       ? getApiErrorMessage(feedbackQuery.error, '최근 훈련 피드백을 불러오지 못했어요.')
       : '',
     example: exampleQuery.data,
     isLoading: activeScenariosQuery.isPending,
     isRefreshing: activeScenariosQuery.isFetching,
-    errorMessage: activeScenariosQuery.isError
-      ? getApiErrorMessage(activeScenariosQuery.error, '시나리오 목록을 불러오지 못했습니다.')
-      : '',
+    errorMessage:
+      activeScenariosQuery.isError && !activeScenariosQuery.data
+        ? getApiErrorMessage(activeScenariosQuery.error, '시나리오 목록을 불러오지 못했습니다.')
+        : '',
     isExampleLoading: exampleQuery.isPending && selectedScenario !== null,
     exampleErrorMessage: exampleQuery.isError
       ? getApiErrorMessage(exampleQuery.error, '예시 대화를 불러오지 못했습니다.')

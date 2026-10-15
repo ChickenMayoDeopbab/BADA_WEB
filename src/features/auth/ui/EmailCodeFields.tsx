@@ -25,7 +25,7 @@ export const EmailCodeFields = ({ verification }: EmailCodeFieldsProps) => (
         size="small"
         label={verification.isSent ? '다시 전송' : '인증코드 전송'}
         onClick={() => void verification.sendCode()}
-        disabled={verification.isSending}
+        isLoading={verification.isSending}
       />
     </div>
     <AuthTextField
