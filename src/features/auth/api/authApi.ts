@@ -82,6 +82,6 @@ export const exchangeOAuthCode = async (code: string) => {
   return data.data
 }
 
-/** 소셜 로그인 제공자의 인증 시작 URL을 만듭니다. 리다이렉트 주소는 서버 기본값을 사용합니다. */
-export const getOAuthLoginUrl = (provider: OAuthProvider) =>
-  httpClient.getUri({ url: `${AUTH_PATH}/${provider}` })
+/** 소셜 로그인 후 돌아올 웹 주소를 포함한 인증 시작 URL을 만듭니다. */
+export const getOAuthLoginUrl = (provider: OAuthProvider, redirectUri: string) =>
+  httpClient.getUri({ url: `${AUTH_PATH}/${provider}`, params: { redirectUri } })
