@@ -1,8 +1,5 @@
-import {
-  buildWeeklyMetricDays,
-  formatWeeklyMetric,
-  getWeeklyMetricBarHeight,
-} from './buildWeeklyMetricDays'
+import { buildWeeklyMetricSummary } from './weeklyMetricSummary'
+import { buildWeeklyMetricDays, getWeeklyMetricBarHeight } from './buildWeeklyMetricDays'
 import type { DashboardMetricValue, DashboardOverview } from '@entities/dashboard'
 import { describe, expect, it } from 'vitest'
 
@@ -87,11 +84,14 @@ describe('weekly overview metrics', () => {
     expect(days[0].metrics.responseDelayMs?.value).toBe(800)
   })
 
-  it('평균에 0·미측정·표본 부족을 구분하여 표시한다', () => {
-    expect(formatWeeklyMetric(measured, '%')).toBe('0%')
-    expect(formatWeeklyMetric(missing, '%')).toBe('— (미측정)')
-    expect(formatWeeklyMetric(metrics.responseDelayMs, 'ms')).toBe('800ms')
-    expect(formatWeeklyMetric(metrics.fastRateTurnRate, '%')).toBe('10% (표본 부족)')
+  it('평균의 0과 결측을 보존하며 훈련이 적다는 안내는 한 번만 표시한다', () => {
+    const summary = buildWeeklyMetricSummary(overview)
+    expect(summary.items.find(({ key }) => key === 'tremorTurnRate')?.value).toBe('0%')
+    expect(summary.items.find(({ key }) => key === 'longPauseTurnRate')?.value).toBe('—')
+    expect(summary.items.find(({ key }) => key === 'responseDelayMs')?.value).toBe('800ms')
+    expect(summary.items.find(({ key }) => key === 'fastRateTurnRate')?.value).toBe('10%')
+    expect(summary.notice).toBe('— 측정 기록 없음 · 적은 훈련으로 계산한 평균이에요.')
+    expect(summary.items.map(({ value }) => value).join()).not.toMatch(/표본|미측정/)
   })
 
   it('아직 데이터가 없으면 이번 주의 빈 요일을 구성한다', () => {

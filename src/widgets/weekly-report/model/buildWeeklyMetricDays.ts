@@ -84,16 +84,6 @@ export const buildWeeklyMetricDays = (
   })
 }
 
-/** 지표의 원래 단위와 미측정·표본 부족 상태를 표시합니다. */
-export const formatWeeklyMetric = (
-  metric: DashboardMetricValue | null | undefined,
-  unit: string,
-) => {
-  if (!metric || metric.value === null || metric.status === 'NO_DATA') return '— (미측정)'
-  const value = `${metric.value.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}${unit}`
-  return metric.status === 'INSUFFICIENT_DATA' ? `${value} (표본 부족)` : value
-}
-
 /** 점수와 비율은 고정 범위, 응답 시간은 해당 주의 최댓값을 기준으로 높이를 계산합니다. */
 export const getWeeklyMetricBarHeight = (
   day: WeeklyMetricDay,

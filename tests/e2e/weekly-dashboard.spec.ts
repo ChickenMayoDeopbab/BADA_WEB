@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { prepareWeeklyDashboard } from './weeklyDashboardFixture'
+import { makeWeeklyOverview, prepareWeeklyDashboard } from './weeklyDashboardFixture'
 
 // 개요 API가 호출되었다는 사실과 그 응답이 원래 화면에 보인다는 사실을 함께 확인합니다.
 test('connects six metrics, summary and header to one overview request within the existing layout', async ({
@@ -14,7 +14,7 @@ test('connects six metrics, summary and header to one overview request within th
   await expect(legend.getByRole('listitem')).toHaveCount(6)
   await expect(legend).toContainText('불안 4점')
   await expect(legend).toContainText('떨림 0%')
-  await expect(legend).toContainText('긴 멈춤 — (미측정)')
+  await expect(legend).toContainText('긴 멈춤 —')
   await expect(legend).toContainText('응답 시간 800ms')
   const chart = page.getByRole('list', { name: '요일별 훈련 지표' })
   await expect(chart.getByRole('listitem')).toHaveCount(7)
@@ -60,5 +60,43 @@ test('retries failed overview requests and fills the original panels after recov
   await page.getByRole('button', { name: '다시 불러오기' }).first().click()
   await expect(page.getByText('이번 주 7회 훈련했어요')).toBeVisible()
   await expect(page.getByRole('list', { name: '주간 지표 평균' })).toContainText('응답 시간 800ms')
+  expect(audit.errors).toEqual([])
+})
+
+// 적은 훈련과 누락된 음성 지표를 목록마다 반복하지 않고 값과 안내를 분리합니다.
+test('keeps a sparse weekly report clean without hiding values or their context', async ({
+  page,
+}) => {
+  const audit = await prepareWeeklyDashboard(page)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.route('**/api/v1/dashboard/overview?*', (route) => {
+    const url = new URL(route.request().url())
+    const overview = makeWeeklyOverview(url.searchParams.get('from')!, url.searchParams.get('to')!)
+    Object.entries(overview.metrics).forEach(([key, measurement]) => {
+      Object.assign(
+        measurement,
+        key === 'selfReportedAnxiety'
+          ? { value: 8, status: 'INSUFFICIENT_DATA', sampleCount: 1 }
+          : { value: null, status: 'NO_DATA', sampleCount: 0 },
+      )
+    })
+    return route.fulfill({ json: { data: overview } })
+  })
+  await page.goto('/dashboard')
+  const legend = page.getByRole('list', { name: '주간 지표 평균' })
+  await expect(legend.getByRole('listitem')).toHaveCount(6)
+  await expect(legend).toContainText('불안 8점')
+  await expect(legend).not.toContainText('표본 부족')
+  await expect(legend).not.toContainText('미측정')
+  await expect(legend.getByText('—', { exact: true })).toHaveCount(5)
+  await expect(legend.getByRole('listitem').first()).toHaveAttribute('title', /1회 훈련으로 계산/)
+  await expect(
+    page.getByText('— 측정 기록 없음 · 적은 훈련으로 계산한 평균이에요.', { exact: true }),
+  ).toBeVisible()
+  await legend.locator('..').evaluate((element) => element.scrollIntoView({ block: 'center' }))
+  await page.screenshot({
+    path: 'test-results/weekly-dashboard-sparse.png',
+    animations: 'disabled',
+  })
   expect(audit.errors).toEqual([])
 })
