@@ -14,8 +14,28 @@ test('opens comparison on demand, displays API values, and restores focus after 
   const trigger = page.getByRole('button', { name: '기간 비교', exact: true })
   await trigger.click()
   const panel = page.getByRole('dialog', { name: '기간 비교', exact: true })
-  await expect(panel.getByText('-20%p', { exact: true }).first()).toBeVisible()
-  await expect(panel.getByText(/이전 20\d{2}-\d{2}-\d{2} ~ 20\d{2}-\d{2}-\d{2}/)).toBeVisible()
+  await expect(panel.getByText('이전보다 2점 낮아졌어요', { exact: true })).toBeVisible()
+  const metrics = panel.getByRole('group', { name: '지표 선택' })
+  await expect(metrics.getByRole('button')).toHaveCount(6)
+  await metrics.getByRole('button', { name: '떨림', exact: true }).click()
+  await expect(panel.getByRole('region', { name: '불안 비교', exact: true })).toHaveCount(0)
+  const comparison = panel.getByRole('region', { name: '떨림 비교', exact: true })
+  await expect(comparison.getByText('0%', { exact: true })).toBeVisible()
+  await expect(comparison.getByText('이전보다 20%p 낮아졌어요', { exact: true })).toBeVisible()
+  await expect(comparison.getByText('10.05 ~ 10.11', { exact: true })).toBeVisible()
+  await expect(panel.getByText('훈련 조건별 분포', { exact: true })).toHaveCount(0)
+  await expect(panel.getByText('기간별 훈련 횟수', { exact: true })).toHaveCount(0)
+  expect(
+    audit.requests.filter((url) => url.pathname.endsWith('/dashboard/comparison')),
+  ).toHaveLength(1)
+  const records = panel.getByRole('region', { name: '관련 훈련 기록' })
+  await expect(records.getByRole('link').locator('img').first()).toHaveAttribute(
+    'src',
+    '/__e2e/food-icon.svg',
+  )
+  await expect(records.getByRole('link')).toContainText('1분 0초')
+  await expect(records.getByText(/2026-/)).toHaveCount(0)
+  await expect(records.getByText('기록 보기')).toHaveCount(0)
   await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('overflow-y', 'hidden')
   await expect(page.getByRole('heading', { name: '주간 요약', exact: true })).toBeVisible()
   await expect(panel).toHaveCSS('animation-name', 'record-detail-enter')
@@ -60,8 +80,8 @@ test('applies filters, preserves unavailable matched comparisons, and opens a re
   expect(
     audit.requests.filter((url) => url.pathname.endsWith('/dashboard/comparison')),
   ).toHaveLength(1)
-  await form.getByText('훈련 조건', { exact: true }).click()
-  await form.getByLabel('훈련 유형').selectOption('CUSTOM')
+  await form.getByText('훈련 골라보기', { exact: true }).click()
+  await form.getByLabel('시나리오 종류').selectOption('CUSTOM')
   await form.getByLabel('힌트 단계').selectOption('2')
   await form.getByRole('button', { name: '적용하기' }).click()
   await expect
@@ -75,14 +95,20 @@ test('applies filters, preserves unavailable matched comparisons, and opens a re
       ),
     )
     .toBe(true)
-  await panel.getByRole('button', { name: '동일 조건 비교', exact: true }).click()
-  await expect(panel.getByText('동일 조건 비교 불가', { exact: true }).first()).toBeVisible()
-  await expect(panel.getByText('-20%p', { exact: true })).toHaveCount(0)
-  await panel.getByText('표본 수·제외 사유', { exact: true }).first().click()
+  await panel.getByText('비교 방식 · 모든 훈련', { exact: true }).click()
+  await panel.getByRole('checkbox', { name: '같은 상황과 설정으로 한 훈련만 비교' }).check()
   await expect(
-    panel.getByText('제외: 공통 훈련 조건 없음 3건', { exact: true }).first(),
+    panel.getByText('두 기간의 기록을 같은 기준으로 비교할 수 없어요.', { exact: true }),
   ).toBeVisible()
-  await panel.getByRole('button', { name: '이전 기간 기록', exact: true }).click()
+  await expect(panel.getByText(/이전보다/)).toHaveCount(0)
+  await panel.getByText('평균을 어떻게 계산하나요?', { exact: true }).click()
+  await expect(
+    panel
+      .getByText('계산에서 빠진 이유: 두 기간에 같은 상황과 설정의 훈련 없음 3건', { exact: true })
+      .first(),
+  ).toBeVisible()
+  await panel.getByText('훈련량 함께 보기', { exact: true }).click()
+  await panel.getByRole('button', { name: /^이전 기간 기록/ }).click()
   await expect
     .poll(() =>
       audit.requests.some(
@@ -100,6 +126,7 @@ test('applies filters, preserves unavailable matched comparisons, and opens a re
     .getByRole('button', { name: '다음' })
     .click()
   await expect(records.getByText('2 / 2')).toBeVisible()
+  await expect(records.getByRole('link').locator('svg')).toBeVisible()
   await records.getByRole('button', { name: '선택 해제' }).click()
   await expect(records.getByText('1 / 2')).toBeVisible()
   await records.getByRole('link').click()
@@ -120,7 +147,7 @@ test('loads scenario pages and the selected scenario series, then filters relate
   await pagination.getByRole('button', { name: '다음' }).click()
   await expect(pagination.getByText('2 / 2')).toBeVisible()
   await panel.getByRole('button', { name: /식당 예약.*직접 만든 상황/ }).click()
-  await expect(panel.getByRole('heading', { name: '지표 추이' })).toBeVisible()
+  await expect(panel.getByRole('region', { name: '불안 비교' })).toBeVisible()
   await expect
     .poll(() =>
       audit.requests.some(
@@ -133,10 +160,18 @@ test('loads scenario pages and the selected scenario series, then filters relate
       ),
     )
     .toBe(true)
-  await panel.getByLabel('조회할 지표').selectOption('responseDelayMs')
-  await page.screenshot({ path: 'test-results/dashboard-scenario-panel.png' })
   await panel
-    .getByRole('button', { name: /부분 구간|관련 기록 →/ })
+    .getByRole('group', { name: '지표 선택' })
+    .getByRole('button', { name: '응답 시간', exact: true })
+    .click()
+  await expect(panel.getByRole('region', { name: '응답 시간 비교' })).toBeVisible()
+  await page.screenshot({
+    path: 'test-results/dashboard-scenario-panel.png',
+    animations: 'disabled',
+  })
+  await panel.getByText('날짜별 변화', { exact: true }).click()
+  await panel
+    .getByRole('button', { name: /^10\..*훈련 기록$/ })
     .first()
     .click()
   await expect
@@ -150,8 +185,8 @@ test('loads scenario pages and the selected scenario series, then filters relate
       ),
     )
     .toBe(true)
-  await panel.getByText('훈련 조건별 분포', { exact: true }).click()
-  await panel.getByRole('button', { name: /직접 만든 상황 · 상황 #7 · 버전 v2/ }).click()
+  await panel.getByText('연습한 설정별 기록', { exact: true }).click()
+  await panel.getByRole('button', { name: /쉬움 · 친절함 · 힌트 2단계/ }).click()
   await expect
     .poll(() =>
       audit.requests.some(
@@ -180,7 +215,16 @@ test('cancels calendar edits and recovers from failed requests and empty results
   const panel = page.getByRole('dialog', { name: '기간 비교', exact: true })
   await expect(panel.getByText('기간 비교를 불러오지 못했어요')).toBeVisible()
   await panel.getByRole('button', { name: '다시 불러오기' }).click()
-  await expect(panel.getByText('-20%p', { exact: true }).first()).toBeVisible()
+  await expect(panel.getByText('이전보다 2점 낮아졌어요', { exact: true })).toBeVisible()
+  await panel
+    .getByRole('group', { name: '지표 선택' })
+    .getByRole('button', { name: '응답 시간', exact: true })
+    .click()
+  await expect(panel.getByRole('region', { name: '응답 시간 비교' })).toContainText('800ms')
+  await page.screenshot({
+    path: 'test-results/dashboard-comparison-mobile.png',
+    animations: 'disabled',
+  })
   const form = panel.getByRole('form', { name: '통계 상세 조회 조건' })
   const startDate = form.getByRole('button', { name: /^시작일/ })
   const initialDate = await startDate.textContent()

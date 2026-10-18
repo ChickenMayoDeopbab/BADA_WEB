@@ -1,14 +1,7 @@
-import type { DashboardCondition, DashboardQuery, DashboardStatus } from '@entities/dashboard'
+import type { DashboardCondition, DashboardQuery } from '@entities/dashboard'
 import { addDays, parseDateKey, toDateKey } from '@shared/lib'
 
 export type DashboardDetailView = 'comparison' | 'scenarios'
-
-export const dashboardStatusLabels: Record<DashboardStatus, string> = {
-  READY: '비교 가능',
-  INSUFFICIENT_DATA: '표본 부족',
-  NO_DATA: '측정 기록 없음',
-  NOT_COMPARABLE: '동일 조건 비교 불가',
-}
 
 const exclusionLabels: Record<string, string> = {
   MISSING_SELF_REPORT: '불안 점수 미입력',
@@ -17,10 +10,10 @@ const exclusionLabels: Record<string, string> = {
   MISSING_SPEECH_METRICS: '음성 측정 기록 없음',
   UNSUPPORTED_METRICS_VERSION: '지원하지 않는 분석 버전',
   UNAVAILABLE_METRIC: '측정할 수 없는 지표',
-  UNKNOWN_CONDITION: '훈련 조건 정보 없음',
-  NO_SHARED_CONDITION: '공통 훈련 조건 없음',
-  LOW_SAMPLE_SIZE: '표본 수 부족',
-  OTHER_PERIOD_LOW_SAMPLE_SIZE: '상대 기간의 표본 수 부족',
+  UNKNOWN_CONDITION: '훈련 설정 정보 없음',
+  NO_SHARED_CONDITION: '두 기간에 같은 상황과 설정의 훈련 없음',
+  LOW_SAMPLE_SIZE: '측정된 훈련이 적음',
+  OTHER_PERIOD_LOW_SAMPLE_SIZE: '다른 기간에 측정된 훈련이 적음',
 }
 
 /** 서버와 동일하게 서울 날짜를 기준으로 입력 가능한 종료일을 반환합니다. */
@@ -67,22 +60,14 @@ export const formatDashboardDelta = (value: number | null, unit: string) => {
   return `${value > 0 ? '+' : ''}${value.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}${suffix}`
 }
 
-/** 조회에 사용된 훈련 조건을 기록 탐색에서도 알아볼 수 있도록 요약합니다. */
+/** 사용자가 고른 설정만 읽기 쉬운 이름으로 요약합니다. */
 export const formatDashboardCondition = (condition: DashboardCondition) => {
   const personalities = { KIND: '친절함', NORMAL: '보통', TOUGH: '까다로움', RUDE: '무례함' }
   const difficulties: Record<string, string> = { low: '쉬움', medium: '보통', high: '어려움' }
-  return [
-    condition.sessionType === 'CUSTOM'
-      ? '직접 만든 상황'
-      : condition.sessionType === 'SCENARIO'
-        ? '기본 상황'
-        : '유형 정보 없음',
-    condition.scenarioId ? `상황 #${condition.scenarioId}` : '상황 정보 없음',
-    condition.scenarioVersion ? `버전 ${condition.scenarioVersion}` : '버전 정보 없음',
-    condition.difficulty
-      ? (difficulties[condition.difficulty] ?? condition.difficulty)
-      : '난이도 정보 없음',
-    condition.aiPersonality ? personalities[condition.aiPersonality] : '성격 정보 없음',
-    condition.scriptLevel ? `힌트 ${condition.scriptLevel}단계` : '힌트 정보 없음',
-  ].join(' · ')
+  const labels = [
+    condition.difficulty ? (difficulties[condition.difficulty] ?? condition.difficulty) : null,
+    condition.aiPersonality ? personalities[condition.aiPersonality] : null,
+    condition.scriptLevel != null ? `힌트 ${condition.scriptLevel}단계` : null,
+  ].filter(Boolean)
+  return labels.length ? labels.join(' · ') : '설정 정보가 없는 훈련'
 }

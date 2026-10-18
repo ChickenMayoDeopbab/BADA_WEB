@@ -35,10 +35,13 @@ export const DashboardDetailFilters = ({ model }: { model: DashboardDetailsModel
           ))}
         </div>
         <details className="text-label text-label-neutral">
-          <summary className="cursor-pointer">훈련 조건</summary>
+          <summary className="cursor-pointer">훈련 골라보기</summary>
+          <p className="mt-2 text-caption text-label-alternative">
+            특정 유형·난이도·말투·힌트로 연습한 훈련만 볼 수 있어요. 기본은 전체예요.
+          </p>
           <div className="mt-3 gap-3 grid grid-cols-2">
             <label className="gap-2 flex flex-col">
-              훈련 유형
+              시나리오 종류
               <select
                 value={draft.sessionType ?? ''}
                 onChange={(event) =>
@@ -91,7 +94,7 @@ export const DashboardDetailFilters = ({ model }: { model: DashboardDetailsModel
               </select>
             </label>
             <label className="gap-2 flex flex-col">
-              상대 성격
+              상대 말투
               <select
                 value={draft.aiPersonality ?? ''}
                 onChange={(event) =>
@@ -110,19 +113,21 @@ export const DashboardDetailFilters = ({ model }: { model: DashboardDetailsModel
                 <option value="RUDE">무례함</option>
               </select>
             </label>
-            <label className="gap-2 flex flex-col">
-              추이 단위
-              <select
-                value={draft.interval}
-                onChange={(event) =>
-                  setDraft({ ...draft, interval: event.target.value as DashboardInterval })
-                }
-                className={detailFieldClass}
-              >
-                <option value="DAY">일별</option>
-                <option value="WEEK">주별</option>
-              </select>
-            </label>
+            {model.view === 'scenarios' && (
+              <label className="gap-2 flex flex-col">
+                추이 단위
+                <select
+                  value={draft.interval}
+                  onChange={(event) =>
+                    setDraft({ ...draft, interval: event.target.value as DashboardInterval })
+                  }
+                  className={detailFieldClass}
+                >
+                  <option value="DAY">일별</option>
+                  <option value="WEEK">주별</option>
+                </select>
+              </label>
+            )}
           </div>
         </details>
         {model.validationError && (

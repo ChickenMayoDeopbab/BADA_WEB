@@ -78,6 +78,13 @@ export const prepareDashboardDetails = async (page: Page) => {
   const requests: URL[] = []
   let failures = 0
   let isEmpty = false
+  await page.route('**/__e2e/missing-icon.svg', (route) => route.fulfill({ status: 404, body: '' }))
+  await page.route('**/__e2e/food-icon.svg', (route) =>
+    route.fulfill({
+      contentType: 'image/svg+xml',
+      body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><text x="4" y="36" font-size="34">🍽</text></svg>',
+    }),
+  )
   await page.route('**/api/v1/dashboard/comparison?*', (route) => {
     const url = new URL(route.request().url())
     requests.push(url)
@@ -108,7 +115,7 @@ export const prepareDashboardDetails = async (page: Page) => {
     return route.fulfill({
       json: {
         data: {
-          meta: overview.meta,
+          meta: makeComparison(overview.meta.period.from, overview.meta.period.to).meta,
           items: isEmpty ? [] : [scenario],
           page: Number(url.searchParams.get('page')),
           size: Number(url.searchParams.get('size')),
@@ -135,6 +142,9 @@ export const prepareDashboardDetails = async (page: Page) => {
                   scenarioName: '식당 예약',
                   sessionType: 'CUSTOM',
                   durationSeconds: 60,
+                  categoryIconUrl:
+                    recordId === 42 ? '/__e2e/food-icon.svg' : '/__e2e/missing-icon.svg',
+                  scenarioImage: '/__e2e/unused-scenario.png',
                 },
               ],
           number: Number(url.searchParams.get('page') ?? 0),
