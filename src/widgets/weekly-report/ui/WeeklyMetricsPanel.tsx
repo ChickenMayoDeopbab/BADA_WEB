@@ -1,47 +1,35 @@
 import {
   buildWeeklyMetricDays,
-  METRIC_MAX_SCORE,
-  type MetricKey,
+  formatWeeklyMetric,
+  getWeeklyMetricBarHeight,
+  weeklyMetrics,
 } from '../model/buildWeeklyMetricDays'
 import { Skeleton, LoadingRegion, StatusState } from '@shared/ui'
-import { useDashboardMetrics } from '@entities/dashboard'
-import conversationDot from '@shared/assets/dashboard/legend-conversation.svg'
-import fluencyDot from '@shared/assets/dashboard/legend-fluency.svg'
-import stabilityDot from '@shared/assets/dashboard/legend-stability.svg'
+import { useWeeklyDashboardOverview } from '@entities/dashboard'
 
-const BAR_MAX_HEIGHT = 84
-const EMPTY_BAR_HEIGHT = 4
-
-const METRICS: { key: MetricKey; label: string; dot: string; barClassName: string }[] = [
-  { key: 'stability', label: '안정도', dot: stabilityDot, barClassName: 'bg-metric-stability' },
-  {
-    key: 'conversation',
-    label: '대화 유지',
-    dot: conversationDot,
-    barClassName: 'bg-metric-conversation',
-  },
-  { key: 'fluency', label: '유창성', dot: fluencyDot, barClassName: 'bg-metric-fluency' },
-]
-
-// 점수를 막대 높이로 변환합니다. 기록이 없으면 최소 높이 막대를 표시합니다.
-const getBarHeight = (score: number | null) =>
-  score === null
-    ? EMPTY_BAR_HEIGHT
-    : Math.max(EMPTY_BAR_HEIGHT, Math.round((score / METRIC_MAX_SCORE) * BAR_MAX_HEIGHT))
-
-// 이번 주 요일별 안정도·대화 유지·유창성 점수를 막대 차트로 표시합니다.
+/** 기존 주간 차트 영역에 개요 API의 6개 지표를 원래 단위로 표시합니다. */
 export const WeeklyMetricsPanel = () => {
-  const { data: metrics, isError, isPending, refetch, isFetching } = useDashboardMetrics()
-  const days = buildWeeklyMetricDays(metrics)
+  const { data: overview, isError, isPending, refetch, isFetching } = useWeeklyDashboardOverview()
+  const days = buildWeeklyMetricDays(overview)
 
   return (
     <section className="min-w-0 gap-2.5 p-5 rounded-2xl flex h-full min-h-[240px] flex-1 flex-col bg-fill-normal">
       <h2 className="text-headline1 font-bold text-label-normal">{'주간 지표'}</h2>
-      <ul className="gap-3.5 flex items-center">
-        {METRICS.map((metric) => (
-          <li key={metric.key} className="flex items-center gap-[5px]">
-            <img src={metric.dot} alt="" width={8} height={8} />
-            <span className="text-caption font-medium text-label-neutral">{metric.label}</span>
+      <ul
+        aria-label="주간 지표 평균"
+        className="gap-3.5 flex shrink-0 items-center overflow-x-auto"
+      >
+        {weeklyMetrics.map((metric) => (
+          <li
+            key={metric.key}
+            className="flex shrink-0 items-center gap-[5px]"
+            title={metric.description}
+          >
+            <span aria-hidden="true" className={`size-2 rounded-pill ${metric.colorClassName}`} />
+            <span className="text-caption font-medium whitespace-nowrap text-label-neutral">
+              {metric.label}
+              {overview && ` ${formatWeeklyMetric(overview.metrics[metric.key], metric.unit)}`}
+            </span>
           </li>
         ))}
       </ul>
@@ -53,7 +41,7 @@ export const WeeklyMetricsPanel = () => {
             ))}
           </div>
         </LoadingRegion>
-      ) : isError && !metrics ? (
+      ) : isError && !overview ? (
         <StatusState
           isError
           title={'주간 지표를 불러오지 못했어요'}
@@ -61,19 +49,23 @@ export const WeeklyMetricsPanel = () => {
           isRetrying={isFetching}
         />
       ) : (
-        <ol className="flex w-full items-start">
+        <ol aria-label="요일별 훈련 지표" className="flex w-full items-start">
           {days.map((day) => (
             <li key={day.dateKey} className="min-w-0 gap-1.5 flex flex-1 flex-col items-center">
-              <div className="gap-1 flex h-[84px] items-end justify-center">
-                {METRICS.map((metric) => {
-                  const score = day.scores[metric.key]
-
+              <div className="gap-0.5 flex h-[84px] items-end justify-center">
+                {weeklyMetrics.map((metric) => {
+                  const measurement = day.metrics[metric.key]
+                  const isMissing =
+                    !measurement || measurement.value === null || measurement.status === 'NO_DATA'
+                  const label = `${day.dateKey} ${metric.label} ${formatWeeklyMetric(measurement, metric.unit)}`
                   return (
                     <span
                       key={metric.key}
-                      className={`ux-transition w-2.5 transition-[height] ${score === null ? 'rounded-[2px]' : 'rounded-[3px]'} ${metric.barClassName}`}
-                      style={{ height: getBarHeight(score) }}
-                      title={`${metric.label} ${score === null ? '기록 없음' : `${score}점`}`}
+                      role="img"
+                      aria-label={label}
+                      title={`${label} · 표본 ${measurement?.sampleCount ?? 0}건`}
+                      className={`ux-transition w-1 rounded-control transition-[height] ${isMissing ? 'bg-fill-alternative' : metric.colorClassName}`}
+                      style={{ height: getWeeklyMetricBarHeight(day, metric.key, days) }}
                     />
                   )
                 })}
@@ -84,7 +76,9 @@ export const WeeklyMetricsPanel = () => {
         </ol>
       )}
       <p className="text-caption text-neutral-60">
-        {isError ? '주간 지표를 불러오지 못했어요' : '각 지표는 높을수록 좋아요'}
+        {isError
+          ? '주간 지표를 불러오지 못했어요'
+          : '불안 0~10점 · 비율 0~100% · 응답 시간은 주간 최댓값 기준 · 회색은 미측정'}
       </p>
     </section>
   )

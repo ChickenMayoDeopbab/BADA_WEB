@@ -137,6 +137,12 @@ export const SEMANTIC_COLORS = {
     stability: '#62DC75',
     conversation: '#4A86D8',
     fluency: '#D9A94F',
+    anxiety: PALETTE.green[40],
+    tremor: PALETTE.blue[40],
+    pause: PALETTE.yellow[40],
+    quiet: PALETTE.red[40],
+    fast: PALETTE.neutral[50],
+    delay: '#1E2546',
   },
 } as const
 

@@ -144,6 +144,12 @@
   --color-metric-stability: #62dc75;
   --color-metric-conversation: #4a86d8;
   --color-metric-fluency: #d9a94f;
+  --color-metric-anxiety: var(--color-green-40);
+  --color-metric-tremor: var(--color-blue-40);
+  --color-metric-pause: var(--color-yellow-40);
+  --color-metric-quiet: var(--color-red-40);
+  --color-metric-fast: var(--color-neutral-50);
+  --color-metric-delay: #1e2546;
 }
 
 .dark {
