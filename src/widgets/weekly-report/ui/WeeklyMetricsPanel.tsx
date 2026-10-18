@@ -17,7 +17,7 @@ export const WeeklyMetricsPanel = () => {
       <h2 className="text-headline1 font-bold text-label-normal">{'주간 지표'}</h2>
       <ul
         aria-label="주간 지표 평균"
-        className="gap-3.5 flex shrink-0 items-center overflow-x-auto"
+        className="gap-3.5 flex shrink-0 [scrollbar-width:none] items-center overflow-x-auto [&::-webkit-scrollbar]:hidden"
       >
         {weeklyMetrics.map((metric) => (
           <li
