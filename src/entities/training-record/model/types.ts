@@ -46,3 +46,16 @@ export interface TrainingRecordSummary {
   scenarioImage?: string
   categoryIconUrl?: string
 }
+
+export interface TrainingRecordPageParams {
+  page?: number
+  size?: number
+  from?: string
+  to?: string
+  sessionType?: TrainingSessionType
+  scenarioId?: number
+  scenarioVersion?: string
+  difficulty?: string
+  aiPersonality?: 'KIND' | 'NORMAL' | 'TOUGH' | 'RUDE'
+  scriptLevel?: number
+}

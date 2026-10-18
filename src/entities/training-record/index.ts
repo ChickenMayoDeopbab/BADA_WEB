@@ -6,5 +6,6 @@ export type {
   TrainingPeriodOption,
   TrainingRecord,
   TrainingRecordSummary,
+  TrainingRecordPageParams,
   TrainingSessionType,
 } from './model/types'
