@@ -34,7 +34,10 @@ const RecordIcon = ({ record }: { record: TrainingRecordSummary }) => {
 
 /** 관련 기록을 아이콘·훈련명·통화 시간·화살표로 표시하고 기존 상세로 연결합니다. */
 export const DashboardRelatedRecords = ({ model }: { model: DashboardDetailsModel }) => (
-  <section aria-label="관련 훈련 기록" className="space-y-3 pt-5 border-t border-line-alternative">
+  <section
+    aria-label="관련 훈련 기록"
+    className="mx-2 space-y-4 pt-6 border-t border-line-alternative"
+  >
     <div className="gap-2 flex flex-wrap items-center justify-between">
       <h3 className="text-headline2 font-bold text-label-normal">관련 훈련 기록</h3>
       {model.hasRecordSelection && (
@@ -49,20 +52,22 @@ export const DashboardRelatedRecords = ({ model }: { model: DashboardDetailsMode
           {data.content.length === 0 ? (
             <StatusState title="관련 훈련 기록이 없어요" />
           ) : (
-            <ul className="divide-y divide-line-alternative">
+            <ul className="space-y-2">
               {data.content.map((record) => (
                 <li key={record.recordId}>
                   <Link
                     to={`${routePaths.records}?recordId=${record.recordId}&trainedAt=${encodeURIComponent(record.trainedAt)}`}
                     aria-label={`${record.scenarioName}, 통화 시간 ${formatDuration(record.durationSeconds)}`}
-                    className="gap-3 py-3 flex items-center rounded-control hover:bg-fill-pressed"
+                    className="gap-3 p-3 flex items-center rounded-component transition-colors hover:bg-fill-normal active:bg-fill-pressed"
                   >
                     <RecordIcon record={record} />
-                    <span className="min-w-0 flex-1 truncate text-body font-bold text-label-normal">
-                      {record.scenarioName}
-                    </span>
-                    <span className="shrink-0 text-caption text-label-alternative">
-                      {formatDuration(record.durationSeconds)}
+                    <span className="min-w-0 space-y-1 flex-1">
+                      <span className="block truncate text-body font-bold text-label-normal">
+                        {record.scenarioName}
+                      </span>
+                      <span className="block text-caption text-label-alternative">
+                        {formatDuration(record.durationSeconds)}
+                      </span>
                     </span>
                     <img src={rowArrow} alt="" className="shrink-0" />
                   </Link>

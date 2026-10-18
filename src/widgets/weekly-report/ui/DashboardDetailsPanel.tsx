@@ -1,3 +1,4 @@
+import './dashboardDetails.css'
 import { OverlayPortal, BackIcon } from '@shared/ui'
 import { useDialogFocus } from '@shared/lib'
 import type { DashboardDetailsModel } from '../model/useDashboardDetails'
@@ -28,7 +29,7 @@ export const DashboardDetailsPanel = ({ model }: { model: DashboardDetailsModel 
         role="dialog"
         aria-modal="true"
         aria-labelledby="dashboard-details-title"
-        className={`ux-drawer bottom-4 right-4 top-4 gap-5 fixed z-70 flex w-[540px] max-w-[calc(100%-32px)] flex-col overflow-hidden rounded-dialog bg-background-normal p-[30px] shadow-elevated-card ${
+        className={`dashboard-details-surface ux-drawer bottom-4 right-4 top-4 gap-5 fixed z-70 flex w-[540px] max-w-[calc(100%-32px)] flex-col overflow-hidden rounded-dialog bg-background-normal p-[30px] shadow-elevated-card ${
           model.isOpen
             ? 'animate-[record-detail-enter_320ms_cubic-bezier(0.22,1,0.36,1)]'
             : 'pointer-events-none animate-[record-detail-exit_260ms_cubic-bezier(0.4,0,1,1)]'

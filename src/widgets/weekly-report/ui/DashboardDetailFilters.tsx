@@ -1,18 +1,17 @@
-import type {
-  DashboardInterval,
-  DashboardPersonality,
-  DashboardSessionType,
-} from '@entities/dashboard'
+import { IoOptionsOutline } from 'react-icons/io5'
 import type { DashboardDetailsModel } from '../model/useDashboardDetails'
 import calendarIcon from '@shared/assets/training-records/calendar.svg'
 import { useDashboardDateCalendar } from '../model/useDashboardDateCalendar'
+import { useDashboardFilterDialog } from '../model/useDashboardFilterDialog'
 import { DashboardDateCalendar } from './DashboardDateCalendar'
+import { DashboardFilterDialog } from './DashboardFilterDialog'
 import { detailButtonClass, detailFieldClass } from './DashboardDetailParts'
 
 /** 날짜와 훈련 조건을 입력하고 명시적으로 적용합니다. */
 export const DashboardDetailFilters = ({ model }: { model: DashboardDetailsModel }) => {
   const { draft, setDraft } = model
   const calendar = useDashboardDateCalendar(draft, (range) => setDraft({ ...draft, ...range }))
+  const filters = useDashboardFilterDialog(model)
   return (
     <>
       <form onSubmit={model.handleApply} aria-label="통계 상세 조회 조건" className="space-y-3">
@@ -26,7 +25,7 @@ export const DashboardDetailFilters = ({ model }: { model: DashboardDetailsModel
                 aria-haspopup="dialog"
                 aria-expanded={calendar.isOpen}
                 onClick={() => calendar.handleOpen(field)}
-                className={`${detailFieldClass} gap-2 flex items-center justify-between text-left hover:border-primary-normal`}
+                className={`${detailFieldClass} gap-2 flex items-center justify-between text-left hover:border-line-neutral`}
               >
                 <span id={`dashboard-${field}-value`}>{draft[field].replaceAll('-', '.')}</span>
                 <img src={calendarIcon} alt="" className="size-5 shrink-0" />
@@ -34,112 +33,33 @@ export const DashboardDetailFilters = ({ model }: { model: DashboardDetailsModel
             </div>
           ))}
         </div>
-        <details className="text-label text-label-neutral">
-          <summary className="cursor-pointer">훈련 골라보기</summary>
-          <p className="mt-2 text-caption text-label-alternative">
-            특정 유형·난이도·말투·힌트로 연습한 훈련만 볼 수 있어요. 기본은 전체예요.
-          </p>
-          <div className="mt-3 gap-3 grid grid-cols-2">
-            <label className="gap-2 flex flex-col">
-              시나리오 종류
-              <select
-                value={draft.sessionType ?? ''}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    sessionType: (event.target.value || undefined) as
-                      DashboardSessionType | undefined,
-                  })
-                }
-                className={detailFieldClass}
-              >
-                <option value="">전체</option>
-                <option value="SCENARIO">기본 상황</option>
-                <option value="CUSTOM">직접 만든 상황</option>
-              </select>
-            </label>
-            <label className="gap-2 flex flex-col">
-              힌트 단계
-              <select
-                value={draft.scriptLevel ?? ''}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    scriptLevel: event.target.value ? Number(event.target.value) : undefined,
-                  })
-                }
-                className={detailFieldClass}
-              >
-                <option value="">전체</option>
-                {[1, 2, 3].map((level) => (
-                  <option key={level} value={level}>
-                    {level}단계
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="gap-2 flex flex-col">
-              난이도
-              <select
-                value={draft.difficulty ?? ''}
-                onChange={(event) =>
-                  setDraft({ ...draft, difficulty: event.target.value || undefined })
-                }
-                className={detailFieldClass}
-              >
-                <option value="">전체</option>
-                <option value="low">쉬움</option>
-                <option value="medium">보통</option>
-                <option value="high">어려움</option>
-              </select>
-            </label>
-            <label className="gap-2 flex flex-col">
-              상대 말투
-              <select
-                value={draft.aiPersonality ?? ''}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    aiPersonality: (event.target.value || undefined) as
-                      DashboardPersonality | undefined,
-                  })
-                }
-                className={detailFieldClass}
-              >
-                <option value="">전체</option>
-                <option value="KIND">친절함</option>
-                <option value="NORMAL">보통</option>
-                <option value="TOUGH">까다로움</option>
-                <option value="RUDE">무례함</option>
-              </select>
-            </label>
-            {model.view === 'scenarios' && (
-              <label className="gap-2 flex flex-col">
-                추이 단위
-                <select
-                  value={draft.interval}
-                  onChange={(event) =>
-                    setDraft({ ...draft, interval: event.target.value as DashboardInterval })
-                  }
-                  className={detailFieldClass}
-                >
-                  <option value="DAY">일별</option>
-                  <option value="WEEK">주별</option>
-                </select>
-              </label>
-            )}
-          </div>
-        </details>
         {model.validationError && (
           <p role="alert" className="text-label text-status-error">
             {model.validationError}
           </p>
         )}
-        <button type="submit" className={`${detailButtonClass} bg-primary-normal`}>
-          적용하기
-        </button>
+        <div className="gap-3 flex items-center justify-between">
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            aria-expanded={filters.isOpen}
+            onClick={filters.handleOpen}
+            className="gap-2 px-3 py-2 flex items-center rounded-control border border-line-normal text-label text-label-neutral hover:bg-fill-normal"
+          >
+            <IoOptionsOutline size={18} aria-hidden="true" />
+            훈련 골라보기
+          </button>
+          <button type="submit" className={`${detailButtonClass} bg-primary-normal`}>
+            적용하기
+          </button>
+        </div>
       </form>
       <DashboardDateCalendar model={calendar} />
+      <DashboardFilterDialog
+        model={filters}
+        isScenarioView={model.view === 'scenarios'}
+        error={model.validationError}
+      />
     </>
   )
 }

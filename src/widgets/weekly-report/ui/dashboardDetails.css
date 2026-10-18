@@ -1,0 +1,4 @@
+/* 패널과 검색 모달의 키보드 초점은 중립색으로 표시합니다. */
+.dashboard-details-surface :focus-visible {
+  outline-color: var(--color-line-neutral);
+}

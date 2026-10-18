@@ -8,6 +8,7 @@ import {
   type DashboardFilters,
   type DashboardMetricKey,
   type DashboardScenario,
+  type DashboardQuery,
 } from '@entities/dashboard'
 import { useTrainingRecordPage } from '@entities/training-record'
 import { validateDashboardDetailsPeriod, type DashboardDetailView } from './dashboardDetails'
@@ -88,17 +89,24 @@ export const useDashboardDetails = () => {
     setView(next)
   }
 
-  /** 유효한 기간·조건만 적용하고 이전 선택과 페이지를 초기화합니다. */
-  const handleApply = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const error = validateDashboardDetailsPeriod(draft)
+  /** 날짜와 모달의 설정을 함께 적용하고 이전 선택과 페이지를 초기화합니다. */
+  const handleApplyQuery = (next: DashboardQuery) => {
+    const error = validateDashboardDetailsPeriod(next)
     setValidationError(error)
-    if (error) return
-    setQuery(draft)
+    if (error) return false
+    setDraft(next)
+    setQuery(next)
     setScenarioPage(0)
     setSelectedScenario(null)
     setRecordSelection({})
     setRecordPage(0)
+    return true
+  }
+
+  /** 날짜 조회 폼의 적용 요청을 처리합니다. */
+  const handleApply = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    handleApplyQuery(draft)
   }
 
   /** 선택한 상황의 추이와 같은 상황의 기록을 조회합니다. */
@@ -168,6 +176,7 @@ export const useDashboardDetails = () => {
     handleOpen,
     handleClose,
     handleApply,
+    handleApplyQuery,
     handleSelectScenario,
     handleSelectPeriod,
     handleSelectCondition,

@@ -17,6 +17,10 @@ test('opens comparison on demand, displays API values, and restores focus after 
   await expect(panel.getByText('이전보다 2점 낮아졌어요', { exact: true })).toBeVisible()
   const metrics = panel.getByRole('group', { name: '지표 선택' })
   await expect(metrics.getByRole('button')).toHaveCount(6)
+  const tabBounds = await metrics
+    .getByRole('button')
+    .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().top))
+  expect(new Set(tabBounds).size).toBe(1)
   await metrics.getByRole('button', { name: '떨림', exact: true }).click()
   await expect(panel.getByRole('region', { name: '불안 비교', exact: true })).toHaveCount(0)
   const comparison = panel.getByRole('region', { name: '떨림 비교', exact: true })
@@ -80,10 +84,16 @@ test('applies filters, preserves unavailable matched comparisons, and opens a re
   expect(
     audit.requests.filter((url) => url.pathname.endsWith('/dashboard/comparison')),
   ).toHaveLength(1)
-  await form.getByText('훈련 골라보기', { exact: true }).click()
-  await form.getByLabel('시나리오 종류').selectOption('CUSTOM')
-  await form.getByLabel('힌트 단계').selectOption('2')
-  await form.getByRole('button', { name: '적용하기' }).click()
+  await form.getByRole('button', { name: '훈련 골라보기', exact: true }).click()
+  const filters = page.getByRole('dialog', { name: '훈련 골라보기', exact: true })
+  await filters.getByLabel('시나리오 종류').selectOption('CUSTOM')
+  await filters.getByLabel('힌트 단계').selectOption('2')
+  await page.screenshot({
+    path: 'test-results/dashboard-filter-dialog.png',
+    animations: 'disabled',
+  })
+  await filters.getByRole('button', { name: '적용', exact: true }).click()
+  await expect(filters).toHaveCount(0)
   await expect
     .poll(() =>
       audit.requests.some(
@@ -95,19 +105,19 @@ test('applies filters, preserves unavailable matched comparisons, and opens a re
       ),
     )
     .toBe(true)
-  await panel.getByText('비교 방식 · 모든 훈련', { exact: true }).click()
+  await panel.getByRole('button', { name: '비교 방식 · 모든 훈련', exact: true }).click()
   await panel.getByRole('checkbox', { name: '같은 상황과 설정으로 한 훈련만 비교' }).check()
   await expect(
     panel.getByText('두 기간의 기록을 같은 기준으로 비교할 수 없어요.', { exact: true }),
   ).toBeVisible()
   await expect(panel.getByText(/이전보다/)).toHaveCount(0)
-  await panel.getByText('평균을 어떻게 계산하나요?', { exact: true }).click()
+  await panel.getByRole('button', { name: '평균을 어떻게 계산하나요?', exact: true }).click()
   await expect(
     panel
       .getByText('계산에서 빠진 이유: 두 기간에 같은 상황과 설정의 훈련 없음 3건', { exact: true })
       .first(),
   ).toBeVisible()
-  await panel.getByText('훈련량 함께 보기', { exact: true }).click()
+  await panel.getByRole('button', { name: '훈련량 함께 보기', exact: true }).click()
   await panel.getByRole('button', { name: /^이전 기간 기록/ }).click()
   await expect
     .poll(() =>
@@ -169,7 +179,7 @@ test('loads scenario pages and the selected scenario series, then filters relate
     path: 'test-results/dashboard-scenario-panel.png',
     animations: 'disabled',
   })
-  await panel.getByText('날짜별 변화', { exact: true }).click()
+  await panel.getByRole('button', { name: '날짜별 변화', exact: true }).click()
   await panel
     .getByRole('button', { name: /^10\..*훈련 기록$/ })
     .first()
@@ -185,7 +195,7 @@ test('loads scenario pages and the selected scenario series, then filters relate
       ),
     )
     .toBe(true)
-  await panel.getByText('연습한 설정별 기록', { exact: true }).click()
+  await panel.getByRole('button', { name: '연습한 설정별 기록', exact: true }).click()
   await panel.getByRole('button', { name: /쉬움 · 친절함 · 힌트 2단계/ }).click()
   await expect
     .poll(() =>
@@ -221,6 +231,15 @@ test('cancels calendar edits and recovers from failed requests and empty results
     .getByRole('button', { name: '응답 시간', exact: true })
     .click()
   await expect(panel.getByRole('region', { name: '응답 시간 비교' })).toContainText('800ms')
+  const metricButtons = panel.getByRole('group', { name: '지표 선택' }).getByRole('button')
+  const metricGeometry = await metricButtons.evaluateAll((buttons) =>
+    buttons.map((button) => ({
+      top: button.getBoundingClientRect().top,
+      fits: button.scrollWidth <= button.clientWidth,
+    })),
+  )
+  expect(new Set(metricGeometry.map(({ top }) => top)).size).toBe(1)
+  expect(metricGeometry.every(({ fits }) => fits)).toBe(true)
   await page.screenshot({
     path: 'test-results/dashboard-comparison-mobile.png',
     animations: 'disabled',
@@ -293,4 +312,69 @@ test('respects reduced motion and reopens the drawer after closing', async ({ pa
   await trigger.click()
   await expect(panel).toBeVisible()
   await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('overflow-y', 'hidden')
+})
+
+// 검색 취소·초점 복원과 펼침 애니메이션, 기록 행 배치를 검증합니다.
+test('cancels filter edits, animates disclosures, and spaces record rows', async ({ page }) => {
+  const audit = await prepareDashboardDetails(page)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/dashboard')
+  await page.getByRole('button', { name: '기간 비교', exact: true }).click()
+  const panel = page.getByRole('dialog', { name: '기간 비교', exact: true })
+  await expect(panel.getByText('이전보다 2점 낮아졌어요')).toBeVisible()
+  const trigger = panel.getByRole('button', { name: '훈련 골라보기', exact: true })
+  await trigger.click()
+  const filters = page.getByRole('dialog', { name: '훈련 골라보기', exact: true })
+  await filters.getByLabel('난이도').selectOption('high')
+  await filters.getByLabel('난이도').focus()
+  await expect(filters.getByLabel('난이도')).not.toHaveCSS('outline-color', 'rgb(10, 227, 101)')
+  await page.screenshot({
+    path: 'test-results/dashboard-filter-mobile.png',
+    animations: 'disabled',
+  })
+  await page.keyboard.press('Escape')
+  await expect(filters).toHaveCount(0)
+  await expect(panel).toBeVisible()
+  await expect(trigger).toBeFocused()
+  await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('overflow-y', 'hidden')
+  await trigger.click()
+  await expect(filters.getByLabel('난이도')).toHaveValue('')
+  await filters.getByRole('button', { name: '취소', exact: true }).click()
+  expect(
+    audit.requests.filter((url) => url.pathname.endsWith('/dashboard/comparison')),
+  ).toHaveLength(1)
+
+  const disclosure = panel.getByRole('button', { name: '훈련량 함께 보기', exact: true })
+  const body = page.locator(`[id="${await disclosure.getAttribute('aria-controls')}"]`)
+  await expect(disclosure).toHaveAttribute('aria-expanded', 'false')
+  await expect(body).toHaveCSS('height', '0px')
+  await disclosure.click()
+  await expect(disclosure).toHaveAttribute('aria-expanded', 'true')
+  await expect(body).toHaveCSS('transition-property', 'grid-template-rows, opacity')
+  await expect(body).toHaveCSS('transition-duration', '0.4s')
+  await expect(body.getByRole('button', { name: /^이전 기간 기록/ })).toBeVisible()
+  await disclosure.click()
+  await expect(body).toHaveCSS('height', '0px')
+  await expect(body).toHaveAttribute('inert', '')
+
+  const records = panel.getByRole('region', { name: '관련 훈련 기록' })
+  const row = records.getByRole('link')
+  await row.scrollIntoViewIfNeeded()
+  const title = await row.getByText('식당 예약', { exact: true }).boundingBox()
+  const time = await row.getByText('1분 0초', { exact: true }).boundingBox()
+  expect(time!.y).toBeGreaterThanOrEqual(title!.y + title!.height)
+  const leftPadding = await row.evaluate((element) => getComputedStyle(element).paddingLeft)
+  expect(leftPadding).toBe('12px')
+  const before = await row.evaluate((element) => getComputedStyle(element).backgroundColor)
+  await row.hover()
+  await expect
+    .poll(() => row.evaluate((element) => getComputedStyle(element).backgroundColor))
+    .not.toBe(before)
+  await page.screenshot({
+    path: 'test-results/dashboard-record-row-mobile.png',
+    animations: 'disabled',
+  })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(body).toHaveCSS('transition-duration', '0s')
+  expect(audit.errors).toEqual([])
 })

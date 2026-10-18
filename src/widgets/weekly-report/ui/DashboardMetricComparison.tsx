@@ -1,3 +1,4 @@
+import { DashboardDisclosure } from './DashboardDisclosure'
 import type { DashboardMetricComparison as MetricComparison } from '@entities/dashboard'
 import { weeklyMetrics } from '../model/buildWeeklyMetricDays'
 import {
@@ -19,9 +20,8 @@ const MetricCalculationDetails = ({
 }) => {
   const comparison = metric[mode]
   return (
-    <details className="text-label text-label-neutral">
-      <summary className="cursor-pointer">평균을 어떻게 계산하나요?</summary>
-      <div className="mt-3 space-y-3 text-caption text-label-alternative">
+    <DashboardDisclosure title="평균을 어떻게 계산하나요?">
+      <div className="space-y-3 text-caption text-label-alternative">
         <p>선택한 지표를 측정할 수 있었던 훈련만 평균 계산에 사용해요.</p>
         {(
           [
@@ -45,7 +45,7 @@ const MetricCalculationDetails = ({
           <p>두 기간에 공통으로 있는 설정 {metric.matched.conditionCount}가지로 비교했어요.</p>
         )}
       </div>
-    </details>
+    </DashboardDisclosure>
   )
 }
 
@@ -108,11 +108,10 @@ export const DashboardMetricComparison = ({
           )}
         </div>
       </div>
-      <details className="text-label text-label-neutral">
-        <summary className="cursor-pointer">
-          비교 방식 · {model.mode === 'overall' ? '모든 훈련' : '같은 상황과 설정'}
-        </summary>
-        <div className="mt-3 space-y-3">
+      <DashboardDisclosure
+        title={`비교 방식 · ${model.mode === 'overall' ? '모든 훈련' : '같은 상황과 설정'}`}
+      >
+        <div className="space-y-3">
           <p className="text-caption text-label-alternative">
             기본은 두 기간의 모든 훈련을 비교해요. 아래 항목을 켜면 상황·난이도·상대 말투·힌트 등이
             같은 훈련끼리 비교해요.
@@ -127,7 +126,7 @@ export const DashboardMetricComparison = ({
             같은 상황과 설정으로 한 훈련만 비교
           </label>
         </div>
-      </details>
+      </DashboardDisclosure>
       <MetricCalculationDetails
         key={`${metric.key}-${model.mode}`}
         metric={metric}

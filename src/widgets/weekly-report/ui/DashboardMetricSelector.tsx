@@ -9,20 +9,22 @@ export const DashboardMetricSelector = ({
   value: DashboardMetricKey
   onChange: (key: DashboardMetricKey) => void
 }) => (
-  <div role="group" aria-label="지표 선택" className="gap-2 grid grid-cols-3">
+  <div role="group" aria-label="지표 선택" className="gap-1 sm:gap-2 flex">
     {weeklyMetrics.map(({ key, label }) => (
       <button
         key={key}
         type="button"
         aria-pressed={value === key}
         onClick={() => onChange(key)}
-        className={`min-w-0 px-2 py-2.5 rounded-control text-label font-medium transition-colors ${
+        className={`min-w-0 px-1 py-2 sm:flex-1 sm:px-2 sm:py-2.5 grow rounded-control border bg-background-normal transition-colors ${
           value === key
-            ? 'bg-primary-alternative font-bold text-label-normal'
-            : 'bg-fill-normal text-label-alternative hover:bg-fill-pressed'
+            ? 'border-primary-normal text-primary-normal'
+            : 'border-line-neutral text-label-alternative hover:bg-fill-normal'
         }`}
       >
-        {label}
+        <span className="sm:text-label block text-caption font-bold whitespace-nowrap">
+          {label}
+        </span>
       </button>
     ))}
   </div>

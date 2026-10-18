@@ -1,3 +1,4 @@
+import { DashboardDisclosure } from './DashboardDisclosure'
 import type { DashboardDetailsModel } from '../model/useDashboardDetails'
 import { formatDashboardPeriod } from '../model/dashboardMetricPresentation'
 import { DashboardMetricSelector } from './DashboardMetricSelector'
@@ -16,8 +17,7 @@ export const DashboardComparisonDetail = ({ model }: { model: DashboardDetailsMo
             model={model}
             periods={{ baseline: data.meta.baseline, current: data.meta.period }}
           />
-          <details className="text-label text-label-neutral">
-            <summary className="cursor-pointer">훈련량 함께 보기</summary>
+          <DashboardDisclosure title="훈련량 함께 보기">
             <div className="mt-3 gap-4 grid grid-cols-2">
               {[
                 { label: '이전 기간', period: data.meta.baseline, summary: data.baselineSummary },
@@ -41,7 +41,7 @@ export const DashboardComparisonDetail = ({ model }: { model: DashboardDetailsMo
                 </section>
               ))}
             </div>
-          </details>
+          </DashboardDisclosure>
         </div>
       )}
     </DetailQueryState>

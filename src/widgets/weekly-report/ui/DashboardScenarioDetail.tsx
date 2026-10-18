@@ -1,3 +1,4 @@
+import { DashboardDisclosure } from './DashboardDisclosure'
 import type { DashboardDetailsModel } from '../model/useDashboardDetails'
 import { formatDuration } from '@shared/lib'
 import { StatusState } from '@shared/ui'
@@ -105,8 +106,7 @@ export const DashboardScenarioDetail = ({ model }: { model: DashboardDetailsMode
                     </p>
                   </section>
                 )}
-                <details className="text-label text-label-neutral">
-                  <summary className="cursor-pointer">날짜별 변화</summary>
+                <DashboardDisclosure title="날짜별 변화">
                   <p className="mt-2 text-caption text-label-alternative">
                     훈련한 날만 표시해요. 날짜를 누르면 해당 훈련 기록을 볼 수 있어요.
                   </p>
@@ -139,9 +139,8 @@ export const DashboardScenarioDetail = ({ model }: { model: DashboardDetailsMode
                       날짜별로 표시할 측정 기록이 없어요.
                     </p>
                   )}
-                </details>
-                <details className="text-label text-label-neutral">
-                  <summary className="cursor-pointer">연습한 설정별 기록</summary>
+                </DashboardDisclosure>
+                <DashboardDisclosure title="연습한 설정별 기록">
                   <p className="mt-2 text-caption text-label-alternative">
                     난이도·상대 말투·힌트별로 훈련 기록을 볼 수 있어요.
                   </p>
@@ -149,16 +148,15 @@ export const DashboardScenarioDetail = ({ model }: { model: DashboardDetailsMode
                     items={scenario.conditionBreakdown}
                     onSelect={(condition) => model.handleSelectCondition(condition)}
                   />
-                </details>
-                <details className="text-label text-label-neutral">
-                  <summary className="cursor-pointer">훈련량 함께 보기</summary>
+                </DashboardDisclosure>
+                <DashboardDisclosure title="훈련량 함께 보기">
                   <DetailSummary summary={scenario.summary} />
                   <p className="mt-3 text-caption text-label-alternative">
                     처음 연습한 날 {scenario.firstTrainedAt?.slice(0, 10) ?? '기록 없음'}
                     <br />
                     최근 연습한 날 {scenario.lastTrainedAt.slice(0, 10)}
                   </p>
-                </details>
+                </DashboardDisclosure>
               </div>
             )
           }}
