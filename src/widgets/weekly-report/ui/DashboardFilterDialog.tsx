@@ -6,7 +6,7 @@ import type {
 import { useDialogFocus } from '@shared/lib'
 import { OverlayPortal } from '@shared/ui'
 import type { DashboardFilterDialogModel } from '../model/useDashboardFilterDialog'
-import { detailFieldClass } from './DashboardDetailParts'
+import { DashboardFilterChoices } from './DashboardFilterChoices'
 
 /** 훈련 검색 항목을 별도 모달에서 선택합니다. */
 export const DashboardFilterDialog = ({
@@ -36,9 +36,9 @@ export const DashboardFilterDialog = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="dashboard-filter-title"
-        className="dashboard-details-surface fixed top-1/2 left-1/2 z-90 flex max-h-[calc(100dvh-32px)] w-[440px] max-w-[calc(100%-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card"
+        className="dashboard-details-surface fixed top-1/2 left-1/2 z-90 flex max-h-[calc(100dvh-32px)] w-[480px] max-w-[calc(100%-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-dialog bg-background-normal shadow-elevated-card"
       >
-        <header className="gap-3 px-6 py-5 flex shrink-0 items-center justify-between border-b border-line-alternative">
+        <header className="gap-3 px-7 py-6 flex shrink-0 items-center justify-between border-b border-line-alternative">
           <h2 id="dashboard-filter-title" className="text-headline1 font-bold text-label-normal">
             훈련 골라보기
           </h2>
@@ -52,100 +52,65 @@ export const DashboardFilterDialog = ({
           </button>
         </header>
         <form onSubmit={model.handleSubmit} className="min-h-0 flex flex-col">
-          <div className="min-h-0 space-y-4 px-6 py-5 overflow-y-auto text-label text-label-neutral">
+          <div className="min-h-0 space-y-7 px-7 py-6 overflow-y-auto text-label text-label-neutral">
             <p className="text-caption text-label-alternative">
               보고 싶은 훈련을 골라 주세요. 선택하지 않은 항목은 전체 훈련을 보여줘요.
             </p>
-            <div className="mt-3 gap-3 grid grid-cols-2">
-              <label className="gap-2 flex flex-col">
-                시나리오 종류
-                <select
-                  value={draft.sessionType ?? ''}
-                  onChange={(event) =>
-                    setDraft({
-                      ...draft,
-                      sessionType: (event.target.value || undefined) as
-                        DashboardSessionType | undefined,
-                    })
-                  }
-                  className={detailFieldClass}
-                >
-                  <option value="">전체</option>
-                  <option value="SCENARIO">기본 상황</option>
-                  <option value="CUSTOM">직접 만든 상황</option>
-                </select>
-              </label>
-              <label className="gap-2 flex flex-col">
-                힌트 단계
-                <select
-                  value={draft.scriptLevel ?? ''}
-                  onChange={(event) =>
-                    setDraft({
-                      ...draft,
-                      scriptLevel: event.target.value ? Number(event.target.value) : undefined,
-                    })
-                  }
-                  className={detailFieldClass}
-                >
-                  <option value="">전체</option>
-                  {[1, 2, 3].map((level) => (
-                    <option key={level} value={level}>
-                      {level}단계
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="gap-2 flex flex-col">
-                난이도
-                <select
-                  value={draft.difficulty ?? ''}
-                  onChange={(event) =>
-                    setDraft({ ...draft, difficulty: event.target.value || undefined })
-                  }
-                  className={detailFieldClass}
-                >
-                  <option value="">전체</option>
-                  <option value="low">쉬움</option>
-                  <option value="medium">보통</option>
-                  <option value="high">어려움</option>
-                </select>
-              </label>
-              <label className="gap-2 flex flex-col">
-                상대 말투
-                <select
-                  value={draft.aiPersonality ?? ''}
-                  onChange={(event) =>
-                    setDraft({
-                      ...draft,
-                      aiPersonality: (event.target.value || undefined) as
-                        DashboardPersonality | undefined,
-                    })
-                  }
-                  className={detailFieldClass}
-                >
-                  <option value="">전체</option>
-                  <option value="KIND">친절함</option>
-                  <option value="NORMAL">보통</option>
-                  <option value="TOUGH">까다로움</option>
-                  <option value="RUDE">무례함</option>
-                </select>
-              </label>
-              {isScenarioView && (
-                <label className="gap-2 flex flex-col">
-                  추이 단위
-                  <select
-                    value={draft.interval}
-                    onChange={(event) =>
-                      setDraft({ ...draft, interval: event.target.value as DashboardInterval })
-                    }
-                    className={detailFieldClass}
-                  >
-                    <option value="DAY">일별</option>
-                    <option value="WEEK">주별</option>
-                  </select>
-                </label>
-              )}
-            </div>
+            <DashboardFilterChoices<DashboardSessionType | undefined>
+              label="시나리오 종류"
+              value={draft.sessionType}
+              onChange={(sessionType) => setDraft({ ...draft, sessionType })}
+              options={[
+                { value: undefined, label: '전체' },
+                { value: 'SCENARIO', label: '기본 상황' },
+                { value: 'CUSTOM', label: '직접 만든 상황' },
+              ]}
+            />
+            <DashboardFilterChoices<number | undefined>
+              label="힌트 단계"
+              value={draft.scriptLevel}
+              onChange={(scriptLevel) => setDraft({ ...draft, scriptLevel })}
+              options={[
+                { value: undefined, label: '전체' },
+                { value: 1, label: '1단계' },
+                { value: 2, label: '2단계' },
+                { value: 3, label: '3단계' },
+              ]}
+            />
+            <DashboardFilterChoices<string | undefined>
+              label="난이도"
+              value={draft.difficulty}
+              onChange={(difficulty) => setDraft({ ...draft, difficulty })}
+              options={[
+                { value: undefined, label: '전체' },
+                { value: 'low', label: '쉬움' },
+                { value: 'medium', label: '보통' },
+                { value: 'high', label: '어려움' },
+              ]}
+            />
+            <DashboardFilterChoices<DashboardPersonality | undefined>
+              label="상대 말투"
+              value={draft.aiPersonality}
+              onChange={(aiPersonality) => setDraft({ ...draft, aiPersonality })}
+              options={[
+                { value: undefined, label: '전체' },
+                { value: 'KIND', label: '친절함' },
+                { value: 'NORMAL', label: '보통' },
+                { value: 'TOUGH', label: '까다로움' },
+                { value: 'RUDE', label: '무례함' },
+              ]}
+            />
+            {isScenarioView && (
+              <DashboardFilterChoices<DashboardInterval>
+                label="추이 단위"
+                value={draft.interval ?? 'DAY'}
+                onChange={(interval) => setDraft({ ...draft, interval })}
+                options={[
+                  { value: 'DAY', label: '일별' },
+                  { value: 'WEEK', label: '주별' },
+                ]}
+              />
+            )}
 
             {error && (
               <p role="alert" className="text-label text-status-error">
@@ -153,7 +118,7 @@ export const DashboardFilterDialog = ({
               </p>
             )}
           </div>
-          <footer className="gap-2 px-6 py-4 flex shrink-0 items-center border-t border-line-alternative">
+          <footer className="gap-3 px-7 py-5 flex shrink-0 items-center border-t border-line-alternative">
             <button
               type="button"
               onClick={model.handleReset}

@@ -86,8 +86,14 @@ test('applies filters, preserves unavailable matched comparisons, and opens a re
   ).toHaveLength(1)
   await form.getByRole('button', { name: '훈련 골라보기', exact: true }).click()
   const filters = page.getByRole('dialog', { name: '훈련 골라보기', exact: true })
-  await filters.getByLabel('시나리오 종류').selectOption('CUSTOM')
-  await filters.getByLabel('힌트 단계').selectOption('2')
+  await filters
+    .getByRole('group', { name: '시나리오 종류', exact: true })
+    .getByText('직접 만든 상황', { exact: true })
+    .click()
+  await filters
+    .getByRole('group', { name: '힌트 단계', exact: true })
+    .getByText('2단계', { exact: true })
+    .click()
   await page.screenshot({
     path: 'test-results/dashboard-filter-dialog.png',
     animations: 'disabled',
@@ -325,9 +331,15 @@ test('cancels filter edits, animates disclosures, and spaces record rows', async
   const trigger = panel.getByRole('button', { name: '훈련 골라보기', exact: true })
   await trigger.click()
   const filters = page.getByRole('dialog', { name: '훈련 골라보기', exact: true })
-  await filters.getByLabel('난이도').selectOption('high')
-  await filters.getByLabel('난이도').focus()
-  await expect(filters.getByLabel('난이도')).not.toHaveCSS('outline-color', 'rgb(10, 227, 101)')
+  const difficulty = filters.getByRole('group', { name: '난이도', exact: true })
+  await difficulty.getByText('어려움', { exact: true }).click()
+  await expect(difficulty.getByRole('radio', { name: '어려움', exact: true })).toBeChecked()
+  await expect(difficulty.getByText('어려움', { exact: true })).not.toHaveCSS(
+    'border-color',
+    'rgb(10, 227, 101)',
+  )
+  await expect(filters.locator('select')).toHaveCount(0)
+  expect(await filters.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
   await page.screenshot({
     path: 'test-results/dashboard-filter-mobile.png',
     animations: 'disabled',
@@ -338,7 +350,10 @@ test('cancels filter edits, animates disclosures, and spaces record rows', async
   await expect(trigger).toBeFocused()
   await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('overflow-y', 'hidden')
   await trigger.click()
-  await expect(filters.getByLabel('난이도')).toHaveValue('')
+  await expect(difficulty.getByRole('radio', { name: '전체', exact: true })).toBeChecked()
+  await difficulty.getByRole('radio', { name: '전체', exact: true }).focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(difficulty.getByRole('radio', { name: '쉬움', exact: true })).toBeChecked()
   await filters.getByRole('button', { name: '취소', exact: true }).click()
   expect(
     audit.requests.filter((url) => url.pathname.endsWith('/dashboard/comparison')),
@@ -376,5 +391,54 @@ test('cancels filter edits, animates disclosures, and spaces record rows', async
   })
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(body).toHaveCSS('transition-duration', '0s')
+  expect(audit.errors).toEqual([])
+})
+
+// 높이가 작은 화면에서도 모든 사용자 정의 선택지와 적용 버튼을 사용할 수 있습니다.
+test('applies custom personality and interval choices and resets the modal', async ({ page }) => {
+  const audit = await prepareDashboardDetails(page)
+  await page.setViewportSize({ width: 390, height: 600 })
+  await page.goto('/dashboard')
+  await page.getByRole('button', { name: '상황별 현황', exact: true }).click()
+  const panel = page.getByRole('dialog', { name: '상황별 현황', exact: true })
+  await panel.getByRole('button', { name: '훈련 골라보기', exact: true }).click()
+  const filters = page.getByRole('dialog', { name: '훈련 골라보기', exact: true })
+  await expect(filters.getByRole('group')).toHaveCount(5)
+  await expect(filters.locator('select')).toHaveCount(0)
+  await filters
+    .getByRole('group', { name: '상대 말투', exact: true })
+    .getByText('무례함', { exact: true })
+    .click()
+  const interval = filters.getByRole('group', { name: '추이 단위', exact: true })
+  await interval.getByText('주별', { exact: true }).click()
+  const apply = filters.getByRole('button', { name: '적용', exact: true })
+  await expect(apply).toBeVisible()
+  const bounds = await apply.boundingBox()
+  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(600)
+  await page.screenshot({
+    path: 'test-results/dashboard-filter-scenario-mobile.png',
+    animations: 'disabled',
+  })
+  await apply.click()
+  await expect(filters).toHaveCount(0)
+  await expect
+    .poll(() =>
+      audit.requests.some(
+        (url) =>
+          url.pathname.endsWith('/dashboard/scenarios') &&
+          url.searchParams.get('aiPersonality') === 'RUDE' &&
+          url.searchParams.get('interval') === 'WEEK',
+      ),
+    )
+    .toBe(true)
+  await panel.getByRole('button', { name: '훈련 골라보기', exact: true }).click()
+  await filters.getByRole('button', { name: '초기화', exact: true }).click()
+  await expect(
+    filters
+      .getByRole('group', { name: '상대 말투', exact: true })
+      .getByRole('radio', { name: '전체', exact: true }),
+  ).toBeChecked()
+  await expect(interval.getByRole('radio', { name: '일별', exact: true })).toBeChecked()
+  await filters.getByRole('button', { name: '취소', exact: true }).click()
   expect(audit.errors).toEqual([])
 })
