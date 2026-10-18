@@ -1,5 +1,4 @@
 import { expect, test, type Page } from '@playwright/test'
-import { dashboardFixtureOverview } from './dashboardFixture'
 
 const scenario = {
   scenario_id: 1,
@@ -77,8 +76,6 @@ const prepare = async (page: Page) => {
       return route.fulfill({
         json: { data: { trainingEnabled: true, communityEnabled: true, allEnabled: true } },
       })
-    if (path.endsWith('/dashboard/overview'))
-      return route.fulfill({ json: { data: dashboardFixtureOverview } })
     if (path.endsWith('/dashboard/weekly-summary'))
       return route.fulfill({
         json: {
@@ -323,9 +320,7 @@ test('keeps core screens within mobile width and respects reduced motion without
 /** 장애 화면은 서버/코드 오류의 상세 내용을 사용자에게 노출하지 않습니다. */
 test('offers recovery instead of exposing a rendering stack trace', async ({ page }) => {
   await prepare(page)
-  await page.route('**/api/v1/dashboard/overview?*', (route) =>
-    route.fulfill({ json: { data: {} } }),
-  )
+  await page.route('**/api/v1/dashboard/metrics', (route) => route.fulfill({ json: { data: {} } }))
   await page.goto('/dashboard')
   await expect(page.getByRole('alert')).toContainText('화면을 불러오지 못했어요.')
   await expect(page.getByText('Unexpected Application Error!')).toHaveCount(0)

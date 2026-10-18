@@ -18,7 +18,7 @@ export const useDashboardOverview = (params: DashboardQuery, enabled = true) =>
     enabled,
   })
 
-/** 기간 비교 탭이 열려 있을 때 비교 결과를 조회합니다. */
+/** 요청한 두 기간의 비교 결과를 조회합니다. */
 export const useDashboardComparison = (params: DashboardComparisonQuery, enabled = true) =>
   useQuery({
     queryKey: ['dashboard', 'comparison', params],
