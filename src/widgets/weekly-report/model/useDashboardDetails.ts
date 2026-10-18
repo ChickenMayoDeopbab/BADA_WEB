@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { getDrawerCloseDelay } from '@shared/lib'
 import {
   getDashboardWeekQuery,
   useDashboardComparison,
@@ -13,6 +14,8 @@ import { validateDashboardDetailsPeriod, type DashboardDetailView } from './dash
 
 /** 대시보드 상세 패널의 조회 조건·페이지·선택 상황과 관련 기록을 관리합니다. */
 export const useDashboardDetails = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  const closeTimerRef = useRef<number | null>(null)
   const [view, setView] = useState<DashboardDetailView | null>(null)
   const [query, setQuery] = useState(getDashboardWeekQuery)
   const [draft, setDraft] = useState(query)
@@ -25,10 +28,10 @@ export const useDashboardDetails = () => {
   const [recordSelection, setRecordSelection] = useState<
     DashboardFilters & { from?: string; to?: string }
   >({})
-  const comparison = useDashboardComparison(query, view === 'comparison')
+  const comparison = useDashboardComparison(query, isOpen && view === 'comparison')
   const scenarios = useDashboardScenarios(
     { ...query, page: scenarioPage, size: 5 },
-    view === 'scenarios',
+    isOpen && view === 'scenarios',
   )
   const scenarioDetail = useDashboardScenarios(
     {
@@ -39,7 +42,7 @@ export const useDashboardDetails = () => {
       size: 1,
       includeSeries: true,
     },
-    view === 'scenarios' && selectedScenario !== null,
+    isOpen && view === 'scenarios' && selectedScenario !== null,
   )
   const recordFilters = {
     from: query.from,
@@ -50,16 +53,32 @@ export const useDashboardDetails = () => {
     scriptLevel: query.scriptLevel,
     ...recordSelection,
   }
-  const records = useTrainingRecordPage(
-    { ...recordFilters, page: recordPage, size: 5 },
-    view !== null,
+  const records = useTrainingRecordPage({ ...recordFilters, page: recordPage, size: 5 }, isOpen)
+
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current)
+    },
+    [],
   )
 
-  /** 패널을 닫고 초점과 배경 스크롤을 복원합니다. */
-  const handleClose = () => setView(null)
+  /** 시나리오 패널과 같은 닫힘 효과가 끝난 뒤 상세 내용을 정리합니다. */
+  const handleClose = () => {
+    setIsOpen(false)
+    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = window.setTimeout(() => {
+      setView(null)
+      closeTimerRef.current = null
+    }, getDrawerCloseDelay())
+  }
 
   /** 원래 대시보드를 이동하지 않고 선택한 상세를 엽니다. */
   const handleOpen = (next: DashboardDetailView) => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+    setIsOpen(true)
     if (view !== next) {
       setSelectedScenario(null)
       setScenarioPage(0)
@@ -125,6 +144,7 @@ export const useDashboardDetails = () => {
   }
 
   return {
+    isOpen,
     view,
     query,
     draft,

@@ -7,6 +7,7 @@ test('opens comparison on demand, displays API values, and restores focus after 
 }) => {
   const audit = await prepareDashboardDetails(page)
   await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.clock.setFixedTime(new Date('2026-10-18T03:00:00Z'))
   await page.goto('/dashboard')
   await expect(page.getByText('이번 주 7회 훈련했어요')).toBeVisible()
   expect(audit.requests.filter((url) => url.pathname.includes('/dashboard/'))).toHaveLength(0)
@@ -17,9 +18,21 @@ test('opens comparison on demand, displays API values, and restores focus after 
   await expect(panel.getByText(/이전 20\d{2}-\d{2}-\d{2} ~ 20\d{2}-\d{2}-\d{2}/)).toBeVisible()
   await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('overflow-y', 'hidden')
   await expect(page.getByRole('heading', { name: '주간 요약', exact: true })).toBeVisible()
-  await page.screenshot({ path: 'test-results/dashboard-comparison-panel.png' })
+  await expect(panel).toHaveCSS('animation-name', 'record-detail-enter')
+  const backBounds = await panel
+    .getByRole('button', { name: '통계 상세 닫기', exact: true })
+    .boundingBox()
+  const titleBounds = await panel
+    .getByRole('heading', { name: '기간 비교', exact: true })
+    .boundingBox()
+  expect(backBounds!.x).toBeLessThan(titleBounds!.x)
+  await page.screenshot({
+    path: 'test-results/dashboard-comparison-panel.png',
+    animations: 'disabled',
+  })
   await page.keyboard.press('Escape')
   await expect(panel).toHaveCount(0)
+  await expect(page.locator('aside[aria-labelledby="dashboard-details-title"]')).toHaveCount(0)
   await expect(trigger).toBeFocused()
   await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('overflow-y', 'auto')
   expect(audit.errors).toEqual([])
@@ -29,12 +42,24 @@ test('applies filters, preserves unavailable matched comparisons, and opens a re
   page,
 }) => {
   const audit = await prepareDashboardDetails(page)
+  await page.clock.setFixedTime(new Date('2026-10-18T03:00:00Z'))
   await page.goto('/dashboard')
   await page.getByRole('button', { name: '기간 비교', exact: true }).click()
   const panel = page.getByRole('dialog', { name: '기간 비교', exact: true })
   const form = panel.getByRole('form', { name: '통계 상세 조회 조건' })
-  await form.getByLabel('시작일').fill('2026-10-01')
-  await form.getByLabel('종료일').fill('2026-10-14')
+  await form.getByRole('button', { name: /^시작일/ }).click()
+  const calendar = page.getByRole('dialog', { name: '통계 날짜 범위 선택' })
+  await calendar.getByRole('button', { name: '2026년 10월 1일', exact: true }).click()
+  await calendar.getByRole('button', { name: '2026년 10월 14일', exact: true }).click()
+  await expect(
+    calendar.getByRole('button', { name: '2026년 10월 7일', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await calendar.getByRole('button', { name: '적용', exact: true }).click()
+  await expect(form.getByRole('button', { name: /^시작일/ })).toContainText('2026.10.01')
+  await expect(form.getByRole('button', { name: /^종료일/ })).toContainText('2026.10.14')
+  expect(
+    audit.requests.filter((url) => url.pathname.endsWith('/dashboard/comparison')),
+  ).toHaveLength(1)
   await form.getByText('훈련 조건', { exact: true }).click()
   await form.getByLabel('훈련 유형').selectOption('CUSTOM')
   await form.getByLabel('힌트 단계').selectOption('2')
@@ -87,6 +112,7 @@ test('loads scenario pages and the selected scenario series, then filters relate
   page,
 }) => {
   const audit = await prepareDashboardDetails(page)
+  await page.clock.setFixedTime(new Date('2026-10-18T03:00:00Z'))
   await page.goto('/dashboard')
   await page.getByRole('button', { name: '상황별 현황', exact: true }).click()
   const panel = page.getByRole('dialog', { name: '상황별 현황', exact: true })
@@ -142,12 +168,13 @@ test('loads scenario pages and the selected scenario series, then filters relate
   expect(audit.errors).toEqual([])
 })
 
-test('rejects invalid periods and recovers from failed requests and empty results on mobile', async ({
+test('cancels calendar edits and recovers from failed requests and empty results on mobile', async ({
   page,
 }) => {
   const audit = await prepareDashboardDetails(page)
   audit.failComparison(2)
   await page.setViewportSize({ width: 390, height: 844 })
+  await page.clock.setFixedTime(new Date('2026-10-18T03:00:00Z'))
   await page.goto('/dashboard')
   await page.getByRole('button', { name: '기간 비교', exact: true }).click()
   const panel = page.getByRole('dialog', { name: '기간 비교', exact: true })
@@ -155,13 +182,36 @@ test('rejects invalid periods and recovers from failed requests and empty result
   await panel.getByRole('button', { name: '다시 불러오기' }).click()
   await expect(panel.getByText('-20%p', { exact: true }).first()).toBeVisible()
   const form = panel.getByRole('form', { name: '통계 상세 조회 조건' })
-  await form.getByLabel('시작일').fill('2024-01-01')
-  await form.getByLabel('종료일').fill('2025-01-01')
+  const startDate = form.getByRole('button', { name: /^시작일/ })
+  const initialDate = await startDate.textContent()
   const count = audit.requests.filter((url) =>
     url.pathname.endsWith('/dashboard/comparison'),
   ).length
-  await form.getByRole('button', { name: '적용하기' }).click()
-  await expect(panel.getByRole('alert')).toContainText('366일')
+  await startDate.click()
+  const calendar = page.getByRole('dialog', { name: '통계 날짜 범위 선택' })
+  await expect(calendar.getByRole('button', { name: '다음 달' })).toBeDisabled()
+  await expect(
+    calendar.getByRole('button', { name: '2026년 10월 19일', exact: true }),
+  ).toBeDisabled()
+  await calendar.getByRole('button', { name: '2026년 10월 1일', exact: true }).click()
+  await page.screenshot({
+    path: 'test-results/dashboard-calendar-mobile.png',
+    animations: 'disabled',
+  })
+  expect(await calendar.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+    true,
+  )
+  await page.keyboard.press('Escape')
+  await expect(calendar).toHaveCount(0)
+  await expect(panel).toBeVisible()
+  await expect(startDate).toBeFocused()
+  await expect(startDate).toHaveText(initialDate!)
+  await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('overflow-y', 'hidden')
+  await startDate.click()
+  await calendar.getByRole('button', { name: '이전 달' }).click()
+  await expect(calendar.getByRole('heading', { name: '2026년 9월' })).toBeVisible()
+  await calendar.getByRole('button', { name: '취소', exact: true }).click()
+  await expect(startDate).toHaveText(initialDate!)
   expect(
     audit.requests.filter((url) => url.pathname.endsWith('/dashboard/comparison')),
   ).toHaveLength(count)
@@ -182,4 +232,21 @@ test('rejects invalid periods and recovers from failed requests and empty result
   await scenarios.getByRole('button', { name: '통계 상세 닫기', exact: true }).click()
   await expect(scenarios).toHaveCount(0)
   expect(audit.errors).toEqual([])
+})
+
+// 줄인 모션 환경에서도 패널을 정리하고 다시 열 수 있어야 합니다.
+test('respects reduced motion and reopens the drawer after closing', async ({ page }) => {
+  await prepareDashboardDetails(page)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/dashboard')
+  const trigger = page.getByRole('button', { name: '기간 비교', exact: true })
+  await trigger.click()
+  const panel = page.getByRole('dialog', { name: '기간 비교', exact: true })
+  await expect(panel).toHaveCSS('animation-name', 'none')
+  await panel.getByRole('button', { name: '통계 상세 닫기', exact: true }).click()
+  await expect(page.locator('aside[aria-labelledby="dashboard-details-title"]')).toHaveCount(0)
+  await expect(trigger).toBeFocused()
+  await trigger.click()
+  await expect(panel).toBeVisible()
+  await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('overflow-y', 'hidden')
 })
