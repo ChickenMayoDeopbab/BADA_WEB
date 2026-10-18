@@ -8,8 +8,9 @@ const trainingRecordKeys = {
 }
 
 /** 훈련 기록 목록의 한 페이지를 조회합니다. */
-export const useTrainingRecordPage = (params: TrainingRecordPageParams = {}) =>
+export const useTrainingRecordPage = (params: TrainingRecordPageParams = {}, enabled = true) =>
   useQuery({
     queryKey: trainingRecordKeys.page(params),
     queryFn: () => getTrainingRecordPage(params),
+    enabled,
   })

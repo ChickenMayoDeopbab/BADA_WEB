@@ -8,13 +8,37 @@ import { Skeleton, LoadingRegion, StatusState } from '@shared/ui'
 import { useWeeklyDashboardOverview } from '@entities/dashboard'
 
 /** 기존 주간 차트 영역에 개요 API의 6개 지표를 원래 단위로 표시합니다. */
-export const WeeklyMetricsPanel = () => {
+export const WeeklyMetricsPanel = ({
+  onOpenComparison,
+  onOpenScenarios,
+}: {
+  onOpenComparison: () => void
+  onOpenScenarios: () => void
+}) => {
   const { data: overview, isError, isPending, refetch, isFetching } = useWeeklyDashboardOverview()
   const days = buildWeeklyMetricDays(overview)
 
   return (
     <section className="min-w-0 gap-2.5 p-5 rounded-2xl flex h-full min-h-[240px] flex-1 flex-col bg-fill-normal">
-      <h2 className="text-headline1 font-bold text-label-normal">{'주간 지표'}</h2>
+      <div className="gap-2 flex items-center justify-between">
+        <h2 className="shrink-0 text-headline1 font-bold text-label-normal">주간 지표</h2>
+        <div className="gap-2 flex shrink-0">
+          <button
+            type="button"
+            onClick={onOpenComparison}
+            className="px-2 py-1 rounded-control text-caption font-medium text-label-neutral hover:bg-fill-pressed"
+          >
+            기간 비교
+          </button>
+          <button
+            type="button"
+            onClick={onOpenScenarios}
+            className="px-2 py-1 rounded-control text-caption font-medium text-label-neutral hover:bg-fill-pressed"
+          >
+            상황별 현황
+          </button>
+        </div>
+      </div>
       <ul
         aria-label="주간 지표 평균"
         className="gap-3.5 flex shrink-0 [scrollbar-width:none] items-center overflow-x-auto [&::-webkit-scrollbar]:hidden"

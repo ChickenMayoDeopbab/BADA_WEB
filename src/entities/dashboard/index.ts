@@ -28,3 +28,5 @@ export type {
   DashboardStatus,
   DashboardSummary,
 } from './model/analyticsTypes'
+
+export { getDashboardWeekQuery } from './model/weeklyOverview'
