@@ -176,19 +176,29 @@
   background: var(--color-background-normal);
 }
 .brand-hero-start {
-  width: 164px;
-  height: 164px;
-  padding: 30px;
-  border-radius: var(--radius-pill);
+  width: max-content;
+  min-width: 260px;
+  min-height: 64px;
+  padding: 10px 10px 10px 24px;
+  border-radius: var(--radius-control);
   justify-self: center;
-  flex-direction: column;
-  align-items: start;
-  justify-content: space-between;
+  gap: 24px;
+  white-space: nowrap;
+  font-weight: 600;
 }
 .brand-hero-start svg {
-  width: 32px;
-  height: 32px;
-  align-self: end;
+  box-sizing: content-box;
+  width: 20px;
+  height: 20px;
+  padding: 10px;
+  border-radius: var(--radius-control);
+  background: var(--color-primary-normal);
+  color: var(--color-label-normal);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .brand-hero-start:is(:hover, :focus-visible) {
+    transform: translateY(-3px) scale(1.03);
+  }
 }
 .brand-voice-line {
   position: absolute;
@@ -338,11 +348,6 @@
   .brand-hero-bottom {
     margin-top: 36px;
   }
-  .brand-hero-start {
-    width: 140px;
-    height: 140px;
-    padding: 24px;
-  }
 }
 @media (max-width: 1023px) {
   .brand-header nav {
@@ -360,7 +365,8 @@
     --device-scale: 0.3;
   }
   .brand-hero-bottom {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    gap: 28px;
     margin-top: 72px;
   }
   .brand-hero-start {
@@ -419,10 +425,11 @@
     margin-top: 0;
   }
   .brand-hero-bottom {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 300px auto;
     align-items: start;
-    gap: 36px;
+    gap: 24px;
     margin-top: 44px;
   }
   .brand-hero-bottom > p {
@@ -431,10 +438,10 @@
     line-height: 1.7;
   }
   .brand-hero-start {
-    width: 140px;
-    height: 140px;
-    padding: 24px;
-    margin-top: 40px;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    justify-self: stretch;
   }
   .brand-voice-line {
     bottom: 100px;
@@ -565,5 +572,11 @@
   }
   .brand-store-links > a:is(:hover, :focus-visible) > svg:last-child {
     transform: translate(3px, -3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-hero-start:is(:hover, :focus-visible) {
+    transform: none;
   }
 }

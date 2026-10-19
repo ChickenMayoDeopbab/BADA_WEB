@@ -59,6 +59,22 @@ export const FeatureTour = () => {
                 <span className="brand-tour-focus" aria-hidden="true" />
               </div>
               <div className="brand-tour-callout" data-tour-callout>
+                <svg
+                  className="brand-tour-connector brand-tour-connector-desktop"
+                  viewBox="0 0 48 52"
+                  aria-hidden="true"
+                >
+                  <path d="M4 44 H24 V20 H48" />
+                  <circle cx="4" cy="44" r="3" />
+                </svg>
+                <svg
+                  className="brand-tour-connector brand-tour-connector-mobile"
+                  viewBox="0 0 56 32"
+                  aria-hidden="true"
+                >
+                  <path d="M4 4 V16 H28 V32" />
+                  <circle cx="4" cy="4" r="3" />
+                </svg>
                 <div className="brand-tour-callout-heading">
                   <span className="brand-tour-callout-index" aria-hidden="true">
                     0{activeIndex + 1}
