@@ -39,9 +39,7 @@ test('sends an existing session to the actual web service', async ({ page }) => 
   await page.route('**/api/v1/**', (route) => route.abort())
   await authenticate(page)
   await page.goto('/')
-  const entry = page
-    .getByRole('navigation', { name: '랜딩 메뉴' })
-    .getByRole('link', { name: '웹에서 시작', exact: true })
+  const entry = page.getByRole('link', { name: '웹에서 시작하기', exact: true }).first()
   await expect(entry).toHaveAttribute('href', '/dashboard')
   await entry.click()
   await expect(page).toHaveURL(/\/dashboard$/)
@@ -81,7 +79,7 @@ test('keeps mobile navigation, footer channels, and store link states usable', a
       width,
     )
     const navigation = page.getByRole('navigation', { name: '랜딩 메뉴' })
-    await expect(navigation.getByRole('link', { name: '로그인', exact: true })).toBeVisible()
+    await expect(navigation.getByRole('link')).toHaveCount(1)
     await navigation.getByRole('link', { name: '앱 다운로드', exact: true }).click()
     await expect(page.getByRole('heading', { name: '앱으로 시작해보기' })).toBeInViewport()
   }

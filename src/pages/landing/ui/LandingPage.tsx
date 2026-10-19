@@ -36,29 +36,12 @@ export const LandingPage = () => {
           </Link>
           <nav aria-label="랜딩 메뉴" className="gap-5 sm:gap-8 flex items-center text-label">
             <a
-              href="#experience"
-              className="py-3 lg:block hidden text-label-alternative hover:text-label-normal"
+              href="#download"
+              className="gap-3 px-5 py-3 inline-flex items-center rounded-pill bg-label-normal font-medium text-background-normal"
             >
-              BADA 소개
-            </a>
-            <a
-              href="#practice"
-              className="py-3 lg:block hidden text-label-alternative hover:text-label-normal"
-            >
-              연습 미리보기
-            </a>
-            <a href="#download" className="py-3 font-medium">
               앱 다운로드
+              <LuArrowDown className="size-4" aria-hidden="true" />
             </a>
-            <Link
-              to={routePaths.login}
-              className="py-3 text-label-alternative hover:text-label-normal"
-            >
-              로그인
-            </Link>
-            <div className="sm:block hidden">
-              <WebStartLink>웹에서 시작</WebStartLink>
-            </div>
           </nav>
         </div>
         <div className="landing-scroll-progress" aria-hidden="true" />
