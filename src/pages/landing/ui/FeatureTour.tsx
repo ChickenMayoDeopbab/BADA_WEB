@@ -18,8 +18,8 @@ interface FeatureTourPreviewProps {
 
 /** 실제 기능 구성을 바탕으로 탭별 화면 예시를 표시합니다. */
 const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
-  <div className="min-h-80 pl-6 sm:pl-10 border-l border-line-neutral">
-    <div className="mb-7 gap-3 flex items-center justify-between text-caption text-label-alternative">
+  <div className="landing-feature-visual min-h-80 pl-6 sm:pl-10 border-l border-line-neutral">
+    <div className="landing-visual-chrome mb-7 gap-3 flex items-center justify-between text-caption text-label-alternative">
       <span className="gap-2 flex items-center">
         <span className="size-2 rounded-pill bg-primary-normal" />
         BADA
@@ -28,13 +28,15 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
     </div>
     {feature === 'diagnosis' && (
       <div>
-        <p className="text-label text-label-alternative">나를 돌아보는 질문</p>
+        <p className="landing-visual-context text-label text-label-alternative">
+          나를 돌아보는 질문
+        </p>
         <h3 className="mt-3 text-title2 font-bold">
           전화를 걸기 전,
           <br />
           어떤 기분이 드나요?
         </h3>
-        <p className="mt-4 leading-relaxed text-label text-label-alternative">
+        <p className="landing-visual-description mt-4 leading-relaxed text-label text-label-alternative">
           내가 느끼는 긴장과 생각을 살펴보고,
           <br />
           지금의 상태를 알아가요.
@@ -61,13 +63,15 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
     )}
     {feature === 'training' && (
       <div>
-        <p className="text-label text-label-alternative">오늘은 어떤 전화를 연습할까요?</p>
+        <p className="landing-visual-context text-label text-label-alternative">
+          오늘은 어떤 전화를 연습할까요?
+        </p>
         <h3 className="mt-3 text-title2 font-bold">
           필요한 상황부터,
           <br />
           나만의 상황까지.
         </h3>
-        <div className="mt-7 gap-3 grid grid-cols-2">
+        <div className="landing-visual-training-grid mt-7 gap-3 grid grid-cols-2">
           {['일상 속 예약', '업무 일정 조율', '학교 생활', '맞춤 시나리오'].map((text) => (
             <p
               key={text}
@@ -89,7 +93,7 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
     )}
     {feature === 'records' && (
       <div>
-        <p className="text-label text-label-alternative">연습이 끝난 뒤</p>
+        <p className="landing-visual-context text-label text-label-alternative">연습이 끝난 뒤</p>
         <h3 className="mt-3 text-title2 font-bold">
           대화 속 잘한 순간을
           <br />
@@ -122,7 +126,9 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
     )}
     {feature === 'community' && (
       <div>
-        <p className="text-label text-label-alternative">우리의 연습 이야기</p>
+        <p className="landing-visual-context text-label text-label-alternative">
+          우리의 연습 이야기
+        </p>
         <h3 className="mt-3 text-title2 font-bold">
           작은 시도를
           <br />
@@ -152,15 +158,17 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
 
 /** 키보드로도 탐색할 수 있는 네 가지 핵심 기능 소개를 구성합니다. */
 export const FeatureTour = () => {
-  const { activeIndex, selectFeature, handleTabKeyDown } = useFeatureTour()
+  const { activeIndex, storyRef, isScrollStory, selectFeature, handleTabKeyDown } = useFeatureTour()
   return (
     <section
+      ref={storyRef}
+      data-scroll-story={isScrollStory}
       id="experience"
-      className="scroll-mt-24 px-6 py-16 sm:py-24 lg:px-12"
+      className="landing-feature-story scroll-mt-24 px-6 py-16 sm:py-24 lg:px-12"
       aria-labelledby="experience-title"
     >
-      <div className="max-w-6xl mx-auto">
-        <div id="how-it-works" className="scroll-mt-24">
+      <div data-feature-stage className="landing-feature-stage max-w-6xl mx-auto">
+        <div id="how-it-works" className="landing-feature-intro scroll-mt-24">
           <p className="text-label font-medium text-label-alternative">BADA의 연습 방식</p>
           <h2
             id="experience-title"
@@ -170,14 +178,16 @@ export const FeatureTour = () => {
             <br />
             다음 전화를 준비하는 것까지.
           </h2>
-          <p className="mt-4 leading-relaxed text-body text-label-alternative">
-            마음의 준비부터 연습 후 돌아보기까지. 필요한 순간을 선택해 보세요.
+          <p className="landing-feature-guide mt-4 leading-relaxed text-body text-label-alternative">
+            {isScrollStory
+              ? `스크롤하며 살펴보세요 · ${String(activeIndex + 1).padStart(2, '0')} / 04`
+              : '마음의 준비부터 연습 후 돌아보기까지. 필요한 순간을 선택해 보세요.'}
           </p>
         </div>
         <div
           role="tablist"
           aria-label="BADA 기능 둘러보기"
-          className="mt-10 gap-x-5 sm:grid-cols-4 grid grid-cols-2"
+          className="landing-feature-tabs mt-10 gap-x-5 sm:grid-cols-4 grid grid-cols-2"
         >
           {tourFeatures.map(({ id, label }, index) => (
             <button
@@ -185,12 +195,15 @@ export const FeatureTour = () => {
               key={id}
               id={`feature-tab-${id}`}
               role="tab"
+              data-step-state={
+                index < activeIndex ? 'complete' : index === activeIndex ? 'active' : 'upcoming'
+              }
               aria-selected={activeIndex === index}
               aria-controls={`feature-panel-${id}`}
               tabIndex={activeIndex === index ? 0 : -1}
               onClick={() => selectFeature(index)}
               onKeyDown={(event) => handleTabKeyDown(event, index)}
-              className={`min-h-14 px-0 py-4 border-b-2 text-left text-body font-medium transition-colors ${activeIndex === index ? 'border-label-normal text-label-normal' : 'border-line-alternative text-label-alternative hover:text-label-normal'}`}
+              className={`landing-feature-tab min-h-14 px-0 py-4 border-b-2 text-left text-body font-medium transition-colors ${activeIndex === index ? 'border-label-normal text-label-normal' : 'border-line-alternative text-label-alternative hover:text-label-normal'}`}
             >
               {label}
             </button>
@@ -203,9 +216,9 @@ export const FeatureTour = () => {
             role="tabpanel"
             aria-labelledby={`feature-tab-${feature.id}`}
             hidden={activeIndex !== index}
-            className={`mt-10 gap-8 sm:mt-12 lg:grid-cols-2 lg:gap-16 items-center ${activeIndex === index ? 'grid' : 'hidden'}`}
+            className={`landing-feature-panel mt-10 gap-8 sm:mt-12 lg:grid-cols-2 lg:gap-16 items-center ${activeIndex === index ? 'grid' : 'hidden'}`}
           >
-            <div>
+            <div className="landing-feature-copy">
               <p className="text-label font-medium text-label-alternative">{feature.eyebrow}</p>
               <h3 className="mt-5 sm:text-display2 text-title1 font-bold whitespace-pre-line">
                 {feature.title}

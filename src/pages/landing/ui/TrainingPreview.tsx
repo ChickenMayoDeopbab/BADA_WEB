@@ -19,7 +19,7 @@ export const TrainingPreview = () => {
       className="scroll-mt-20 px-6 py-16 sm:py-20 lg:px-12 bg-label-normal text-background-normal"
     >
       <div className="max-w-6xl gap-10 lg:grid-cols-2 lg:gap-20 mx-auto grid items-start">
-        <div>
+        <div data-reveal>
           <p className="text-label text-background-normal/60">먼저, 가볍게 해볼까요?</p>
           <h2 id="practice-title" className="mt-5 sm:text-marketing-title text-display2 font-bold">
             내일의 전화를,
@@ -61,7 +61,10 @@ export const TrainingPreview = () => {
             화면 이해를 위한 예시이며 실제 통화는 시작되지 않아요.
           </p>
         </div>
-        <figure className="m-0 p-5 sm:p-8 rounded-dialog bg-background-normal text-label-normal">
+        <figure
+          data-reveal
+          className="m-0 p-5 sm:p-8 rounded-dialog bg-background-normal text-label-normal"
+        >
           <figcaption className="gap-3 pb-5 flex items-center justify-between border-b border-line-alternative">
             <div className="gap-3 flex items-center">
               <span className="size-10 flex items-center justify-center rounded-pill bg-primary-normal text-label-strong">

@@ -10,6 +10,7 @@ const stores = [
 /** 앱 이용 동선을 간결하게 안내하고 확인되지 않은 스토어 주소는 비활성 상태로 둡니다. */
 export const AppDownload = () => (
   <section
+    data-reveal
     id="download"
     aria-labelledby="download-title"
     className="scroll-mt-20 px-6 py-14 sm:py-16 lg:px-12 bg-primary-normal text-secondary-normal"
