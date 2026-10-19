@@ -1,5 +1,5 @@
 import { ConfirmDialog } from '@shared/ui'
-import { PROFILE_IMAGE_SECTIONS } from '../model/legalDocuments'
+import { PROFILE_IMAGE_SECTIONS } from '@entities/legal-consent'
 import type { useProfileImageConsent } from '../model/useProfileImageConsent'
 
 /** 사진 처리 항목·보유 기간·철회 방법을 안내한 뒤 선택 동의를 받습니다. */

@@ -1,0 +1,25 @@
+import { Link } from 'react-router-dom'
+import { LuArrowUpRight } from 'react-icons/lu'
+import { routePaths } from '@shared/config'
+import { getWebEntry } from '../model/landingLinks'
+
+interface WebStartLinkProps {
+  children?: string
+  destination?: string
+  className?: string
+}
+
+/** 실제 웹 기능으로 이동하고 미로그인 이용자는 로그인 후 이어가도록 안내합니다. */
+export const WebStartLink = ({
+  children = '웹에서 시작하기',
+  destination = routePaths.dashboard,
+  className = '',
+}: WebStartLinkProps) => (
+  <Link
+    {...getWebEntry(destination)}
+    className={`min-h-12 gap-3 px-5 py-3 inline-flex items-center justify-center rounded-control bg-primary-normal text-label font-bold text-label-strong transition-colors hover:bg-primary-normal/80 ${className}`}
+  >
+    {children}
+    <LuArrowUpRight className="size-5 shrink-0" aria-hidden="true" />
+  </Link>
+)

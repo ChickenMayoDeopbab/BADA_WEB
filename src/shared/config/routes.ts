@@ -1,5 +1,8 @@
 export const routePaths = {
   landing: '/',
+  terms: '/terms',
+  privacy: '/privacy',
+  sensitiveInformation: '/sensitive-information',
   login: '/login',
   signup: '/signup',
   welcome: '/welcome',
