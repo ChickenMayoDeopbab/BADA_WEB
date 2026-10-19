@@ -23,14 +23,14 @@ test('supports keyboard feature navigation and keeps the real feature destinatio
   page,
 }) => {
   await page.goto('/')
-  const firstTab = page.getByRole('tab', { name: '자가진단', exact: true })
+  const firstTab = page.getByRole('tab', { name: '상황 고르기', exact: true })
   await firstTab.focus()
   await firstTab.press('ArrowRight')
   const trainingTab = page.getByRole('tab', { name: 'AI 통화 연습', exact: true })
   await expect(trainingTab).toBeFocused()
   await expect(trainingTab).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('tabpanel')).toHaveCount(1)
-  await page.getByRole('link', { name: '시나리오 보러 가기', exact: true }).click()
+  await page.getByRole('link', { name: 'AI와 연습 시작하기', exact: true }).click()
   await expect(page).toHaveURL(/\/login$/)
   expect(await page.evaluate(() => window.history.state.usr.from)).toBe('/training')
 })
@@ -79,14 +79,10 @@ test('keeps mobile navigation, footer channels, and store link states usable', a
       width,
     )
     const navigation = page.getByRole('navigation', { name: '랜딩 메뉴' })
-    await expect(navigation.getByRole('link')).toHaveCount(1)
     await expect(
       navigation.getByRole('link', { name: '웹에서 시작하기', exact: true }),
     ).toBeVisible()
-    await page
-      .locator('[data-landing-hero]')
-      .getByRole('link', { name: '앱 다운로드', exact: true })
-      .click()
+    await navigation.getByRole('link', { name: '앱 다운로드', exact: true }).click()
     await expect(page.getByRole('heading', { name: '앱으로 시작해보기' })).toBeInViewport()
   }
   const channels = page.getByRole('navigation', { name: 'BADA 공식 채널' })

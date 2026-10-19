@@ -1,44 +1,29 @@
-import { LuArrowUpRight, LuPhone } from 'react-icons/lu'
-import heroImage from '@shared/assets/landing/everyday-call.jpg'
-
-/** 스크롤에 따라 문장의 강조가 변하며 연습의 의미를 전달하는 브랜드 이야기입니다. */
+/** 긴장된 선이 원으로 닫히고 문장에 색이 차오르는 전환 장면입니다. */
 export const LandingStory = () => (
-  <section className="landing-story" aria-labelledby="story-title" data-landing-story>
-    <div className="landing-story-intro" data-reveal>
-      <p className="landing-eyebrow">A LITTLE PRACTICE. A BIG DIFFERENCE.</p>
-      <h2 id="story-title">
-        <span data-story-line>전화가 어려운 건,</span>
+  <section className="brand-manifesto" data-manifesto aria-labelledby="manifesto-title">
+    <p className="brand-kicker">01 / 마음의 준비</p>
+    <svg className="brand-manifesto-orbit" viewBox="0 0 800 500" aria-hidden="true">
+      <ellipse data-orbit-stroke cx="400" cy="250" rx="370" ry="200" pathLength="1" />
+    </svg>
+    <div className="brand-manifesto-type">
+      <h2 id="manifesto-title">
+        잘 말하는 것보다,
         <br />
-        <span data-story-line>할 말이 없어서가</span>
-        <br />
-        <span data-story-line>아닐 테니까.</span>
+        편하게 시작하는 것.
       </h2>
-      <p className="landing-story-description">
-        머릿속으로 수없이 연습한 대화.
+      <p data-manifesto-ink aria-hidden="true">
+        잘 말하는 것보다,
         <br />
-        이제는 혼자 준비하지 않아도 괜찮아요.
+        편하게 시작하는 것.
       </p>
     </div>
-    <figure className="landing-story-photo" data-reveal>
-      <img
-        src={heroImage}
-        alt="편안한 표정으로 일상 속 전화를 이어가는 모습"
-        width="1122"
-        height="1402"
-        loading="lazy"
-      />
-      <figcaption>
-        <span>
-          <LuPhone aria-hidden="true" /> 익숙해지는 순간
-        </span>
-        <p>
-          “안녕하세요.”
-          <br />그 한마디가 쉬워질 때까지.
-        </p>
-        <a href="#practice">
-          BADA와 먼저 연습해요 <LuArrowUpRight aria-hidden="true" />
-        </a>
-      </figcaption>
-    </figure>
+    <div className="brand-manifesto-bottom">
+      <span>완벽한 첫마디는 없어도 괜찮아요.</span>
+      <p>
+        상대는 AI니까. 준비될 때까지 기다릴 수 있으니까.
+        <br />
+        틀려도, 멈춰도, 다시 시작해도 괜찮은 곳.
+      </p>
+    </div>
   </section>
 )

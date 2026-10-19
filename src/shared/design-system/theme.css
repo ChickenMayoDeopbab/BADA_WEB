@@ -5,6 +5,12 @@
   --font-weight-medium: 500;
   --font-weight-bold: 700;
 
+  --text-marketing-statement: 112px;
+  --text-marketing-statement--line-height: 120.96px;
+  --text-marketing-statement--letter-spacing: -7.28px;
+  --text-brand-wordmark: 320px;
+  --text-brand-wordmark--line-height: 304px;
+  --text-brand-wordmark--letter-spacing: -25.6px;
   --text-marketing-hero: 72px;
   --text-marketing-billboard: 88px;
   --text-marketing-billboard--line-height: 96.8px;

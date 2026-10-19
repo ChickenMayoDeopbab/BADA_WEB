@@ -7,7 +7,12 @@ import { WebStartLink } from './WebStartLink'
 
 /** 서비스·공식 채널·공개 정책과 운영팀 연락처를 한곳에 제공합니다. */
 export const LandingFooter = () => (
-  <footer className="px-6 lg:px-12 border-t border-line-alternative bg-background-normal">
+  <footer className="brand-footer px-6 lg:px-12 border-t border-line-alternative bg-background-normal">
+    <div className="brand-footer-masthead" aria-hidden="true">
+      <span data-footer-wordmark>
+        BADA<span>®</span>
+      </span>
+    </div>
     <div className="max-w-6xl py-12 mx-auto">
       <div className="gap-10 sm:grid-cols-2 lg:grid-cols-4 grid">
         <div>

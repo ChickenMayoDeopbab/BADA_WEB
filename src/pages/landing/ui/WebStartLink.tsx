@@ -15,10 +15,7 @@ export const WebStartLink = ({
   destination = routePaths.dashboard,
   className = '',
 }: WebStartLinkProps) => (
-  <Link
-    {...getWebEntry(destination)}
-    className={`min-h-12 gap-5 px-6 py-3 ease-out inline-flex items-center justify-center rounded-pill bg-label-normal text-label font-medium text-background-normal transition-transform duration-200 hover:scale-105 motion-reduce:transition-none ${className}`}
-  >
+  <Link {...getWebEntry(destination)} className={`brand-web-link ${className}`}>
     {children}
     <LuArrowUpRight className="size-5 shrink-0" aria-hidden="true" />
   </Link>

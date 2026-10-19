@@ -10,6 +10,8 @@ export const FONT_WEIGHT = {
 
 /** 기본 UI는 130% 행간을 사용하고, 마케팅 제목은 넓은 화면에 맞는 별도 스케일을 사용합니다. */
 export const TYPOGRAPHY = {
+  marketingStatement: { fontSize: '112px', lineHeight: '120.96px', letterSpacing: '-7.28px' },
+  brandWordmark: { fontSize: '320px', lineHeight: '304px', letterSpacing: '-25.6px' },
   marketingBillboard: { fontSize: '88px', lineHeight: '96.8px', letterSpacing: '-4.4px' },
   marketingHero: { fontSize: '72px', lineHeight: '79.2px', letterSpacing: '-2.88px' },
   marketingTitle: { fontSize: '48px', lineHeight: '57.6px', letterSpacing: '-1.92px' },

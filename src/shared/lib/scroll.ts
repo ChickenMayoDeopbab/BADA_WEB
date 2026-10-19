@@ -37,8 +37,11 @@ export const scrollToPosition = (top: number, shouldAnimate = false) => {
   window.addEventListener('wheel', cancel, { passive: true })
   window.addEventListener('touchstart', cancel, { passive: true })
   window.addEventListener('pointerdown', cancel)
-  window.addEventListener('keydown', cancel)
-  animationFrame = window.requestAnimationFrame(animate)
+  animationFrame = window.requestAnimationFrame((now) => {
+    // 이동을 시작한 키보드 이벤트가 window까지 전파된 뒤 취소 입력을 구독합니다.
+    window.addEventListener('keydown', cancel)
+    animate(now)
+  })
   return cancel
 }
 

@@ -50,44 +50,37 @@ export const previewScenarios = [
 
 export const tourFeatures = [
   {
-    id: 'diagnosis',
-    label: '자가진단',
-    eyebrow: '01 · 나를 알아가는 시간',
-    title: '지금 내 마음은\n어떤 상태일까요?',
+    id: 'scenario',
+    label: '상황 고르기',
+    eyebrow: '01 / 당신의 일상에서',
+    title: '내일 해야 할 전화,\n오늘의 연습으로.',
     description:
-      '전화가 불편한 순간을 돌아보고, 자가진단으로 지금의 상태를 살펴보세요. 나를 이해하는 것이 첫 연습의 시작이에요.',
-    action: '내 상태 알아보기',
-    destination: routePaths.welcome,
-  },
-  {
-    id: 'training',
-    label: 'AI 통화 연습',
-    eyebrow: '02 · 실전에 가까운 연습',
-    title: '내일 해야 할 전화,\n오늘 먼저 연습해요.',
-    description:
-      '일상부터 업무, 학교까지. 필요한 상황과 난이도, 상대방의 성향을 선택하고 AI와 내 속도에 맞춰 대화해 보세요.',
+      '병원 예약부터 업무 전화까지. 마음에 걸리는 상황을 고르고, 상대방의 성향과 난이도를 내게 맞춰보세요.',
     action: '시나리오 보러 가기',
     destination: routePaths.training,
+    annotation: '일상 · 업무 · 학교 · 나만의 시나리오',
   },
   {
-    id: 'records',
-    label: '기록과 피드백',
-    eyebrow: '03 · 쌓이는 나의 경험',
-    title: '잘한 순간을 발견하고,\n다음 대화를 준비해요.',
+    id: 'call',
+    label: 'AI 통화 연습',
+    eyebrow: '02 / 이제, 당신의 목소리로',
+    title: '진짜처럼 대화하고,\n편안하게 다시 해보고.',
     description:
-      '통화 내용과 구간별 피드백을 돌아보세요. 연습 기록과 주간 리포트로 내가 이어온 과정을 확인할 수 있어요.',
+      '실제 사람에게 전화하지 않아요. AI와 내 속도로 대화하고, 말이 막힐 때는 스크립트의 도움을 받아보세요.',
+    action: 'AI와 연습 시작하기',
+    destination: routePaths.training,
+    annotation: '실제 통화처럼, 부담은 가볍게',
+  },
+  {
+    id: 'report',
+    label: '돌아보기',
+    eyebrow: '03 / 작은 변화를 발견하는 시간',
+    title: '내가 잘한 한마디를\n다시 발견해요.',
+    description:
+      '통화 타임라인과 구간별 피드백으로 대화를 돌아보세요. 한 번의 연습이 다음 통화를 위한 경험으로 남아요.',
     action: '연습 기록 확인하기',
     destination: routePaths.records,
-  },
-  {
-    id: 'community',
-    label: '커뮤니티',
-    eyebrow: '04 · 함께하는 연습',
-    title: '비슷한 마음을 나누면,\n한 걸음이 가벼워져요.',
-    description:
-      '혼자만의 고민이라고 생각했던 순간들. 커뮤니티에서 연습 경험과 일상 이야기를 나누고, 서로의 작은 시도를 응원해요.',
-    action: '커뮤니티 둘러보기',
-    destination: routePaths.community,
+    annotation: '통화 기록 · 구간별 피드백 · 주간 리포트',
   },
 ] as const
 

@@ -1,136 +1,143 @@
 import { expect, test, type Page } from '@playwright/test'
 
-/** 실제 스크롤 범위 안에서 지정한 기능 단계의 중간으로 이동합니다. */
+/** 제품 무대의 실제 스크롤 범위에서 한 장면의 중앙으로 이동합니다. */
 const scrollToFeature = async (page: Page, index: number) => {
   await page.evaluate((step) => {
     const story = document.getElementById('experience')!
     const stage = story.querySelector<HTMLElement>('[data-feature-stage]')!
     const start = window.scrollY + story.getBoundingClientRect().top - 80
-    const range = story.offsetHeight - stage.offsetHeight
-    window.scrollTo(0, start + range * ((step + 0.4) / 4))
+    window.scrollTo(0, start + (story.offsetHeight - stage.offsetHeight) * ((step + 0.4) / 3))
   }, index)
 }
 
-test('scrolls forward and backward through pinned feature screens without moving the stage', async ({
+test('scrolls forward and backward through three real app scenes while the stage stays pinned', async ({
   page,
 }) => {
   for (const height of [900, 720]) {
     await page.setViewportSize({ width: 1280, height })
     await page.goto('/')
-    const story = page.locator('#experience')
-    await expect(story).toHaveAttribute('data-scroll-story', 'true')
-    const tabs = ['자가진단', 'AI 통화 연습', '기록과 피드백', '커뮤니티']
-    for (const index of [0, 1, 2, 3, 1]) {
+    await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
+    await expect(page.locator('#experience')).toHaveAttribute('data-scroll-story', 'true')
+    for (const index of [0, 1, 2, 1]) {
       await scrollToFeature(page, index)
-      await expect(page.getByRole('tab', { name: tabs[index], exact: true })).toHaveAttribute(
-        'aria-selected',
-        'true',
-      )
+      await expect(
+        page.getByRole('tab', {
+          name: ['상황 고르기', 'AI 통화 연습', '돌아보기'][index],
+          exact: true,
+        }),
+      ).toHaveAttribute('aria-selected', 'true')
       await expect(page.getByRole('tabpanel')).toHaveCount(1)
       await expect
         .poll(async () => (await page.locator('[data-feature-stage]').boundingBox())!.y)
         .toBeCloseTo(80, 0)
       const panel = page.getByRole('tabpanel')
-      await expect(panel.locator('.landing-feature-copy')).toHaveCSS('opacity', '1')
+      await expect(panel.locator('[data-app-screen]')).toHaveAttribute(
+        'data-app-screen',
+        ['scenario', 'call', 'report'][index],
+      )
       await expect
         .poll(async () => {
-          const box = (await panel.boundingBox())!
+          const box = (await panel.locator('.brand-tour-copy').boundingBox())!
           return box.y + box.height
         })
         .toBeLessThanOrEqual(height)
-      if (height === 900 && index === 2)
-        await page.screenshot({ path: test.info().outputPath('landing-scroll-feedback.png') })
+      await expect
+        .poll(async () => {
+          const box = (await panel.locator('.app-device').boundingBox())!
+          return box.y + box.height
+        })
+        .toBeLessThanOrEqual(height)
     }
   }
 })
 
-test('keeps direct tab selection and scroll position synchronized in the pinned section', async ({
+test('keeps direct scene selection and keyboard focus synchronized with the scroll timeline', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto('/')
-  await expect(page.locator('#experience')).toHaveAttribute('data-scroll-story', 'true')
-  await page.getByRole('tab', { name: '커뮤니티', exact: true }).click()
+  await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
+  const report = page.getByRole('tab', { name: '돌아보기', exact: true })
+  await report.click()
+  await expect(report).toHaveAttribute('aria-selected', 'true')
   await expect
     .poll(() =>
-      page.evaluate(() => {
-        const story = document.getElementById('experience')!
-        const range =
-          story.offsetHeight -
-          story.querySelector<HTMLElement>('[data-feature-stage]')!.offsetHeight
-        return (80 - story.getBoundingClientRect().top) / range
-      }),
+      page
+        .locator('#experience')
+        .evaluate((story) =>
+          Number((story as HTMLElement).style.getPropertyValue('--tour-progress')),
+        ),
     )
-    .toBeGreaterThan(0.75)
-  await expect(page.getByRole('tab', { name: '커뮤니티', exact: true })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  )
-  await page.getByRole('tab', { name: '커뮤니티', exact: true }).press('Home')
-  await expect(page.getByRole('tab', { name: '자가진단', exact: true })).toBeFocused()
+    .toBeGreaterThan(0.7)
+  await report.press('Home')
+  await expect(page.getByRole('tab', { name: '상황 고르기', exact: true })).toBeFocused()
   await expect
     .poll(() =>
-      page.evaluate(() => {
-        const story = document.getElementById('experience')!
-        const range =
-          story.offsetHeight -
-          story.querySelector<HTMLElement>('[data-feature-stage]')!.offsetHeight
-        return (80 - story.getBoundingClientRect().top) / range
+      page
+        .locator('#experience')
+        .evaluate((story) =>
+          Number((story as HTMLElement).style.getPropertyValue('--tour-progress')),
+        ),
+    )
+    .toBeLessThan(0.3)
+})
+
+test('morphs the voice line and opens the manifesto and photo masks with scrolling', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/')
+  await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
+  const voice = page.locator('[data-voice-path]')
+  const initialVoice = await voice.getAttribute('d')
+  await page.mouse.wheel(0, 450)
+  await expect(voice).not.toHaveAttribute('d', initialVoice!)
+  const ink = page.locator('[data-manifesto-ink]')
+  const initialMask = await ink.evaluate((el) => getComputedStyle(el).clipPath)
+  await page
+    .locator('[data-manifesto]')
+    .evaluate((el) => window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top))
+  await expect(ink).not.toHaveCSS('clip-path', initialMask)
+  const photo = page.locator('[data-life-photo]')
+  const initialPhotoMask = await photo.evaluate((el) => getComputedStyle(el).clipPath)
+  await photo.evaluate((el) =>
+    window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - 60),
+  )
+  await expect(photo).not.toHaveCSS('clip-path', initialPhotoMask)
+  await expect
+    .poll(() =>
+      photo.evaluate((frame) => {
+        const image = frame.querySelector('img')!.getBoundingClientRect()
+        const box = frame.getBoundingClientRect()
+        return image.top <= box.top && image.bottom >= box.bottom
       }),
     )
-    .toBeLessThan(0.25)
-  await expect(page.getByRole('tab', { name: '자가진단', exact: true })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  )
+    .toBe(true)
+  await expect(page.getByRole('heading', { name: '연습은 여기서. 용기는 일상에서.' })).toBeVisible()
 })
 
-test('reveals sections as they enter and updates the scroll indicator and hero depth', async ({
+test('restores static readable content for reduced motion and normal scene selection on mobile', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto('/')
-  await expect(page.locator('.landing-page')).toHaveAttribute('data-motion', 'true')
-  const image = page.locator('[data-hero-image]')
-  const initialTransform = await image.evaluate((element) => getComputedStyle(element).transform)
-  await page.mouse.wheel(0, 350)
-  await expect(image).not.toHaveCSS('transform', initialTransform)
-  const warmup = page.locator('#warmup')
-  await warmup.scrollIntoViewIfNeeded()
-  await expect(warmup).toHaveCSS('opacity', '1')
-  await expect(warmup.getByRole('link', { name: '워밍업 시작하기' })).toBeInViewport()
-  expect(
-    await page
-      .locator('.landing-page')
-      .evaluate((element) =>
-        Number((element as HTMLElement).style.getPropertyValue('--landing-scroll-progress')),
-      ),
-  ).toBeGreaterThan(0)
-})
-
-test('restores readable static content when reduced motion is enabled and uses normal mobile flow', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1280, height: 900 })
-  await page.goto('/')
-  await expect(page.locator('#experience')).toHaveAttribute('data-scroll-story', 'true')
+  await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
   await scrollToFeature(page, 2)
-  await expect(page.getByRole('tab', { name: '기록과 피드백', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('tab', { name: '돌아보기', exact: true })).toHaveAttribute(
     'aria-selected',
     'true',
   )
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(page.locator('#experience')).toHaveAttribute('data-scroll-story', 'false')
-  await expect(page.locator('[data-feature-stage]')).toHaveCSS('position', 'static')
-  for (const element of await page.locator('[data-reveal]').all()) {
-    await expect(element).toHaveCSS('opacity', '1')
-    await expect(element).toHaveCSS('transform', 'none')
-  }
-  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await expect(page.locator('[data-feature-stage]')).toHaveCSS('position', 'relative')
+  await expect(page.locator('[data-life-photo]')).toHaveCSS('clip-path', 'none')
+  await expect(page.locator('[data-manifesto-ink]')).toHaveCSS('clip-path', 'none')
   await page.setViewportSize({ width: 390, height: 844 })
-  await expect(page.locator('#experience')).toHaveAttribute('data-scroll-story', 'false')
-  await expect(page.locator('[data-feature-stage]')).toHaveCSS('position', 'static')
   await page.getByRole('tab', { name: 'AI 통화 연습', exact: true }).click()
-  await expect(page.getByRole('link', { name: '시나리오 보러 가기', exact: true })).toBeVisible()
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+  await expect(page.getByRole('tabpanel').locator('[data-app-screen]')).toHaveAttribute(
+    'data-app-screen',
+    'call',
+  )
+  await expect(page.getByRole('link', { name: 'AI와 연습 시작하기', exact: true })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })
