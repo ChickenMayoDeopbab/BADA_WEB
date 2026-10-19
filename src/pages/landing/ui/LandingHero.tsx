@@ -1,4 +1,4 @@
-import { LuArrowDown, LuArrowUpRight } from 'react-icons/lu'
+import { LuArrowDown } from 'react-icons/lu'
 import { buildVoicePath } from '../model/brandMotion'
 import { AppScreen } from './AppScreen'
 import { WebStartLink } from './WebStartLink'
@@ -10,7 +10,6 @@ export const LandingHero = () => (
       <span>
         <i /> AI와 함께하는 통화 연습
       </span>
-      <span>YOUR VOICE. YOUR PACE.</span>
     </div>
     <h1 id="hero-title" className="brand-hero-title">
       <span className="brand-line-mask">
@@ -23,18 +22,13 @@ export const LandingHero = () => (
       </span>
     </h1>
     <figure className="brand-hero-object" data-hero-object>
-      <div className="brand-hero-object-label">
-        <span>BADA / CALL PRACTICE</span>
-        <LuArrowUpRight aria-hidden="true" />
-      </div>
       <AppScreen variant="call" />
-      <figcaption>연습할 땐, 실수해도 괜찮아요.</figcaption>
     </figure>
     <div className="brand-hero-bottom" data-hero-footnote>
       <p>
-        머릿속의 그 대화,
+        전화가 부담스러울 때,
         <br />
-        이제 목소리로.<small>전화가 편해지는 연습, BADA</small>
+        AI와 먼저 연습해보세요.
       </p>
       <WebStartLink className="brand-hero-start">나의 첫 연습 시작하기</WebStartLink>
     </div>
@@ -47,9 +41,8 @@ export const LandingHero = () => (
       <path data-voice-path d={buildVoicePath()} />
     </svg>
     <div className="brand-hero-index">
-      <span>FROM HESITATION TO HELLO</span>
       <a href="#experience">
-        SCROLL TO EXPLORE <LuArrowDown aria-hidden="true" />
+        스크롤해서 연습 흐름 보기 <LuArrowDown aria-hidden="true" />
       </a>
     </div>
   </section>

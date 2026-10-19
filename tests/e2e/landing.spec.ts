@@ -1,22 +1,18 @@
 import { expect, test } from '@playwright/test'
 import { authenticate } from './authFixture'
 
-test('explores a conversation and resets the preview when another situation is selected', async ({
-  page,
-}) => {
+test('answers the essential start questions without leaving the landing', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: /업무.*회의 일정 조율하기/ }).click()
-  await expect(page.getByRole('heading', { name: '회의 일정 조율하기' })).toBeVisible()
-  await page.getByRole('button', { name: '다음 대화 보기', exact: true }).click()
+  await page.getByText('앱을 설치해야만 연습할 수 있나요?', { exact: true }).click()
   await expect(
-    page.getByText('네, 가능합니다. 내일 오후 2시에 뵙겠습니다.', { exact: true }),
+    page.getByText('설치 없이 웹에서 로그인해 연습할 수 있어요.', { exact: false }),
   ).toBeVisible()
-  await page.getByRole('button', { name: '피드백 예시 보기', exact: true }).click()
-  await expect(page.getByRole('heading', { name: '이렇게 대화를 돌아봐요.' })).toBeVisible()
-  await page.getByRole('button', { name: /학교.*교수님께 상담 요청하기/ }).click()
-  await expect(page.getByRole('heading', { name: '교수님께 상담 요청하기' })).toBeVisible()
-  await expect(page.getByRole('button', { name: '다음 대화 보기', exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: '이렇게 대화를 돌아봐요.' })).toHaveCount(0)
+  await page.getByText('실제 사람에게 전화가 걸리나요?', { exact: true }).click()
+  await expect(
+    page.getByText('실제 사람에게 전화를 걸지 않고 대화를 연습할 수 있어요.', { exact: false }),
+  ).toBeVisible()
+  await expect(page.locator('#faq details')).toHaveCount(3)
+  await expect(page).toHaveURL(/\/$/)
 })
 
 test('supports keyboard feature navigation and keeps the real feature destination for login', async ({
@@ -30,9 +26,9 @@ test('supports keyboard feature navigation and keeps the real feature destinatio
   await expect(trainingTab).toBeFocused()
   await expect(trainingTab).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('tabpanel')).toHaveCount(1)
-  await page.getByRole('link', { name: 'AI와 연습 시작하기', exact: true }).click()
+  await page.getByRole('link', { name: '나의 첫 연습 시작하기', exact: true }).click()
   await expect(page).toHaveURL(/\/login$/)
-  expect(await page.evaluate(() => window.history.state.usr.from)).toBe('/training')
+  expect(await page.evaluate(() => window.history.state.usr.from)).toBe('/dashboard')
 })
 
 test('sends an existing session to the actual web service', async ({ page }) => {

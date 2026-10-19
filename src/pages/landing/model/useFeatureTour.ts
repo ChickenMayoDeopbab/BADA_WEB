@@ -58,11 +58,11 @@ export const useFeatureTour = () => {
           .to({}, { duration: 1 }, 0)
           .fromTo(
             carrier,
-            { x: positionAt(0.74), y: 0, yPercent: -50 },
-            { x: positionAt(0.27), y: 10, duration: 0.22 },
+            { x: positionAt(0.66), y: 0, yPercent: -50 },
+            { x: positionAt(0.22), y: 10, duration: 0.22 },
             0.22,
           )
-          .to(carrier, { x: positionAt(0.73), y: -8, duration: 0.22 }, 0.56)
+          .to(carrier, { x: positionAt(0.66), y: -8, duration: 0.22 }, 0.56)
           .fromTo(
             device,
             { transformPerspective: 1400, rotationY: -12, rotationZ: 5 },

@@ -18,48 +18,13 @@
   align-items: end;
   gap: 12px 24px;
 }
-.brand-tour-heading .brand-kicker {
-  grid-column: 1 / -1;
-}
 .brand-tour-heading h2 {
   font-size: var(--text-title1);
   font-weight: 700;
   letter-spacing: -0.04em;
 }
-.brand-tour-instruction {
-  color: var(--color-label-alternative);
-  font-size: var(--text-caption);
-}
-.brand-tour-instruction span {
-  margin-left: 16px;
-}
 .brand-tour-workspace {
   position: relative;
-}
-.brand-tour-route {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.brand-tour-route path {
-  stroke: var(--color-line-normal);
-  stroke-width: 1;
-  stroke-dasharray: 0.003 0.008;
-  vector-effect: non-scaling-stroke;
-}
-.brand-tour-number {
-  position: absolute;
-  top: 8%;
-  right: 5%;
-  font-size: var(--text-brand-wordmark);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.08em;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--color-line-normal);
-  pointer-events: none;
 }
 .brand-tour-panel {
   position: relative;
@@ -85,9 +50,6 @@
   font-size: var(--text-body);
   line-height: 1.7;
   color: var(--color-label-alternative);
-}
-.brand-tour-copy > a {
-  margin-top: 28px;
 }
 .brand-tour-visual {
   position: relative;
@@ -129,26 +91,40 @@
 .brand-tour-device .app-screen {
   border: none;
 }
+.brand-tour-number {
+  position: absolute;
+  top: 8%;
+  right: 5%;
+  font-size: var(--text-brand-wordmark);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.08em;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-line-normal);
+  pointer-events: none;
+}
+.brand-tour[data-active-scene='1'] .brand-tour-number {
+  right: auto;
+  left: 3%;
+}
 .brand-tour-callout {
   position: absolute;
   z-index: 3;
-  top: var(--tour-callout-top, 67%);
-  left: 38%;
+  top: calc(var(--tour-focus-center, 61.5%) - 44px);
+  left: calc(100% + 20px);
   width: 220px;
-  display: flex;
-  align-items: start;
-  gap: 12px;
   padding: 16px;
   border: 1px solid var(--color-line-normal);
+  border-radius: var(--radius-component);
   background: var(--color-background-normal);
-  box-shadow: var(--shadow-subtle-card);
+  box-shadow: var(--shadow-elevated-card);
   pointer-events: none;
 }
 .brand-tour[data-active-scene='0'] {
-  --tour-callout-top: 34%;
+  --tour-focus-center: 34%;
 }
 .brand-tour[data-active-scene='2'] {
-  --tour-callout-top: 55%;
+  --tour-focus-center: 54.5%;
 }
 .brand-tour-focus {
   position: absolute;
@@ -157,7 +133,8 @@
   top: 47%;
   width: 86%;
   height: 29%;
-  border: 2px solid var(--color-primary-normal);
+  border: 2px dashed var(--color-primary-normal);
+  background: color-mix(in srgb, var(--color-primary-normal) 5%, transparent);
   border-radius: var(--radius-control);
   opacity: var(--scene-opacity, 1);
   pointer-events: none;
@@ -173,31 +150,51 @@
 .brand-tour-callout::before {
   content: '';
   position: absolute;
-  left: -24px;
-  top: 27px;
-  width: 24px;
-  height: 1px;
-  background: var(--color-primary-normal);
+  right: 100%;
+  top: 43px;
+  width: 44px;
+  border-top: 1px dashed var(--color-primary-normal);
+}
+.brand-tour-callout::after {
+  content: '';
+  position: absolute;
+  top: 39px;
+  left: -48px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--color-primary-normal);
+  border-radius: var(--radius-pill);
+  background: var(--color-background-normal);
+}
+.brand-tour-callout-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: var(--text-caption);
+  color: var(--color-label-alternative);
 }
 .brand-tour-callout-index {
-  color: var(--color-primary-normal);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  background: var(--color-primary-alternative);
+  color: var(--color-label-normal);
+  border-radius: var(--radius-control);
   font-size: var(--text-caption);
-  font-weight: 700;
+  font-weight: 600;
 }
 .brand-tour-callout strong {
   display: block;
   font-size: var(--text-label);
   font-weight: 600;
+  line-height: 1.4;
 }
-.brand-tour-callout small {
-  display: block;
-  margin-top: 6px;
+.brand-tour-callout p {
+  margin-top: 8px;
   font-size: var(--text-caption);
-  line-height: 1.5;
-  color: var(--color-label-alternative);
-}
-.brand-tour-visual figcaption {
-  font-size: var(--text-caption);
+  line-height: 1.6;
   color: var(--color-label-alternative);
 }
 .brand-tour-tabs {
@@ -221,11 +218,6 @@
 .brand-tour-tabs button > span {
   font-size: var(--text-caption);
 }
-.brand-tour-tabs button small {
-  margin-left: auto;
-  padding-right: 24px;
-  font-size: var(--text-caption);
-}
 .brand-tour-tabs button[aria-selected='true'] {
   color: var(--color-label-normal);
 }
@@ -238,21 +230,8 @@
   height: 3px;
   background: var(--color-primary-normal);
 }
-.brand-tour-progress {
-  position: absolute;
-  inset: auto 0 0;
-  height: 3px;
-  background: var(--color-line-alternative);
-}
-.brand-tour-progress span {
-  display: block;
-  height: 100%;
-  background: var(--color-label-normal);
-  transform: scaleX(var(--tour-progress, 0));
-  transform-origin: left;
-}
 .brand-tour[data-scroll-story='true'] {
-  height: 380svh;
+  height: 300svh;
 }
 .brand-tour[data-scroll-story='true'] .brand-tour-stage {
   position: sticky;
@@ -277,10 +256,6 @@
 .brand-tour[data-scroll-story='true'][data-active-scene='1'] .brand-tour-panel {
   left: 58%;
 }
-.brand-tour[data-scroll-story='true'][data-active-scene='1'] .brand-tour-number {
-  right: auto;
-  left: 3%;
-}
 .brand-tour[data-scroll-story='true'] .brand-tour-visual {
   position: absolute;
   inset: 0;
@@ -298,11 +273,6 @@
 .brand-tour[data-scroll-story='true'] .brand-tour-callout {
   opacity: var(--scene-opacity, 1);
 }
-.brand-tour[data-scroll-story='true'] figcaption {
-  position: absolute;
-  bottom: 12px;
-  right: 0;
-}
 .brand-tour[data-scroll-story='false'] .brand-tour-workspace {
   margin-top: 40px;
   min-height: 560px;
@@ -313,12 +283,8 @@
 }
 .brand-tour[data-scroll-story='false'] .brand-tour-visual {
   position: absolute;
-  right: 10%;
+  right: 24%;
   top: 0;
-}
-.brand-tour[data-scroll-story='false'] figcaption {
-  margin-top: 32px;
-  text-align: center;
 }
 @media (min-width: 1024px) and (max-height: 800px) {
   .brand-tour-stage {
@@ -331,16 +297,8 @@
   .brand-tour-description {
     margin-top: 12px;
   }
-  .brand-tour-copy > a {
-    margin-top: 20px;
-  }
   .brand-tour-tabs button {
     min-height: 64px;
-  }
-}
-@media (max-width: 1199px) {
-  .brand-tour-tabs button small {
-    display: none;
   }
 }
 @media (max-width: 1023px) {
@@ -364,12 +322,6 @@
   .brand-tour-heading h2 {
     font-size: var(--text-title1);
   }
-  .brand-tour-instruction {
-    display: none;
-  }
-  .brand-tour-route {
-    display: none;
-  }
   .brand-tour[data-scroll-story='false'] .brand-tour-workspace {
     min-height: 0;
     margin-top: 40px;
@@ -385,21 +337,39 @@
     position: relative;
     inset: auto;
     margin-top: 48px;
+    padding-bottom: 160px;
   }
   .brand-tour-carrier {
     margin: auto;
   }
   .brand-tour-number {
-    top: 35%;
-    right: 4%;
+    top: 32%;
+    right: 0;
+    font-size: clamp(var(--text-marketing-hero), 65vw, var(--text-brand-wordmark));
+  }
+  .brand-tour[data-active-scene='1'] .brand-tour-number {
+    left: 0;
   }
   .brand-tour-callout {
-    left: 15%;
-    top: var(--tour-callout-top, 67%);
-    width: 210px;
+    top: calc(100% + 24px);
+    left: 50%;
+    width: 250px;
+    transform: translateX(-50%);
   }
-  .brand-tour[data-scroll-story='false'] figcaption {
-    margin-top: 28px;
+  .brand-tour-callout::before {
+    width: 0;
+    height: 24px;
+    left: 50%;
+    right: auto;
+    top: -25px;
+    border-top: none;
+    border-left: 1px dashed var(--color-primary-normal);
+  }
+  .brand-tour-callout::after {
+    top: -29px;
+    left: calc(50% - 3px);
+    width: 6px;
+    height: 6px;
   }
   .brand-tour-tabs {
     margin-top: 32px;
@@ -421,9 +391,6 @@
   .brand-tour-heading h2 {
     font-size: var(--text-title2);
   }
-  .brand-tour-copy > a {
-    margin-top: 20px;
-  }
   .brand-tour-tabs button {
     gap: 4px;
   }
@@ -431,5 +398,13 @@
 @media (prefers-reduced-motion: reduce) {
   .brand-tour-screen {
     transition: none;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .brand-tour-callout {
+    width: 196px;
+    padding: 14px;
+    left: calc(100% + 16px);
   }
 }

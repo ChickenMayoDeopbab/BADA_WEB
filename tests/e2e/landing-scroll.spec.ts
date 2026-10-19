@@ -52,6 +52,11 @@ test('moves one phone forward and backward through three scenes while the stage 
         '다음 한 통을 위한 발견',
       ][index]
       await expect(page.locator('[data-tour-callout]')).toContainText(expectedFocus)
+      const note = (await page.locator('[data-tour-callout]').boundingBox())!
+      expect(note.x).toBeGreaterThanOrEqual(0)
+      expect(note.x + note.width).toBeLessThanOrEqual(1280)
+      await expect(page.locator('.brand-tour-number')).toHaveText(`0${index + 1}`)
+      await expect(page.locator('.brand-tour-focus')).toHaveCSS('border-top-style', 'dashed')
       const panel = page.getByRole('tabpanel')
       await expect(
         page.locator('.brand-tour-screen[data-current="true"] [data-app-screen]'),
@@ -106,7 +111,7 @@ test('keeps direct scene selection and keyboard focus synchronized with the scro
     .toBeLessThan(0.3)
 })
 
-test('morphs the voice line and opens the manifesto and photo masks with scrolling', async ({
+test('morphs the voice line with scrolling and restores it for reduced motion', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
@@ -116,28 +121,8 @@ test('morphs the voice line and opens the manifesto and photo masks with scrolli
   const initialVoice = await voice.getAttribute('d')
   await page.mouse.wheel(0, 450)
   await expect(voice).not.toHaveAttribute('d', initialVoice!)
-  const ink = page.locator('[data-manifesto-ink]')
-  const initialMask = await ink.evaluate((el) => getComputedStyle(el).clipPath)
-  await page
-    .locator('[data-manifesto]')
-    .evaluate((el) => window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top))
-  await expect(ink).not.toHaveCSS('clip-path', initialMask)
-  const photo = page.locator('[data-life-photo]')
-  const initialPhotoMask = await photo.evaluate((el) => getComputedStyle(el).clipPath)
-  await photo.evaluate((el) =>
-    window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - 60),
-  )
-  await expect(photo).not.toHaveCSS('clip-path', initialPhotoMask)
-  await expect
-    .poll(() =>
-      photo.evaluate((frame) => {
-        const image = frame.querySelector('img')!.getBoundingClientRect()
-        const box = frame.getBoundingClientRect()
-        return image.top <= box.top && image.bottom >= box.bottom
-      }),
-    )
-    .toBe(true)
-  await expect(page.getByRole('heading', { name: '연습은 여기서. 용기는 일상에서.' })).toBeVisible()
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(voice).toHaveAttribute('d', initialVoice!)
 })
 
 test('restores static readable content for reduced motion and normal scene selection on mobile', async ({
@@ -154,13 +139,15 @@ test('restores static readable content for reduced motion and normal scene selec
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(page.locator('#experience')).toHaveAttribute('data-scroll-story', 'false')
   await expect(page.locator('[data-feature-stage]')).toHaveCSS('position', 'relative')
-  await expect(page.locator('[data-life-photo]')).toHaveCSS('clip-path', 'none')
-  await expect(page.locator('[data-manifesto-ink]')).toHaveCSS('clip-path', 'none')
+  await expect(page.locator('[data-tour-carrier]')).toHaveCSS('transform', 'none')
+  await expect(page.locator('[data-tour-device]')).toHaveCSS('transform', 'none')
   await page.setViewportSize({ width: 390, height: 844 })
   await page.getByRole('tab', { name: 'AI 통화 연습', exact: true }).click()
   await expect(
     page.locator('.brand-tour-screen[data-current="true"] [data-app-screen]'),
   ).toHaveAttribute('data-app-screen', 'call')
-  await expect(page.getByRole('link', { name: 'AI와 연습 시작하기', exact: true })).toBeVisible()
+  await expect(page.locator('[data-tour-callout]')).toContainText(
+    '스크립트를 보며 천천히 이어가요.',
+  )
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })

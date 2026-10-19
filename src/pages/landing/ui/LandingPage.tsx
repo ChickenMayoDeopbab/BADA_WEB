@@ -6,16 +6,13 @@ import { landingQuestions } from '../model/landingContent'
 import { useLandingScroll } from '../model/useLandingScroll'
 import { useBrandMotion } from '../model/useBrandMotion'
 import { LandingHero } from './LandingHero'
-import { LandingStory } from './LandingStory'
 import { FeatureTour } from './FeatureTour'
-import { TrainingPreview } from './TrainingPreview'
-import { PracticePaths } from './PracticePaths'
 import { AppDownload } from './AppDownload'
 import { LandingFooter } from './LandingFooter'
 import { WebStartLink } from './WebStartLink'
 import './landingBrand.css'
 
-/** 망설임에서 첫마디로 이어지는 다섯 장면의 브랜드 경험을 구성합니다. */
+/** 소개·통화 흐름·핵심 질문·다운로드로 짧게 이어지는 랜딩을 구성합니다. */
 export const LandingPage = () => {
   const { pageRef } = useLandingScroll()
   useBrandMotion(pageRef)
@@ -28,38 +25,24 @@ export const LandingPage = () => {
         <Link to={routePaths.landing} aria-label="BADA 홈">
           <img src={logo} alt="BADA" />
         </Link>
-        <span className="brand-header-caption">
-          A LITTLE PRACTICE,
-          <br />A LITTLE MORE YOU.
-        </span>
         <nav aria-label="랜딩 메뉴">
-          <a href="#experience">연습 둘러보기</a>
           <a href="#download">
             앱 다운로드 <LuArrowUpRight aria-hidden="true" />
           </a>
           <WebStartLink />
         </nav>
-        <div className="landing-scroll-progress" aria-hidden="true" />
       </header>
       <main id="main-content">
         <LandingHero />
-        <LandingStory />
         <FeatureTour />
-        <TrainingPreview />
-        <PracticePaths />
         <section id="faq" className="brand-faq" aria-labelledby="faq-title">
           <div>
-            <p className="brand-kicker">BEFORE YOUR FIRST HELLO</p>
-            <h2 id="faq-title">시작하기 전에.</h2>
-            <a href="mailto:team.bada.service@gmail.com">
-              다른 궁금한 점이 있나요? <LuArrowUpRight aria-hidden="true" />
-            </a>
+            <h2 id="faq-title">궁금한 점</h2>
           </div>
           <div>
-            {landingQuestions.map(({ question, answer }, index) => (
+            {landingQuestions.map(({ question, answer }) => (
               <details key={question}>
                 <summary>
-                  <span>0{index + 1}</span>
                   {question}
                   <LuPlus aria-hidden="true" />
                 </summary>

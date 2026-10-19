@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-/** 랜딩의 스크롤 진행과 내비게이션 표시·섹션 이동을 관리합니다. */
+/** 내비게이션 표시와 부드러운 섹션 이동을 관리합니다. */
 export const useLandingScroll = () => {
   const pageRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
@@ -21,9 +21,6 @@ export const useLandingScroll = () => {
       animationFrame = 0
       const scrollRange = document.documentElement.scrollHeight - window.innerHeight
       const scrollY = Math.min(Math.max(0, scrollRange), Math.max(0, window.scrollY))
-      const progress = scrollRange > 0 ? scrollY / scrollRange : 0
-      page.style.setProperty('--landing-scroll-progress', String(progress))
-      page.dataset.scrolled = String(scrollY > 24)
       const delta = scrollY - previousScrollY
       const nextDirection = Math.sign(delta)
       if (nextDirection && nextDirection !== scrollDirection) {
