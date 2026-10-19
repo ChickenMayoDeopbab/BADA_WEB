@@ -10,7 +10,8 @@ import {
 } from '@pages/auth'
 import { CommunityPage } from '@pages/community'
 import { DashboardPage } from '@pages/dashboard'
-import { NotFoundPage, PlaceholderPage } from '@pages/placeholders'
+import { LandingPage } from '@pages/landing'
+import { NotFoundPage } from '@pages/placeholders'
 import { NotificationsPage } from '@pages/notifications'
 import {
   ProfileInquiryPage,
@@ -53,7 +54,7 @@ const ProtectedRoutes = () => {
 const applicationRoutes: RouteObject[] = [
   {
     path: routePaths.landing,
-    element: <PlaceholderPage title="전화가 편해지는 연습, Bada" />,
+    element: <LandingPage />,
   },
   {
     path: routePaths.login,
