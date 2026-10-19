@@ -29,7 +29,7 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
             { clipPath: 'inset(100% 0% 0% 0%)', duration: 1.1 },
             0.25,
           )
-          intro.from(select('[data-hero-footnote]'), { y: 18, autoAlpha: 0, duration: 0.6 }, 0.7)
+          intro.from(select('[data-hero-action]'), { y: 18, autoAlpha: 0, duration: 0.6 }, 0.7)
           gsap.to(select('[data-voice-path]'), {
             attr: { d: buildVoicePath(true) },
             ease: 'none',

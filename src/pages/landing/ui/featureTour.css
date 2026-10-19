@@ -13,10 +13,10 @@
 .brand-tour-heading {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 }
 .brand-tour-heading h2 {
   font-size: var(--text-title1);
@@ -207,35 +207,42 @@
 .brand-tour-tabs {
   position: relative;
   z-index: 4;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  border-top: 1px solid var(--color-line-normal);
-}
-.brand-tour-tabs button {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 72px;
-  font-size: var(--text-label);
+  flex-shrink: 0;
+  width: max-content;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--color-line-alternative);
+  border-radius: var(--radius-pill);
+  background: var(--color-background-normal);
+}
+.brand-tour-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-caption);
   color: var(--color-label-alternative);
-  text-align: left;
   cursor: pointer;
 }
-.brand-tour-tabs button > span {
-  font-size: var(--text-caption);
+.brand-tour-tabs .brand-tour-tab-label {
+  display: none;
 }
 .brand-tour-tabs button[aria-selected='true'] {
-  color: var(--color-label-normal);
+  color: var(--color-background-normal);
+  background: var(--color-label-normal);
 }
-.brand-tour-tabs button[aria-selected='true']::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 24px;
-  top: -1px;
-  height: 3px;
-  background: var(--color-primary-normal);
+.brand-tour-tabs button[aria-selected='true'] .brand-tour-tab-label {
+  display: inline;
+}
+.brand-tour-tabs button:not([aria-selected='true']):hover {
+  color: var(--color-label-normal);
+  background: var(--color-fill-normal);
 }
 .brand-tour[data-scroll-story='true'] {
   height: 300svh;
@@ -246,7 +253,7 @@
   height: calc(100svh - 80px);
   display: flex;
   flex-direction: column;
-  padding-block: 28px 0;
+  padding-block: 28px;
 }
 .brand-tour[data-scroll-story='true'] .brand-tour-workspace {
   flex: 1;
@@ -304,9 +311,6 @@
   .brand-tour-description {
     margin-top: 12px;
   }
-  .brand-tour-tabs button {
-    min-height: 64px;
-  }
 }
 @media (max-width: 1023px) {
   .brand-tour-stage {
@@ -317,14 +321,13 @@
   .brand-tour-heading {
     order: 1;
   }
-  .brand-tour-tabs {
-    order: 2;
-  }
   .brand-tour-workspace {
     order: 3;
   }
   .brand-tour-heading {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: start;
+    gap: 24px;
   }
   .brand-tour-heading h2 {
     font-size: var(--text-title1);
@@ -373,17 +376,6 @@
     top: -32px;
     left: calc(50% - 28px);
   }
-  .brand-tour-tabs {
-    margin-top: 32px;
-  }
-  .brand-tour-tabs button {
-    gap: 6px;
-    font-size: var(--text-caption);
-    min-height: 64px;
-  }
-  .brand-tour-tabs button[aria-selected='true']::after {
-    right: 12px;
-  }
 }
 @media (max-width: 479px) {
   .brand-tour-stage {
@@ -392,9 +384,6 @@
   }
   .brand-tour-heading h2 {
     font-size: var(--text-title2);
-  }
-  .brand-tour-tabs button {
-    gap: 4px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -26,7 +26,7 @@ test('supports keyboard feature navigation and keeps the real feature destinatio
   await expect(trainingTab).toBeFocused()
   await expect(trainingTab).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('tabpanel')).toHaveCount(1)
-  await page.getByRole('link', { name: '나의 첫 연습 시작하기', exact: true }).click()
+  await page.getByRole('link', { name: '연습 시작하기', exact: true }).click()
   await expect(page).toHaveURL(/\/login$/)
   expect(await page.evaluate(() => window.history.state.usr.from)).toBe('/dashboard')
 })

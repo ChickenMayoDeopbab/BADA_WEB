@@ -19,6 +19,26 @@ export const FeatureTour = () => {
       <div className="brand-tour-stage" data-feature-stage>
         <div className="brand-tour-heading">
           <h2 id="experience-title">전화 한 통, 이렇게 연습해요.</h2>
+          <div role="tablist" aria-label="BADA 기능 둘러보기" className="brand-tour-tabs">
+            {tourFeatures.map((feature, index) => (
+              <button
+                key={feature.id}
+                id={`feature-tab-${feature.id}`}
+                role="tab"
+                aria-label={feature.label}
+                aria-selected={activeIndex === index}
+                aria-controls={`feature-panel-${feature.id}`}
+                tabIndex={activeIndex === index ? 0 : -1}
+                onClick={() => selectFeature(index)}
+                onKeyDown={(event) => handleTabKeyDown(event, index)}
+              >
+                <span aria-hidden="true">0{index + 1}</span>
+                <span className="brand-tour-tab-label" aria-hidden="true">
+                  {feature.label}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
         <div className="brand-tour-workspace">
           <span className="brand-tour-number" aria-hidden="true">
@@ -86,23 +106,6 @@ export const FeatureTour = () => {
               </div>
             </div>
           </figure>
-        </div>
-        <div role="tablist" aria-label="BADA 기능 둘러보기" className="brand-tour-tabs">
-          {tourFeatures.map((feature, index) => (
-            <button
-              key={feature.id}
-              id={`feature-tab-${feature.id}`}
-              role="tab"
-              aria-selected={activeIndex === index}
-              aria-controls={`feature-panel-${feature.id}`}
-              tabIndex={activeIndex === index ? 0 : -1}
-              onClick={() => selectFeature(index)}
-              onKeyDown={(event) => handleTabKeyDown(event, index)}
-            >
-              <span aria-hidden="true">0{index + 1}</span>
-              {feature.label}
-            </button>
-          ))}
         </div>
       </div>
     </section>
