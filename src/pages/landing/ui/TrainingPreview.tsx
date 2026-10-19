@@ -16,7 +16,7 @@ export const TrainingPreview = () => {
     <section
       id="practice"
       aria-labelledby="practice-title"
-      className="scroll-mt-20 px-6 py-16 sm:py-20 lg:px-12 bg-label-normal text-background-normal"
+      className="landing-practice scroll-mt-20 px-6 py-16 sm:py-20 lg:px-12 bg-label-normal text-background-normal"
     >
       <div className="max-w-6xl gap-10 lg:grid-cols-2 lg:gap-20 mx-auto grid items-start">
         <div data-reveal>

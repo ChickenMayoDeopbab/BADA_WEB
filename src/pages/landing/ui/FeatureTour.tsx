@@ -1,15 +1,7 @@
-import {
-  LuArrowUpRight,
-  LuAudioLines,
-  LuCalendarDays,
-  LuCheck,
-  LuHeart,
-  LuMessageCircle,
-  LuPhone,
-  LuSparkles,
-} from 'react-icons/lu'
+import { LuCheck, LuHeart, LuMessageCircle, LuSparkles } from 'react-icons/lu'
 import { tourFeatures } from '../model/landingContent'
 import { useFeatureTour } from '../model/useFeatureTour'
+import { AppScreen } from './AppScreen'
 import { WebStartLink } from './WebStartLink'
 
 interface FeatureTourPreviewProps {
@@ -18,7 +10,7 @@ interface FeatureTourPreviewProps {
 
 /** 실제 기능 구성을 바탕으로 탭별 화면 예시를 표시합니다. */
 const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
-  <div className="landing-feature-visual min-h-80 pl-6 sm:pl-10 border-l border-line-neutral">
+  <div className="landing-feature-visual min-h-80">
     <div className="landing-visual-chrome mb-7 gap-3 flex items-center justify-between text-caption text-label-alternative">
       <span className="gap-2 flex items-center">
         <span className="size-2 rounded-pill bg-primary-normal" />
@@ -62,66 +54,18 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
       </div>
     )}
     {feature === 'training' && (
-      <div>
-        <p className="landing-visual-context text-label text-label-alternative">
-          오늘은 어떤 전화를 연습할까요?
-        </p>
-        <h3 className="mt-3 text-title2 font-bold">
-          필요한 상황부터,
-          <br />
-          나만의 상황까지.
-        </h3>
-        <div className="landing-visual-training-grid mt-7 gap-3 grid grid-cols-2">
-          {['일상 속 예약', '업무 일정 조율', '학교 생활', '맞춤 시나리오'].map((text) => (
-            <p
-              key={text}
-              className="min-h-24 gap-4 py-4 flex flex-col justify-between border-b border-line-alternative text-label"
-            >
-              <LuPhone className="size-5" aria-hidden="true" />
-              {text}
-            </p>
-          ))}
-        </div>
-        <a
-          href="#warmup"
-          className="mt-5 min-h-11 gap-3 flex items-center justify-between text-label font-medium"
-        >
-          아직 긴장된다면, 워밍업부터
-          <LuArrowUpRight aria-hidden="true" />
-        </a>
+      <div className="feature-phone-art feature-phone-pair">
+        <AppScreen variant="scenario" />
+        <AppScreen variant="call" />
       </div>
     )}
     {feature === 'records' && (
-      <div>
-        <p className="landing-visual-context text-label text-label-alternative">연습이 끝난 뒤</p>
-        <h3 className="mt-3 text-title2 font-bold">
-          대화 속 잘한 순간을
-          <br />
-          다시 발견해요.
-        </h3>
-        <div className="mt-7 pl-5 border-l-2 border-primary-normal">
-          <p className="gap-2 flex items-center text-label font-bold">
-            <LuSparkles aria-hidden="true" />
-            구간별 피드백
-          </p>
-          <p className="mt-3 leading-relaxed text-label text-label-neutral">
-            인사 후 용건을 먼저 전달한 부분을 돌아봐요.
-          </p>
-          <p className="mt-3 text-caption text-label-alternative">피드백 문구 예시</p>
+      <div className="feature-phone-art feature-phone-report">
+        <AppScreen variant="report" />
+        <div className="feature-report-caption">
+          <LuSparkles aria-hidden="true" />
+          <span>잘한 순간을 발견하는 피드백</span>
         </div>
-        <div className="mt-5 gap-4 py-5 flex items-center border-t border-line-alternative">
-          <LuCalendarDays className="size-6 shrink-0" aria-hidden="true" />
-          <div>
-            <p className="text-label font-medium">하루의 연습이 나만의 기록으로</p>
-            <p className="mt-2 text-caption text-label-alternative">
-              통화 기록 · 주간 리포트 · 출석
-            </p>
-          </div>
-        </div>
-        <p className="mt-5 gap-2 flex items-center text-label text-label-alternative">
-          <LuAudioLines aria-hidden="true" />
-          발화 안정성 · 대화 완성도 · 유창성
-        </p>
       </div>
     )}
     {feature === 'community' && (
@@ -164,7 +108,7 @@ export const FeatureTour = () => {
       ref={storyRef}
       data-scroll-story={isScrollStory}
       id="experience"
-      className="landing-feature-story scroll-mt-24 px-6 py-16 sm:py-24 lg:px-12"
+      className="landing-feature-story scroll-mt-24 px-6 py-20 sm:py-32 lg:px-12"
       aria-labelledby="experience-title"
     >
       <div data-feature-stage className="landing-feature-stage max-w-6xl mx-auto">

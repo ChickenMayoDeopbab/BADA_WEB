@@ -12,6 +12,8 @@ export const useLandingScroll = () => {
 
     const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
     const hero = page.querySelector<HTMLElement>('[data-landing-hero]')
+    const story = page.querySelector<HTMLElement>('[data-landing-story]')
+    const storyLines = Array.from(page.querySelectorAll<HTMLElement>('[data-story-line]'))
     const revealElements = Array.from(page.querySelectorAll<HTMLElement>('[data-reveal]'))
     let observer: IntersectionObserver | undefined
     let animationFrame = 0
@@ -45,6 +47,18 @@ export const useLandingScroll = () => {
         const heroProgress = Math.min(1, Math.max(0, (80 - top) / Math.max(height, 1)))
         page.style.setProperty('--landing-hero-progress', String(heroProgress))
       }
+      if (story && !motionPreference.matches) {
+        const top = story.getBoundingClientRect().top
+        const progress = Math.max(
+          0,
+          Math.min(1, (window.innerHeight * 0.8 - top) / (window.innerHeight * 0.65)),
+        )
+        storyLines.forEach((line, index) => {
+          const emphasis =
+            0.25 + Math.max(0, Math.min(1, progress * storyLines.length - index)) * 0.75
+          line.style.setProperty('--story-line-emphasis', String(emphasis))
+        })
+      }
     }
 
     /** 빠르게 연속 발생하는 스크롤과 크기 변경을 하나의 프레임으로 합칩니다. */
@@ -57,6 +71,7 @@ export const useLandingScroll = () => {
       observer?.disconnect()
       page.dataset.motion = String(!motionPreference.matches)
       page.style.setProperty('--landing-hero-progress', '0')
+      storyLines.forEach((line) => line.style.setProperty('--story-line-emphasis', '1'))
       revealElements.forEach((element) => {
         element.dataset.revealState = 'visible'
       })

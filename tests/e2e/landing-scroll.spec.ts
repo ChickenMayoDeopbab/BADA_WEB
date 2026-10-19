@@ -32,9 +32,12 @@ test('scrolls forward and backward through pinned feature screens without moving
         .toBeCloseTo(80, 0)
       const panel = page.getByRole('tabpanel')
       await expect(panel.locator('.landing-feature-copy')).toHaveCSS('opacity', '1')
-      expect(
-        (await panel.boundingBox())!.y + (await panel.boundingBox())!.height,
-      ).toBeLessThanOrEqual(height)
+      await expect
+        .poll(async () => {
+          const box = (await panel.boundingBox())!
+          return box.y + box.height
+        })
+        .toBeLessThanOrEqual(height)
       if (height === 900 && index === 2)
         await page.screenshot({ path: test.info().outputPath('landing-scroll-feedback.png') })
     }

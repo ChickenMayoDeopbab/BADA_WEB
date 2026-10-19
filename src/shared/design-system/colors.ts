@@ -108,6 +108,7 @@ export const SEMANTIC_COLORS = {
     warning: '#FFCC00',
   },
   record: {
+    audioBackground: '#E6F7ED',
     iconBackground: '#E7F2FA',
     summaryGradientStart: '#092EC3',
     summaryGradientEnd: '#44AAB7',

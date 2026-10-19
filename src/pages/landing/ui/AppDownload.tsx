@@ -13,7 +13,7 @@ export const AppDownload = () => (
     data-reveal
     id="download"
     aria-labelledby="download-title"
-    className="scroll-mt-20 px-6 py-14 sm:py-16 lg:px-12 bg-primary-normal text-secondary-normal"
+    className="landing-download scroll-mt-20"
   >
     <div className="max-w-6xl gap-9 lg:grid-cols-2 lg:gap-16 mx-auto grid items-center">
       <div>

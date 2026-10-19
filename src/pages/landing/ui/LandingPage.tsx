@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { LuArrowDown, LuArrowUpRight, LuPhone, LuPlus } from 'react-icons/lu'
+import { LuArrowDown, LuArrowUpRight, LuPlus } from 'react-icons/lu'
 import { routePaths } from '@shared/config'
 import logo from '@shared/assets/auth/logo.svg'
-import heroImage from '@shared/assets/landing/everyday-call.jpg'
+import { LandingHero } from './LandingHero'
+import { LandingStory } from './LandingStory'
 import { landingQuestions } from '../model/landingContent'
 import { useLandingScroll } from '../model/useLandingScroll'
 import { AppDownload } from './AppDownload'
@@ -11,6 +12,7 @@ import { LandingFooter } from './LandingFooter'
 import { TrainingPreview } from './TrainingPreview'
 import { WebStartLink } from './WebStartLink'
 import './landingMotion.css'
+import './landingBrand.css'
 
 /** 생활 속 통화 장면과 직접 해보는 연습을 중심으로 브랜드 랜딩을 구성합니다. */
 export const LandingPage = () => {
@@ -48,74 +50,16 @@ export const LandingPage = () => {
       </header>
 
       <main id="main-content">
-        <section
-          data-landing-hero
-          aria-labelledby="hero-title"
-          className="max-w-7xl gap-10 px-6 pb-16 pt-10 sm:gap-14 sm:pb-20 sm:pt-12 lg:grid-cols-2 lg:gap-16 lg:px-12 lg:pb-20 mx-auto grid items-center"
-        >
-          <div data-hero-copy className="py-2 sm:py-8">
-            <p className="text-label font-medium text-label-alternative">
-              전화가 편해지는 연습, BADA
-            </p>
-            <h1
-              id="hero-title"
-              className="mt-6 sm:text-marketing-title lg:text-marketing-hero text-display1 font-bold"
-            >
-              전화 앞에서,
-              <br />
-              조금 더 나답게.
-            </h1>
-            <p className="mt-7 max-w-sm leading-relaxed text-body text-label-alternative">
-              몇 번씩 고쳐 쓰던 첫마디도,
-              <br />
-              미루기만 했던 예약 전화도.
-              <br />
-              AI와 먼저 연습하면, 시작이 조금 가벼워져요.
-            </p>
-            <div className="mt-9 gap-5 flex flex-wrap items-center">
-              <WebStartLink />
-              <a
-                href="#practice"
-                className="min-h-12 gap-2 flex items-center text-label font-medium"
-              >
-                어떤 연습인지 볼까요?
-                <LuArrowDown className="size-4" aria-hidden="true" />
-              </a>
-            </div>
-            <p className="mt-5 text-caption text-label-alternative">
-              설치 없이 웹에서 바로. 익숙해지면 앱으로 어디서든.
-            </p>
-          </div>
-          <figure className="m-0 relative overflow-hidden rounded-dialog">
-            <img
-              data-hero-image
-              src={heroImage}
-              alt="햇빛이 드는 창가에서 편안하게 전화하는 일상을 표현한 이미지"
-              width="1122"
-              height="1402"
-              fetchPriority="high"
-              className="sm:aspect-square lg:aspect-[4/5] aspect-[4/5] w-full rounded-dialog object-cover"
-            />
-            <figcaption className="bottom-5 left-5 right-5 gap-4 p-4 backdrop-blur-sm sm:bottom-7 sm:left-7 sm:right-7 sm:p-5 absolute flex items-center rounded-component bg-background-normal/95">
-              <span className="size-11 flex shrink-0 items-center justify-center rounded-pill bg-primary-normal text-label-strong">
-                <LuPhone className="size-5" aria-hidden="true" />
-              </span>
-              <div>
-                <p className="text-caption text-label-alternative">연습이 일상이 되는 순간</p>
-                <p className="mt-1 text-body font-medium">“안녕하세요, 예약하고 싶어요.”</p>
-              </div>
-            </figcaption>
-          </figure>
-        </section>
-
-        <TrainingPreview />
+        <LandingHero />
+        <LandingStory />
         <FeatureTour />
+        <TrainingPreview />
 
         <section
           data-reveal
           id="warmup"
           aria-labelledby="warmup-title"
-          className="scroll-mt-24 px-6 py-14 lg:px-12 lg:py-16 border-y border-line-alternative bg-fill-normal"
+          className="landing-warmup scroll-mt-24 px-6 py-20 lg:px-12 lg:py-28 bg-primary-alternative"
         >
           <div className="max-w-6xl gap-8 sm:grid-cols-[auto_1fr] sm:gap-x-12 lg:grid-cols-[auto_1fr_auto] mx-auto grid items-center">
             <p className="gap-1 flex items-baseline text-marketing-hero font-bold">
@@ -142,7 +86,7 @@ export const LandingPage = () => {
           data-reveal
           id="faq"
           aria-labelledby="faq-title"
-          className="max-w-7xl scroll-mt-24 gap-9 px-6 py-16 sm:py-24 lg:grid-cols-3 lg:gap-16 lg:px-12 mx-auto grid"
+          className="max-w-7xl scroll-mt-24 gap-9 px-6 py-20 sm:py-32 lg:grid-cols-3 lg:gap-16 lg:px-12 mx-auto grid"
         >
           <div>
             <p className="text-caption font-medium text-label-alternative">자주 묻는 질문</p>
