@@ -1,10 +1,13 @@
 import { DiagnosisButton } from './DiagnosisButton'
 import { useDialogFocus } from '@shared/lib'
+import type { ReactNode } from 'react'
 
 type SensitiveConsentDialogProps = {
   isSaving: boolean
   onAccept: () => void
   onDecline: () => void
+  description?: string
+  children?: ReactNode
 }
 
 // 자가진단 응답을 제출하기 전에 민감정보 처리 동의를 받는 다이얼로그입니다.
@@ -12,6 +15,8 @@ export const SensitiveConsentDialog = ({
   isSaving,
   onAccept,
   onDecline,
+  description = '통화불안 진단 답변과 점수, 음성 분석 결과, 훈련 분석 및 피드백을 제공하기 위해 민감정보를 처리합니다. 동의하지 않아도 일반 서비스는 이용할 수 있어요.',
+  children,
 }: SensitiveConsentDialogProps) => {
   const dialogRef = useDialogFocus(true, onDecline, isSaving)
 
@@ -34,11 +39,10 @@ export const SensitiveConsentDialog = ({
             id="sensitive-consent-description"
             className="text-label font-medium break-keep text-label-alternative"
           >
-            {
-              '통화불안 진단 답변과 점수, 음성 분석 결과, 훈련 분석 및 피드백을 제공하기 위해 민감정보를 처리합니다. 동의하지 않아도 일반 서비스는 이용할 수 있어요.'
-            }
+            {description}
           </p>
         </div>
+        {children}
         <div className="gap-3 flex">
           <DiagnosisButton
             label={'나중에'}

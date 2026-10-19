@@ -230,12 +230,12 @@
   color: var(--color-label-alternative);
 }
 .brand-download {
-  padding: 64px var(--brand-gutter);
+  padding: 88px var(--brand-gutter);
   background: var(--color-label-normal);
   color: var(--color-background-normal);
 }
 .brand-download h2 {
-  margin: 0 0 40px;
+  margin: 0 0 48px;
   font-size: var(--text-display1);
   line-height: 1.1;
   letter-spacing: -0.06em;
@@ -252,7 +252,8 @@
   align-items: center;
   text-align: left;
   gap: 24px;
-  padding: 24px 0;
+  min-height: 128px;
+  padding: 28px 28px;
   border-top: 1px solid var(--color-background-normal);
   border-bottom: 1px solid var(--color-label-alternative);
 }
@@ -384,7 +385,7 @@
     padding-left: 0;
   }
   .brand-download {
-    padding-block: 40px 64px;
+    padding-block: 64px;
   }
   .brand-download h2 {
     margin: 0 0 32px;
@@ -396,6 +397,8 @@
   }
   .brand-store-links > a {
     gap: 20px;
+    padding: 24px 16px;
+    min-height: 120px;
   }
   .brand-store-links > a > svg:last-child {
     margin-left: auto;
@@ -489,4 +492,9 @@
   .brand-hero-start:is(:hover, :focus-visible) {
     transform: none;
   }
+}
+
+.brand-download-inner {
+  max-width: 1312px;
+  margin-inline: auto;
 }

@@ -4,6 +4,7 @@ import {
   submitDiagnosis,
   type DiagnosisAnswer,
   type DiagnosisResult,
+  type DiagnosisType,
 } from '@entities/diagnosis'
 import { acceptLegalConsents, getLegalConsentStatus } from '@entities/legal-consent'
 import { getApiErrorMessage } from '@shared/api'
@@ -12,7 +13,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const DIAGNOSIS_TYPE = 'SIGNUP'
 /** 계산 완료 화면을 보여준 뒤 결과 화면으로 넘어가기까지의 시간입니다. */
 export const RESULT_TRANSITION_DELAY_MS = 3000
 
@@ -21,7 +21,8 @@ const CONSENT_SAVE_ERROR_MESSAGE = '동의를 저장하지 못했어요. 잠시 
 const SUBMIT_ERROR_MESSAGE = '레벨 계산에 실패했어요. 다시 시도해 주세요.'
 
 // 자가진단의 단계 이동, 응답 저장, 민감정보 동의 확인, 결과 제출을 관리합니다.
-export const useSelfDiagnosis = () => {
+export const useSelfDiagnosis = (type: DiagnosisType = 'SIGNUP') => {
+  const isLanding = type === 'LANDING'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [step, setStep] = useState<SelfDiagnosisStep>('intro')
@@ -34,8 +35,10 @@ export const useSelfDiagnosis = () => {
   const [errorMessage, setErrorMessage] = useState('')
 
   const questionsQuery = useQuery({
-    queryKey: ['diagnosis', 'questions', DIAGNOSIS_TYPE],
-    queryFn: () => getDiagnosisQuestions(DIAGNOSIS_TYPE),
+    queryKey: ['diagnosis', 'questions', type],
+    queryFn: () => getDiagnosisQuestions(type),
+    enabled: !isLanding || step !== 'intro',
+    retry: isLanding ? false : undefined,
     select: (questions) => [...questions].sort((a, b) => a.orderIndex - b.orderIndex),
   })
   const questions = questionsQuery.data ?? []
@@ -58,12 +61,16 @@ export const useSelfDiagnosis = () => {
     setStep('question')
   }
 
-  // 민감정보 처리에 동의한 사용자만 진단을 제출할 수 있어 시작 전에 동의 상태를 확인합니다.
+  // 회원 진단은 서버 동의 상태를 확인하고, 공개 진단은 매 시작 시 현재 세션의 동의를 받습니다.
   const start = async () => {
     if (consentStatus !== 'idle') return
 
-    setConsentStatus('checking')
     setErrorMessage('')
+    if (isLanding) {
+      setConsentStatus('required')
+      return
+    }
+    setConsentStatus('checking')
     try {
       const status = await getLegalConsentStatus()
       if (status.sensitiveInformationAgreed) {
@@ -80,9 +87,14 @@ export const useSelfDiagnosis = () => {
     }
   }
 
-  // 민감정보 처리 동의를 저장하고 진단을 시작합니다. 프로필 이미지 동의는 기존 값을 유지합니다.
+  // 공개 진단은 현재 세션에서 동의를 받고, 회원 진단은 기존 프로필 이미지 선택을 유지해 동의를 저장합니다.
   const acceptConsent = async () => {
     if (consentStatus !== 'required') return
+    if (isLanding) {
+      setConsentStatus('idle')
+      beginQuestions()
+      return
+    }
 
     setConsentStatus('saving')
     try {
@@ -102,25 +114,32 @@ export const useSelfDiagnosis = () => {
     }
   }
 
+  /** 문항 버전과 같은 세션 ID로 응답을 제출합니다. 공개 진단은 회원 지표를 변경하지 않습니다. */
   const submit = async (submittedAnswers: DiagnosisAnswer[]) => {
     setStep('submitting')
     try {
       const nextResult = await submitDiagnosis({
         sessionId,
-        type: DIAGNOSIS_TYPE,
+        type,
         answers: submittedAnswers,
+        ...(questions[0]?.questionnaireVersion
+          ? { questionnaireVersion: questions[0].questionnaireVersion }
+          : {}),
       })
       setResult(nextResult)
-      setStep('done')
-      // 진단 결과가 사이드바 레벨과 대시보드 지표에 반영되도록 캐시를 갱신합니다.
-      void queryClient.invalidateQueries({ queryKey: ['user'] })
-      void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      setStep(isLanding ? 'result' : 'done')
+      // 회원 진단만 사이드바 레벨과 대시보드 지표에 반영합니다.
+      if (!isLanding) {
+        void queryClient.invalidateQueries({ queryKey: ['user'] })
+        void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      }
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, SUBMIT_ERROR_MESSAGE))
       setStep('error')
     }
   }
 
+  /** 현재 문항의 선택을 보존합니다. */
   const selectAnswer = (answer: DiagnosisAnswer) => {
     setAnswers((previous) => {
       const next = [...previous]
@@ -169,6 +188,13 @@ export const useSelfDiagnosis = () => {
     selectAnswer,
     goNext,
     goBack,
+    restart: () => {
+      setResult(null)
+      setAnswers([])
+      setCurrentIndex(0)
+      setErrorMessage('')
+      setStep('intro')
+    },
     goToDashboard: () => navigate(routePaths.dashboard, { replace: true }),
   }
 }

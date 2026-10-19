@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { LuArrowUpRight, LuPlus } from 'react-icons/lu'
 import { routePaths } from '@shared/config'
+import { LandingDiagnosis } from '@features/self-diagnosis'
 import logo from '@shared/assets/auth/logo.svg'
 import { landingQuestions } from '../model/landingContent'
 import { useLandingScroll } from '../model/useLandingScroll'
@@ -35,6 +36,7 @@ export const LandingPage = () => {
       <main id="main-content">
         <LandingHero />
         <FeatureTour />
+        <LandingDiagnosis />
         <section id="faq" className="brand-faq" aria-labelledby="faq-title">
           <div>
             <h2 id="faq-title">궁금한 점</h2>

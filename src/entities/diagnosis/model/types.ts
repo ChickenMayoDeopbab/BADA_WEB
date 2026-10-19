@@ -1,4 +1,4 @@
-/** 자가진단 문항 유형입니다. 회원가입 이후 진단은 SIGNUP을 사용합니다. */
+/** 공개 랜딩 진단은 LANDING, 회원가입 이후 진단은 SIGNUP을 사용합니다. */
 export type DiagnosisType = 'LANDING' | 'SIGNUP'
 
 /** 5점 척도 응답 값입니다. 1은 '전혀 없다', 5는 '자주 있다'입니다. */
@@ -8,6 +8,7 @@ export interface DiagnosisQuestion {
   questionId: number
   content: string
   orderIndex: number
+  questionnaireVersion?: string
 }
 
 export interface DiagnosisSubmitRequest {
@@ -15,6 +16,7 @@ export interface DiagnosisSubmitRequest {
   sessionId: string
   type: DiagnosisType
   answers: DiagnosisAnswer[]
+  questionnaireVersion?: string
 }
 
 export interface DiagnosisResult {

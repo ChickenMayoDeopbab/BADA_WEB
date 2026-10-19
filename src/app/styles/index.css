@@ -19,6 +19,14 @@ body,
   margin: 0;
 }
 
+/* 스크롤과 키보드 이동을 유지하면서 전체 앱의 스크롤바만 숨깁니다. */
+* {
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
 button,
 input {
   font: inherit;
