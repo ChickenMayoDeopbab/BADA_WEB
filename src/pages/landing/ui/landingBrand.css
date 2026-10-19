@@ -330,170 +330,7 @@
 .brand-manifesto-bottom p {
   color: var(--color-background-normal);
 }
-.brand-tour {
-  position: relative;
-  background: var(--color-fill-normal);
-}
-.brand-tour-stage {
-  position: relative;
-  max-width: 1440px;
-  min-height: 820px;
-  margin: auto;
-  padding: 72px var(--brand-gutter);
-}
-.brand-tour[data-scroll-story='true'] {
-  height: 300svh;
-}
-.brand-tour[data-scroll-story='true'] .brand-tour-stage {
-  position: sticky;
-  top: 80px;
-  min-height: 0;
-  height: calc(100svh - 80px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-block: 32px;
-}
-.brand-tour-heading {
-  width: 48%;
-}
-.brand-tour-heading h2 {
-  margin-top: 20px;
-  font-size: var(--text-marketing-title);
-  line-height: 1.15;
-  letter-spacing: -0.05em;
-  font-weight: 700;
-}
-.brand-tour-tabs {
-  width: 48%;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-top: 32px;
-  border-bottom: 1px solid var(--color-line-normal);
-}
-.brand-tour-tabs button {
-  min-height: 56px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  position: relative;
-  font-size: var(--text-label);
-  color: var(--color-label-alternative);
-  cursor: pointer;
-}
-.brand-tour-tabs button span {
-  font-size: var(--text-caption);
-}
-.brand-tour-tabs button[aria-selected='true'] {
-  color: var(--color-label-normal);
-}
-.brand-tour-tabs button[aria-selected='true']::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 3px;
-  background: var(--color-primary-normal);
-}
-.brand-tour-panel {
-  margin-top: 32px;
-}
-.brand-tour-panel[hidden] {
-  display: none;
-}
-.brand-tour-copy {
-  width: 46%;
-}
-.brand-tour-copy > .brand-kicker {
-  color: var(--color-label-alternative);
-}
-.brand-tour-copy h3 {
-  margin-top: 18px;
-  white-space: pre-line;
-  font-size: var(--text-display1);
-  line-height: 1.25;
-  letter-spacing: -0.04em;
-  font-weight: 700;
-}
-.brand-tour-description {
-  max-width: 440px;
-  margin-top: 20px;
-  font-size: var(--text-body);
-  line-height: 1.7;
-  color: var(--color-label-alternative);
-}
-.brand-tour-copy > a {
-  margin-top: 28px;
-}
-.brand-tour-visual {
-  position: absolute;
-  top: 6%;
-  bottom: 6%;
-  right: var(--brand-gutter);
-  width: 44%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.brand-tour-visual::before {
-  content: '';
-  position: absolute;
-  inset: 12% 0;
-  background: var(--color-primary-alternative);
-}
-.brand-tour[data-active-scene='1'] .brand-tour-visual::before {
-  background: var(--color-secondary-normal);
-}
-.brand-tour[data-active-scene='2'] .brand-tour-visual::before {
-  background: var(--color-fill-neutral);
-}
-.brand-tour-number {
-  position: absolute;
-  top: 0;
-  left: 0;
-  font-size: var(--text-brand-wordmark);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.08em;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--color-line-normal);
-}
-.brand-tour-device {
-  position: relative;
-  z-index: 1;
-}
-.brand-tour-device .app-device {
-  --device-scale: 0.58;
-  box-shadow: none;
-}
-.brand-tour-visual figcaption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-line-normal);
-  font-size: var(--text-caption);
-  text-align: right;
-}
-.brand-tour-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--color-line-alternative);
-}
-.brand-tour-progress span {
-  display: block;
-  height: 100%;
-  background: var(--color-label-normal);
-  transform: scaleX(var(--tour-progress, 0));
-  transform-origin: left;
-}
+
 .brand-practice {
   padding: 100px var(--brand-gutter) 120px;
   background: var(--color-label-normal);
@@ -956,32 +793,7 @@
   margin-left: 12px;
   letter-spacing: 0;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .brand-tour-panel:not([hidden]) .brand-tour-device {
-    animation: brand-device-mask 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .brand-tour-panel:not([hidden]) .brand-tour-copy {
-    animation: brand-copy-enter 350ms ease both;
-  }
-}
-@keyframes brand-device-mask {
-  from {
-    clip-path: inset(100% 0 0 0);
-    transform: translateY(24px);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-    transform: translateY(0);
-  }
-}
-@keyframes brand-copy-enter {
-  from {
-    transform: translateY(12px);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
+
 @media (min-width: 1024px) and (max-height: 800px) {
   .brand-hero {
     padding-top: 120px;
@@ -1005,32 +817,6 @@
     width: 140px;
     height: 140px;
     padding: 24px;
-  }
-  .brand-tour-heading h2 {
-    font-size: var(--text-display1);
-  }
-  .brand-tour-tabs {
-    margin-top: 16px;
-  }
-  .brand-tour-panel {
-    margin-top: 24px;
-  }
-  .brand-tour-copy h3 {
-    font-size: var(--text-title1);
-    margin-top: 12px;
-  }
-  .brand-tour-description {
-    margin-top: 16px;
-  }
-  .brand-tour-copy > a {
-    margin-top: 20px;
-  }
-  .brand-tour-device .app-device {
-    --device-scale: 0.5;
-  }
-  .brand-tour-visual {
-    top: 4%;
-    bottom: 4%;
   }
 }
 @media (max-width: 1023px) {
@@ -1059,30 +845,7 @@
   .brand-hero-start {
     justify-self: start;
   }
-  .brand-tour-heading,
-  .brand-tour-tabs,
-  .brand-tour-copy {
-    width: 100%;
-  }
-  .brand-tour-stage {
-    min-height: 0;
-  }
-  .brand-tour-visual {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    min-height: 600px;
-    margin-top: 40px;
-  }
-  .brand-tour-visual::before {
-    inset: 5% 10%;
-  }
-  .brand-tour-device .app-device {
-    --device-scale: 0.6;
-  }
-  .brand-tour-number {
-    left: 12%;
-  }
+
   .brand-practice h2 {
     font-size: var(--text-marketing-title);
   }
@@ -1241,40 +1004,7 @@
   .brand-manifesto-orbit {
     width: 160%;
   }
-  .brand-tour-stage {
-    padding-block: 64px;
-  }
-  .brand-tour-heading h2 {
-    font-size: var(--text-display1);
-  }
-  .brand-tour-tabs {
-    gap: 18px;
-    margin-top: 28px;
-  }
-  .brand-tour-tabs button {
-    gap: 6px;
-    font-size: var(--text-caption);
-  }
-  .brand-tour-copy h3 {
-    font-size: var(--text-title1);
-  }
-  .brand-tour-description {
-    font-size: var(--text-body);
-  }
-  .brand-tour-visual {
-    min-height: 520px;
-    margin-top: 32px;
-  }
-  .brand-tour-visual::before {
-    inset: 8% 0;
-  }
-  .brand-tour-device .app-device {
-    --device-scale: 0.48;
-  }
-  .brand-tour-number {
-    left: 0;
-    font-size: clamp(var(--text-marketing-hero), 65vw, var(--text-brand-wordmark));
-  }
+
   .brand-practice {
     padding-block: 72px;
   }
@@ -1426,9 +1156,7 @@
   .brand-manifesto-type :is(h2, p) {
     font-size: var(--text-title1);
   }
-  .brand-tour-tabs {
-    gap: 12px;
-  }
+
   .brand-community h2 {
     font-size: var(--text-display1);
   }

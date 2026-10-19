@@ -22,20 +22,60 @@ export const useFeatureTour = () => {
       ])
       if (isCanceled) return
       gsap.registerPlugin(ScrollTrigger)
-      const trigger = ScrollTrigger.create({
-        trigger: story,
-        start: 'top 80px',
-        end: 'bottom bottom',
-        onUpdate: ({ progress }) => {
-          const index = Math.min(
-            tourFeatures.length - 1,
-            Math.floor(progress * tourFeatures.length),
+      const context = gsap.context(() => {
+        const workspace = story.querySelector<HTMLElement>('.brand-tour-workspace')!
+        const carrier = story.querySelector<HTMLElement>('[data-tour-carrier]')!
+        const device = story.querySelector<HTMLElement>('[data-tour-device]')!
+        /** 기기의 중심을 무대 너비의 비율로 지정해 화면 크기가 바뀌어도 경로를 유지합니다. */
+        const positionAt = (ratio: number) => () =>
+          workspace.clientWidth * ratio - carrier.offsetWidth / 2
+        const timeline = gsap.timeline({
+          defaults: { ease: 'power2.inOut' },
+          scrollTrigger: {
+            trigger: story,
+            start: 'top 80px',
+            end: 'bottom bottom',
+            scrub: 0.65,
+            invalidateOnRefresh: true,
+          },
+          onUpdate: () => {
+            const progress = timeline.progress()
+            const index = Math.min(
+              tourFeatures.length - 1,
+              Math.floor(progress * tourFeatures.length),
+            )
+            // 기기가 설명 영역을 지나는 동안 글과 주석을 잠깐 비워 겹침을 피합니다.
+            const distance = Math.min(Math.abs(progress - 1 / 3), Math.abs(progress - 2 / 3))
+            story.style.setProperty(
+              '--scene-opacity',
+              String(gsap.utils.clamp(0, 1, (distance - 0.04) / 0.06)),
+            )
+            story.style.setProperty('--tour-progress', String(progress))
+            setActiveIndex((current) => (current === index ? current : index))
+          },
+        })
+        timeline
+          .to({}, { duration: 1 }, 0)
+          .fromTo(
+            carrier,
+            { x: positionAt(0.74), y: 0, yPercent: -50 },
+            { x: positionAt(0.27), y: 10, duration: 0.22 },
+            0.22,
           )
-          story.style.setProperty('--tour-progress', String(progress))
-          setActiveIndex((current) => (current === index ? current : index))
-        },
-      })
-      cleanup = () => trigger.kill()
+          .to(carrier, { x: positionAt(0.73), y: -8, duration: 0.22 }, 0.56)
+          .fromTo(
+            device,
+            { transformPerspective: 1400, rotationY: -12, rotationZ: 5 },
+            { rotationY: 14, rotationZ: -5, duration: 0.22 },
+            0.22,
+          )
+          .to(device, { rotationY: -6, rotationZ: 3, duration: 0.22 }, 0.56)
+      }, story)
+      cleanup = () => {
+        context.revert()
+        story.style.removeProperty('--scene-opacity')
+        story.style.removeProperty('--tour-progress')
+      }
     }
     void initialize()
     return () => {

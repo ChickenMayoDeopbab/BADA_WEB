@@ -10,7 +10,7 @@ const scrollToFeature = async (page: Page, index: number) => {
   }, index)
 }
 
-test('scrolls forward and backward through three real app scenes while the stage stays pinned', async ({
+test('moves one phone forward and backward through three scenes while the stage stays pinned', async ({
   page,
 }) => {
   for (const height of [900, 720]) {
@@ -18,6 +18,8 @@ test('scrolls forward and backward through three real app scenes while the stage
     await page.goto('/')
     await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
     await expect(page.locator('#experience')).toHaveAttribute('data-scroll-story', 'true')
+    const positions: number[] = []
+    await expect(page.locator('[data-tour-device]')).toHaveCount(1)
     for (const index of [0, 1, 2, 1]) {
       await scrollToFeature(page, index)
       await expect(
@@ -30,11 +32,30 @@ test('scrolls forward and backward through three real app scenes while the stage
       await expect
         .poll(async () => (await page.locator('[data-feature-stage]').boundingBox())!.y)
         .toBeCloseTo(80, 0)
+      await expect
+        .poll(() =>
+          page
+            .locator('#experience')
+            .evaluate((el) =>
+              Number((el as HTMLElement).style.getPropertyValue('--tour-progress')),
+            ),
+        )
+        .toBeCloseTo((index + 0.4) / 3, 2)
+      const device = page.locator('[data-tour-device]')
+      const frame = (await device.boundingBox())!
+      const copy = (await page.getByRole('tabpanel').boundingBox())!
+      positions.push(frame.x + frame.width / 2)
+      expect(frame.x + frame.width <= copy.x || frame.x >= copy.x + copy.width).toBe(true)
+      const expectedFocus = [
+        '오늘은, 피자 주문부터',
+        '말이 막히는 순간에도',
+        '다음 한 통을 위한 발견',
+      ][index]
+      await expect(page.locator('[data-tour-callout]')).toContainText(expectedFocus)
       const panel = page.getByRole('tabpanel')
-      await expect(panel.locator('[data-app-screen]')).toHaveAttribute(
-        'data-app-screen',
-        ['scenario', 'call', 'report'][index],
-      )
+      await expect(
+        page.locator('.brand-tour-screen[data-current="true"] [data-app-screen]'),
+      ).toHaveAttribute('data-app-screen', ['scenario', 'call', 'report'][index])
       await expect
         .poll(async () => {
           const box = (await panel.locator('.brand-tour-copy').boundingBox())!
@@ -43,11 +64,14 @@ test('scrolls forward and backward through three real app scenes while the stage
         .toBeLessThanOrEqual(height)
       await expect
         .poll(async () => {
-          const box = (await panel.locator('.app-device').boundingBox())!
+          const box = (await page.locator('[data-tour-device]').boundingBox())!
           return box.y + box.height
         })
         .toBeLessThanOrEqual(height)
     }
+    expect(positions[0] - positions[1]).toBeGreaterThan(300)
+    expect(positions[2] - positions[1]).toBeGreaterThan(300)
+    expect(Math.abs(positions[1] - positions[3])).toBeLessThan(5)
   }
 })
 
@@ -134,10 +158,9 @@ test('restores static readable content for reduced motion and normal scene selec
   await expect(page.locator('[data-manifesto-ink]')).toHaveCSS('clip-path', 'none')
   await page.setViewportSize({ width: 390, height: 844 })
   await page.getByRole('tab', { name: 'AI 통화 연습', exact: true }).click()
-  await expect(page.getByRole('tabpanel').locator('[data-app-screen]')).toHaveAttribute(
-    'data-app-screen',
-    'call',
-  )
+  await expect(
+    page.locator('.brand-tour-screen[data-current="true"] [data-app-screen]'),
+  ).toHaveAttribute('data-app-screen', 'call')
   await expect(page.getByRole('link', { name: 'AI와 연습 시작하기', exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })

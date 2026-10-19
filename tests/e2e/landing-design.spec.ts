@@ -12,7 +12,7 @@ test('keeps the actual Figma app assets local and proportionate across all three
       'aria-selected',
       'true',
     )
-    const screen = page.getByRole('tabpanel').locator('.app-screen')
+    const screen = page.locator('.brand-tour-screen[data-current="true"] .app-screen')
     await expect(screen).toHaveCSS('width', '402px')
     await expect(screen).toHaveCSS('height', '874px')
     await expect

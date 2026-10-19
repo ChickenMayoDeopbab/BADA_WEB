@@ -52,6 +52,9 @@ export const tourFeatures = [
   {
     id: 'scenario',
     label: '상황 고르기',
+    phase: 'BEFORE THE CALL',
+    focusTitle: '오늘은, 피자 주문부터',
+    focusDescription: '내가 필요한 상황을 선택해요.',
     eyebrow: '01 / 당신의 일상에서',
     title: '내일 해야 할 전화,\n오늘의 연습으로.',
     description:
@@ -63,6 +66,9 @@ export const tourFeatures = [
   {
     id: 'call',
     label: 'AI 통화 연습',
+    phase: 'DURING THE CALL',
+    focusTitle: '말이 막히는 순간에도',
+    focusDescription: '스크립트를 보며 천천히 이어가요.',
     eyebrow: '02 / 이제, 당신의 목소리로',
     title: '진짜처럼 대화하고,\n편안하게 다시 해보고.',
     description:
@@ -74,6 +80,9 @@ export const tourFeatures = [
   {
     id: 'report',
     label: '돌아보기',
+    phase: 'AFTER THE CALL',
+    focusTitle: '다음 한 통을 위한 발견',
+    focusDescription: '대화의 흐름과 피드백을 확인해요.',
     eyebrow: '03 / 작은 변화를 발견하는 시간',
     title: '내가 잘한 한마디를\n다시 발견해요.',
     description:
