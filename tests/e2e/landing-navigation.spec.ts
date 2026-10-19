@@ -7,6 +7,10 @@ test('moves quickly through intermediate scroll positions to download and suppor
   await page.goto('/')
   const navigation = page.getByRole('navigation', { name: '랜딩 메뉴' })
   await expect(navigation.getByRole('link')).toHaveCount(1)
+  await expect(navigation.getByRole('link', { name: '웹에서 시작하기', exact: true })).toBeVisible()
+  const download = page
+    .locator('[data-landing-hero]')
+    .getByRole('link', { name: '앱 다운로드', exact: true })
   await page.evaluate(() => {
     const samples: number[] = []
     Object.assign(window, { landingScrollSamples: samples })
@@ -20,7 +24,7 @@ test('moves quickly through intermediate scroll positions to download and suppor
         document.documentElement.scrollHeight - window.innerHeight,
       ),
     )
-  await navigation.getByRole('link', { name: '앱 다운로드', exact: true }).click()
+  await download.click()
   await expect(page).toHaveURL(/#download$/)
   await expect
     .poll(() => page.evaluate(() => window.scrollY), { timeout: 1500 })
@@ -36,7 +40,7 @@ test('moves quickly through intermediate scroll positions to download and suppor
   ).toBeGreaterThan(1)
   await page.evaluate(() => window.scrollTo(0, 0))
   await expect(page.getByRole('heading', { level: 1 })).toBeInViewport()
-  await navigation.getByRole('link', { name: '앱 다운로드', exact: true }).click()
+  await download.click()
   await expect(page.getByRole('heading', { name: '앱으로 시작해보기' })).toBeInViewport({
     timeout: 1500,
   })
@@ -73,7 +77,7 @@ test('keeps section navigation immediate for reduced motion preferences', async 
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
   await page
-    .getByRole('navigation', { name: '랜딩 메뉴' })
+    .locator('[data-landing-hero]')
     .getByRole('link', { name: '앱 다운로드', exact: true })
     .click()
   await expect(page.getByRole('heading', { name: '앱으로 시작해보기' })).toBeInViewport()

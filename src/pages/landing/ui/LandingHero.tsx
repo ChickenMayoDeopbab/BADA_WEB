@@ -1,6 +1,5 @@
 import { LuArrowDown, LuAudioLines, LuCheck, LuPhone } from 'react-icons/lu'
 import { AppScreen } from './AppScreen'
-import { WebStartLink } from './WebStartLink'
 
 /** 브랜드의 첫 인상과 세 가지 실제 앱 화면을 하나의 제품 장면으로 보여줍니다. */
 export const LandingHero = () => (
@@ -24,12 +23,14 @@ export const LandingHero = () => (
           AI와 먼저 연습하면, 시작이 가벼워져요.
         </p>
         <div className="landing-hero-actions">
-          <WebStartLink />
-          <a href="#experience">
-            BADA 알아보기 <LuArrowDown aria-hidden="true" />
+          <a
+            href="#download"
+            className="gap-5 px-6 py-3 inline-flex items-center justify-center rounded-pill bg-label-normal text-label font-medium text-background-normal"
+          >
+            앱 다운로드 <LuArrowDown className="size-5" aria-hidden="true" />
           </a>
         </div>
-        <p className="landing-hero-note">설치 없이 웹에서 바로 시작할 수 있어요.</p>
+        <p className="landing-hero-note">App Store · ONE store에서 BADA를 만나보세요.</p>
       </div>
       <div className="landing-hero-art" data-hero-image>
         <div className="hero-device hero-device-scenario">

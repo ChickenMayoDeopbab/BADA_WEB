@@ -31,6 +31,18 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .hero-device > .app-device {
+    animation: landing-device-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero-device-scenario > .app-device {
+    animation-delay: 100ms;
+  }
+  .hero-device-call > .app-device {
+    animation-delay: 200ms;
+  }
+  .hero-device-report > .app-device {
+    animation-delay: 300ms;
+  }
   .landing-page[data-motion='true'] [data-reveal] {
     transition:
       opacity 650ms ease,
@@ -177,6 +189,15 @@
     .landing-feature-copy
     > :is(h3, p, a):not(:first-child) {
     margin-top: 1rem;
+  }
+}
+
+@keyframes landing-device-rise {
+  from {
+    transform: translateY(70svh);
+  }
+  to {
+    transform: translateY(0);
   }
 }
 

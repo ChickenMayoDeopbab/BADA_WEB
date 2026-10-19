@@ -71,3 +71,59 @@ test('emphasizes the brand story line by line while respecting reduced motion', 
   await expect(lines.nth(0)).toHaveCSS('opacity', '1')
   await expect(lines.nth(2)).toHaveCSS('opacity', '1')
 })
+
+test('fills the first viewport with green and swaps the header and hero actions', async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 1280, height: 900 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport)
+    await page.goto('/')
+    const hero = page.locator('[data-landing-hero]')
+    const box = (await hero.boundingBox())!
+    expect(box.x).toBe(0)
+    expect(box.y).toBe(0)
+    expect(box.width).toBe(viewport.width)
+    expect(box.height).toBeGreaterThanOrEqual(viewport.height)
+    await expect(hero).toHaveCSS('border-radius', '0px')
+    await expect(
+      page
+        .getByRole('navigation', { name: '랜딩 메뉴' })
+        .getByRole('link', { name: '웹에서 시작하기', exact: true }),
+    ).toHaveAttribute('href', '/login')
+    await expect(hero.getByRole('link', { name: '앱 다운로드', exact: true })).toHaveAttribute(
+      'href',
+      '#download',
+    )
+    await expect(page.getByRole('link', { name: 'BADA 알아보기', exact: true })).toHaveCount(0)
+  }
+})
+
+test('grows the web entry button without fading and prevents native dragging and selection', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const entry = page
+    .getByRole('navigation', { name: '랜딩 메뉴' })
+    .getByRole('link', { name: '웹에서 시작하기', exact: true })
+  await page.mouse.move(500, 200)
+  const width = (await entry.boundingBox())!.width
+  await entry.hover()
+  await expect.poll(async () => (await entry.boundingBox())!.width).toBeGreaterThan(width * 1.04)
+  await expect(entry).toHaveCSS('opacity', '1')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('user-select', 'none')
+  const isDragCanceled = await page
+    .locator('[data-landing-hero] img')
+    .first()
+    .evaluate(
+      (element) =>
+        !element.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true })),
+    )
+  expect(isDragCanceled).toBe(true)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  for (const device of await page.locator('.hero-device > .app-device').all()) {
+    await expect(device).toHaveCSS('animation-name', 'none')
+  }
+})

@@ -44,7 +44,7 @@ export const useLandingScroll = () => {
 
       if (hero && !motionPreference.matches) {
         const { top, height } = hero.getBoundingClientRect()
-        const heroProgress = Math.min(1, Math.max(0, (80 - top) / Math.max(height, 1)))
+        const heroProgress = Math.min(1, Math.max(0, -top / Math.max(height, 1)))
         page.style.setProperty('--landing-hero-progress', String(heroProgress))
       }
       if (story && !motionPreference.matches) {
@@ -144,6 +144,9 @@ export const useLandingScroll = () => {
       )
     }
 
+    /** 랜딩의 텍스트·이미지·링크에 브라우저 기본 드래그가 시작되지 않게 합니다. */
+    const handleDragStart = (event: DragEvent) => event.preventDefault()
+
     configureMotion()
     updateScroll()
     const resizeObserver = new ResizeObserver(scheduleUpdate)
@@ -152,6 +155,7 @@ export const useLandingScroll = () => {
     window.addEventListener('resize', scheduleUpdate)
     page.addEventListener('focusin', handleFocus)
     page.addEventListener('click', handleSectionClick)
+    page.addEventListener('dragstart', handleDragStart)
     motionPreference.addEventListener('change', configureMotion)
 
     return () => {
@@ -162,6 +166,7 @@ export const useLandingScroll = () => {
       window.removeEventListener('resize', scheduleUpdate)
       page.removeEventListener('focusin', handleFocus)
       page.removeEventListener('click', handleSectionClick)
+      page.removeEventListener('dragstart', handleDragStart)
       motionPreference.removeEventListener('change', configureMotion)
     }
   }, [navigate])

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { LuArrowDown, LuArrowUpRight, LuPlus } from 'react-icons/lu'
+import { LuArrowUpRight, LuPlus } from 'react-icons/lu'
 import { routePaths } from '@shared/config'
 import logo from '@shared/assets/auth/logo.svg'
 import { LandingHero } from './LandingHero'
@@ -28,22 +28,13 @@ export const LandingPage = () => {
       >
         본문으로 건너뛰기
       </a>
-      <header
-        data-landing-header
-        className="top-0 backdrop-blur-sm sticky z-30 border-b border-line-alternative bg-background-normal/95"
-      >
+      <header data-landing-header className="inset-x-0 top-0 fixed z-30">
         <div className="min-h-20 max-w-7xl gap-4 px-6 lg:px-12 mx-auto flex items-center justify-between">
           <Link to={routePaths.landing} aria-label="BADA 홈">
             <img src={logo} alt="BADA" className="h-6 sm:h-8 w-auto" />
           </Link>
           <nav aria-label="랜딩 메뉴" className="gap-5 sm:gap-8 flex items-center text-label">
-            <a
-              href="#download"
-              className="gap-3 px-5 py-3 inline-flex items-center rounded-pill bg-label-normal font-medium text-background-normal"
-            >
-              앱 다운로드
-              <LuArrowDown className="size-4" aria-hidden="true" />
-            </a>
+            <WebStartLink />
           </nav>
         </div>
         <div className="landing-scroll-progress" aria-hidden="true" />
