@@ -17,7 +17,7 @@ export const WebStartLink = ({
 }: WebStartLinkProps) => (
   <Link
     {...getWebEntry(destination)}
-    className={`min-h-12 gap-3 px-5 py-3 inline-flex items-center justify-center rounded-control bg-primary-normal text-label font-bold text-label-strong transition-colors hover:bg-primary-normal/80 ${className}`}
+    className={`min-h-12 gap-5 px-6 py-3 inline-flex items-center justify-center rounded-pill bg-label-normal text-label font-medium text-background-normal transition-opacity hover:opacity-80 ${className}`}
   >
     {children}
     <LuArrowUpRight className="size-5 shrink-0" aria-hidden="true" />

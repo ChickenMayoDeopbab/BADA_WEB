@@ -18,7 +18,7 @@ interface FeatureTourPreviewProps {
 
 /** 실제 기능 구성을 바탕으로 탭별 화면 예시를 표시합니다. */
 const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
-  <div className="p-6 sm:p-8 rounded-card bg-background-normal shadow-surface-card">
+  <div className="min-h-80 pl-6 sm:pl-10 border-l border-line-neutral">
     <div className="mb-7 gap-3 flex items-center justify-between text-caption text-label-alternative">
       <span className="gap-2 flex items-center">
         <span className="size-2 rounded-pill bg-primary-normal" />
@@ -47,7 +47,7 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
           ].map((text) => (
             <p
               key={text}
-              className="gap-3 p-4 flex items-center rounded-component bg-fill-normal text-label"
+              className="gap-3 py-4 flex items-center border-b border-line-alternative text-label"
             >
               <LuMessageCircle
                 className="size-4 shrink-0 text-label-alternative"
@@ -71,7 +71,7 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
           {['일상 속 예약', '업무 일정 조율', '학교 생활', '맞춤 시나리오'].map((text) => (
             <p
               key={text}
-              className="min-h-24 gap-4 p-4 flex flex-col justify-between rounded-component bg-fill-normal text-label"
+              className="min-h-24 gap-4 py-4 flex flex-col justify-between border-b border-line-alternative text-label"
             >
               <LuPhone className="size-5" aria-hidden="true" />
               {text}
@@ -95,7 +95,7 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
           <br />
           다시 발견해요.
         </h3>
-        <div className="mt-7 p-5 rounded-component bg-primary-alternative">
+        <div className="mt-7 pl-5 border-l-2 border-primary-normal">
           <p className="gap-2 flex items-center text-label font-bold">
             <LuSparkles aria-hidden="true" />
             구간별 피드백
@@ -105,7 +105,7 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
           </p>
           <p className="mt-3 text-caption text-label-alternative">피드백 문구 예시</p>
         </div>
-        <div className="mt-3 gap-4 p-5 flex items-center rounded-component bg-fill-normal">
+        <div className="mt-5 gap-4 py-5 flex items-center border-t border-line-alternative">
           <LuCalendarDays className="size-6 shrink-0" aria-hidden="true" />
           <div>
             <p className="text-label font-medium">하루의 연습이 나만의 기록으로</p>
@@ -133,7 +133,7 @@ const FeatureTourPreview = ({ feature }: FeatureTourPreviewProps) => (
             (text) => (
               <div
                 key={text}
-                className="gap-3 p-5 flex items-center justify-between rounded-component bg-fill-normal"
+                className="gap-3 py-5 flex items-center justify-between border-b border-line-alternative"
               >
                 <span className="text-label">{text}</span>
                 <LuHeart className="size-4 shrink-0" aria-hidden="true" />
@@ -156,23 +156,28 @@ export const FeatureTour = () => {
   return (
     <section
       id="experience"
-      className="scroll-mt-28 px-6 py-20 sm:py-24 lg:px-10"
+      className="scroll-mt-24 px-6 py-16 sm:py-24 lg:px-12"
       aria-labelledby="experience-title"
     >
       <div className="max-w-6xl mx-auto">
-        <div className="text-center">
-          <p className="text-label font-medium text-label-alternative">MEET BADA</p>
-          <h2 id="experience-title" className="mt-4 sm:text-display1 text-title1 font-bold">
-            설명보다, 한 번의 경험으로.
+        <div id="how-it-works" className="scroll-mt-24">
+          <p className="text-label font-medium text-label-alternative">BADA의 연습 방식</p>
+          <h2
+            id="experience-title"
+            className="mt-4 sm:text-marketing-title text-display2 font-bold"
+          >
+            나를 알고, 연습하고,
+            <br />
+            다음 전화를 준비하는 것까지.
           </h2>
           <p className="mt-4 leading-relaxed text-body text-label-alternative">
-            궁금한 기능을 눌러보세요. 연습의 흐름이 한눈에 보여요.
+            마음의 준비부터 연습 후 돌아보기까지. 필요한 순간을 선택해 보세요.
           </p>
         </div>
         <div
           role="tablist"
           aria-label="BADA 기능 둘러보기"
-          className="mt-9 max-w-2xl gap-2 p-2 sm:grid-cols-4 mx-auto grid grid-cols-2 rounded-card bg-fill-field"
+          className="mt-10 gap-x-5 sm:grid-cols-4 grid grid-cols-2"
         >
           {tourFeatures.map(({ id, label }, index) => (
             <button
@@ -185,7 +190,7 @@ export const FeatureTour = () => {
               tabIndex={activeIndex === index ? 0 : -1}
               onClick={() => selectFeature(index)}
               onKeyDown={(event) => handleTabKeyDown(event, index)}
-              className={`min-h-12 px-3 py-3 rounded-component text-label font-medium transition-colors ${activeIndex === index ? 'bg-background-normal text-label-normal shadow-subtle-card' : 'text-label-alternative hover:text-label-normal'}`}
+              className={`min-h-14 px-0 py-4 border-b-2 text-left text-body font-medium transition-colors ${activeIndex === index ? 'border-label-normal text-label-normal' : 'border-line-alternative text-label-alternative hover:text-label-normal'}`}
             >
               {label}
             </button>
@@ -198,7 +203,7 @@ export const FeatureTour = () => {
             role="tabpanel"
             aria-labelledby={`feature-tab-${feature.id}`}
             hidden={activeIndex !== index}
-            className={`mt-8 gap-8 p-6 sm:p-10 lg:grid-cols-2 lg:gap-14 lg:p-14 items-center rounded-dialog bg-fill-normal ${activeIndex === index ? 'grid' : 'hidden'}`}
+            className={`mt-10 gap-8 sm:mt-12 lg:grid-cols-2 lg:gap-16 items-center ${activeIndex === index ? 'grid' : 'hidden'}`}
           >
             <div>
               <p className="text-label font-medium text-label-alternative">{feature.eyebrow}</p>

@@ -5,7 +5,7 @@ test('explores a conversation and resets the preview when another situation is s
   page,
 }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: '업무', exact: true }).click()
+  await page.getByRole('button', { name: /업무.*회의 일정 조율하기/ }).click()
   await expect(page.getByRole('heading', { name: '회의 일정 조율하기' })).toBeVisible()
   await page.getByRole('button', { name: '다음 대화 보기', exact: true }).click()
   await expect(
@@ -13,7 +13,7 @@ test('explores a conversation and resets the preview when another situation is s
   ).toBeVisible()
   await page.getByRole('button', { name: '피드백 예시 보기', exact: true }).click()
   await expect(page.getByRole('heading', { name: '이렇게 대화를 돌아봐요.' })).toBeVisible()
-  await page.getByRole('button', { name: '학교', exact: true }).click()
+  await page.getByRole('button', { name: /학교.*교수님께 상담 요청하기/ }).click()
   await expect(page.getByRole('heading', { name: '교수님께 상담 요청하기' })).toBeVisible()
   await expect(page.getByRole('button', { name: '다음 대화 보기', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: '이렇게 대화를 돌아봐요.' })).toHaveCount(0)
@@ -103,6 +103,14 @@ test('keeps mobile navigation, footer channels, and store link states usable', a
     else await expect(store).toBeDisabled()
   }
   await page.goto('/')
+  await expect
+    .poll(() =>
+      page
+        .locator('main img')
+        .first()
+        .evaluate((image: HTMLImageElement) => image.naturalWidth),
+    )
+    .toBeGreaterThan(0)
   await page.screenshot({ path: test.info().outputPath('landing-desktop.png') })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.screenshot({ path: test.info().outputPath('landing-mobile.png') })

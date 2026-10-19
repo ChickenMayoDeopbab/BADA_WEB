@@ -8,8 +8,10 @@ export const FONT_WEIGHT = {
   bold: 700,
 } as const
 
-/** 모든 단계에 130% 행간과 -2% 자간을 적용한 타이포그래피 체계입니다. */
+/** 기본 UI는 130% 행간을 사용하고, 마케팅 제목은 넓은 화면에 맞는 별도 스케일을 사용합니다. */
 export const TYPOGRAPHY = {
+  marketingHero: { fontSize: '72px', lineHeight: '79.2px', letterSpacing: '-2.88px' },
+  marketingTitle: { fontSize: '48px', lineHeight: '57.6px', letterSpacing: '-1.92px' },
   display1: { fontSize: '36px', lineHeight: '46.8px', letterSpacing: '-0.72px' },
   display2: { fontSize: '32px', lineHeight: '41.6px', letterSpacing: '-0.64px' },
   title1: { fontSize: '28px', lineHeight: '36.4px', letterSpacing: '-0.56px' },

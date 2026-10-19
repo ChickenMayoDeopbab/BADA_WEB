@@ -7,7 +7,7 @@ import { WebStartLink } from './WebStartLink'
 
 /** 서비스·공식 채널·공개 정책과 운영팀 연락처를 한곳에 제공합니다. */
 export const LandingFooter = () => (
-  <footer className="px-6 lg:px-10 border-t border-line-alternative bg-fill-normal">
+  <footer className="px-6 lg:px-12 border-t border-line-alternative bg-background-normal">
     <div className="max-w-6xl py-12 mx-auto">
       <div className="gap-10 sm:grid-cols-2 lg:grid-cols-4 grid">
         <div>
@@ -19,7 +19,6 @@ export const LandingFooter = () => (
             <br />
             작은 용기를 일상의 자신감으로.
           </p>
-          <p className="mt-5 text-caption text-label-alternative">MADE WITH CARE, BY TEAM BADA</p>
         </div>
         <nav aria-label="서비스 바로가기">
           <h2 className="text-label font-bold">서비스</h2>

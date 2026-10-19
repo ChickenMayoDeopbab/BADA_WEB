@@ -5,6 +5,13 @@
   --font-weight-medium: 500;
   --font-weight-bold: 700;
 
+  --text-marketing-hero: 72px;
+  --text-marketing-hero--line-height: 79.2px;
+  --text-marketing-hero--letter-spacing: -2.88px;
+  --text-marketing-title: 48px;
+  --text-marketing-title--line-height: 57.6px;
+  --text-marketing-title--letter-spacing: -1.92px;
+
   --text-display1: 36px;
   --text-display1--line-height: 46.8px;
   --text-display1--letter-spacing: -0.72px;
