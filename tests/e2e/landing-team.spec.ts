@@ -30,7 +30,9 @@ test('introduces the team in a full-screen section reachable from desktop and mo
       'https://github.com/orgs/ChickenMayoDeopbab',
     )
     for (const link of await section.getByRole('link').all()) {
-      await link.scrollIntoViewIfNeeded()
+      await link.evaluate((element) =>
+        element.scrollIntoView({ block: 'center', behavior: 'instant' }),
+      )
       await expect(link).toBeInViewport({ ratio: 1 })
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(viewport.width)
