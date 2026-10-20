@@ -40,9 +40,22 @@ test('completes the landing check even when all APIs require authentication, wit
       .click()
   }
   await expect(page.getByRole('heading', { name: '통화 긴장형', exact: true })).toBeVisible()
+  const help = page.getByRole('button', { name: '자가진단 결과 설명 보기', exact: true })
+  const explanation = page.getByRole('dialog', { name: '통화 긴장형', exact: true })
+  await expect(explanation).not.toBeVisible()
+  await help.click()
+  await expect(explanation).toBeVisible()
   await expect(page.locator('.landing-diagnosis-result-description')).toContainText(
     '전화가 오거나 걸어야 하는 상황에서 긴장과 부담을 자주 느끼는 상태예요.',
   )
+  await page.getByText('나의 통화 부담은?', { exact: true }).click()
+  await expect(explanation).not.toBeVisible()
+  await help.focus()
+  await help.press('Enter')
+  await expect(explanation).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(explanation).not.toBeVisible()
+  await expect(help).toBeFocused()
   const resultLine = page.locator('.landing-diagnosis-result-line')
   await expect(resultLine).toHaveJSProperty('naturalWidth', 240)
   await expect(resultLine).toHaveCSS('width', '240px')
@@ -90,12 +103,12 @@ test('keeps the diagnosis section and following content steady across all questi
       height: element.getBoundingClientRect().height,
       nextTop: document.getElementById('faq')!.offsetTop,
     }))
-    for (const [answer, levelName] of [
-      ['전혀 없다', '통화 안정형'],
-      ['2점', '통화 적응형'],
-      ['보통이다', '통화 긴장형'],
-      ['4점', '통화 경계형'],
-      ['자주 있다', '통화 회피형'],
+    for (const [answer, levelName, description] of [
+      ['전혀 없다', '통화 안정형', '전화 통화에 대한 부담이 거의 없는 상태예요.'],
+      ['2점', '통화 적응형', '전화 통화에 약간의 긴장감은 느끼지만,'],
+      ['보통이다', '통화 긴장형', '긴장과 부담을 자주 느끼는 상태예요.'],
+      ['4점', '통화 경계형', '벨소리나 부재중 전화에도 스트레스를 느끼며,'],
+      ['자주 있다', '통화 회피형', '통화를 피하려는 경향이 강한 상태예요.'],
     ]) {
       await page.getByRole('button', { name: '자가진단 시작하기', exact: true }).click()
       for (let index = 0; index < 5; index++) {
@@ -118,6 +131,17 @@ test('keeps the diagnosis section and following content steady across all questi
       }))
       expect(resultLayout.height).toBeCloseTo(initial.height, 0)
       expect(resultLayout.nextTop).toBe(initial.nextTop)
+      await page.getByRole('button', { name: '자가진단 결과 설명 보기', exact: true }).click()
+      const explanation = page.getByRole('dialog', { name: levelName, exact: true })
+      await expect(explanation).toBeInViewport({ ratio: 1 })
+      await expect(explanation).toContainText(description)
+      const openLayout = await section.evaluate((element) => ({
+        height: element.getBoundingClientRect().height,
+        nextTop: document.getElementById('faq')!.offsetTop,
+      }))
+      expect(openLayout).toEqual(resultLayout)
+      await explanation.getByRole('button', { name: '결과 설명 닫기', exact: true }).click()
+      await expect(explanation).not.toBeVisible()
       await page.getByRole('button', { name: '다시 해보기', exact: true }).click()
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)

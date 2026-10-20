@@ -1,4 +1,4 @@
-import { LuArrowUpRight, LuRotateCcw } from 'react-icons/lu'
+import { LuArrowUpRight, LuRotateCcw, LuX } from 'react-icons/lu'
 import resultLine from '@shared/assets/landing/figma/77781.svg'
 import { useLandingDiagnosis } from '../model/useLandingDiagnosis'
 import { AnswerScale } from './AnswerScale'
@@ -100,9 +100,37 @@ export const LandingDiagnosis = () => {
               <p>나의 통화 부담은?</p>
               <div className="landing-diagnosis-result-title">
                 <h3>{result.levelName}</h3>
+                <button
+                  type="button"
+                  className="landing-diagnosis-help"
+                  popoverTarget="landing-diagnosis-explanation"
+                  aria-label="자가진단 결과 설명 보기"
+                  aria-haspopup="dialog"
+                >
+                  <span aria-hidden="true">?</span>
+                </button>
               </div>
               <img className="landing-diagnosis-result-line" src={resultLine} alt="" />
-              <p className="landing-diagnosis-result-description">{result.levelDescription}</p>
+              <div
+                id="landing-diagnosis-explanation"
+                className="landing-diagnosis-explanation"
+                popover="auto"
+                role="dialog"
+                aria-labelledby="landing-diagnosis-explanation-title"
+              >
+                <div className="landing-diagnosis-explanation-heading">
+                  <h4 id="landing-diagnosis-explanation-title">{result.levelName}</h4>
+                  <button
+                    type="button"
+                    popoverTarget="landing-diagnosis-explanation"
+                    popoverTargetAction="hide"
+                    aria-label="결과 설명 닫기"
+                  >
+                    <LuX aria-hidden="true" />
+                  </button>
+                </div>
+                <p className="landing-diagnosis-result-description">{result.levelDescription}</p>
+              </div>
               <div className="landing-diagnosis-result-actions">
                 <a className="landing-diagnosis-action" href="#download">
                   앱으로 시작하기 <LuArrowUpRight aria-hidden="true" />
