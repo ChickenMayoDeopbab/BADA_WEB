@@ -1,12 +1,12 @@
-/* 네이티브 스크롤을 유지한 채 한 화면의 다운로드 무대에 머무는 구간입니다. */
+/* 넓은 화면의 짧은 고정 구간과 모바일 웹의 일반 스크롤을 함께 제공합니다. */
 .brand-page #download {
   scroll-margin-top: 0;
 }
 .brand-download {
   position: relative;
-  min-height: 180svh;
-  background: var(--color-label-normal);
-  color: var(--color-background-normal);
+  min-height: 150svh;
+  background: var(--color-fill-normal);
+  color: var(--color-label-normal);
 }
 .brand-download-stage {
   position: sticky;
@@ -14,23 +14,24 @@
   min-height: 100svh;
   display: grid;
   align-items: center;
-  padding: 112px var(--brand-gutter) 64px;
+  padding: 104px var(--brand-gutter) 64px;
 }
 .brand-download-inner {
   width: 100%;
-  max-width: 1312px;
+  max-width: 640px;
   margin-inline: auto;
+  text-align: center;
 }
 .brand-download-heading {
   display: flex;
+  flex-direction: column-reverse;
   align-items: center;
-  justify-content: space-between;
-  gap: 64px;
-  margin-bottom: clamp(48px, 8vh, 96px);
+  gap: 28px;
+  margin-bottom: 36px;
 }
 .brand-download h2 {
   margin: 0;
-  font-size: clamp(var(--text-display1), 5vw, var(--text-marketing-hero));
+  font-size: var(--text-marketing-title);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.04em;
@@ -39,33 +40,35 @@
   display: block;
 }
 .brand-download-wordmark {
-  width: clamp(128px, 18vw, 260px);
+  width: 104px;
   height: auto;
-  flex-shrink: 0;
   object-fit: contain;
 }
 .brand-store-links {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  grid-template-columns: repeat(2, minmax(0, 224px));
+  justify-content: center;
+  gap: 12px;
 }
 .brand-store-links > a {
   min-width: 0;
-  min-height: 152px;
+  min-height: 80px;
   display: flex;
   align-items: center;
-  gap: 28px;
-  padding: 32px;
-  border-top: 1px solid var(--color-background-normal);
-  border-bottom: 1px solid var(--color-label-alternative);
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-component);
+  background: var(--color-label-normal);
+  color: var(--color-background-normal);
+  text-align: left;
   transition:
     background-color 200ms ease,
-    border-color 200ms ease,
     transform 200ms ease;
 }
 .brand-store-links .brand-store-logo {
-  width: 48px;
-  height: 48px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   object-fit: contain;
 }
@@ -74,87 +77,71 @@
   display: block;
 }
 .brand-store-links small {
-  font-size: var(--text-label);
+  margin-bottom: 3px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   color: var(--color-secondary-assistive);
 }
 .brand-store-links strong {
-  margin-top: 8px;
-  font-size: var(--text-display2);
-  line-height: var(--text-display2--line-height);
+  font-size: var(--text-title2);
+  line-height: var(--text-title2--line-height);
   font-weight: 500;
+  white-space: nowrap;
 }
-.brand-store-links > a > svg:last-child {
-  width: 28px;
-  height: 28px;
-  margin-left: auto;
-  flex-shrink: 0;
-  transition: transform 200ms ease;
+.brand-store-links > a:focus-visible {
+  background: var(--color-label-neutral);
 }
-.brand-store-links > a:is(:hover, :focus-visible) {
-  background: color-mix(in srgb, var(--color-primary-normal) 8%, transparent);
-  border-color: var(--color-primary-normal);
+@media (hover: hover) and (pointer: fine) {
+  .brand-store-links > a:hover {
+    background: var(--color-label-neutral);
+  }
 }
-.brand-store-links > a:is(:hover, :focus-visible) strong {
-  color: var(--color-primary-normal);
-}
-@media (prefers-reduced-motion: no-preference) {
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
   .brand-store-links > a:is(:hover, :focus-visible) {
     transform: translateY(-3px);
-  }
-  .brand-store-links > a:is(:hover, :focus-visible) > svg:last-child {
-    transform: translate(3px, -3px);
-  }
-}
-@media (max-width: 1023px) {
-  .brand-download-heading {
-    gap: 32px;
-  }
-  .brand-store-links {
-    gap: 24px;
-  }
-  .brand-store-links > a {
-    padding-inline: 20px;
-    gap: 20px;
-  }
-  .brand-store-links strong {
-    font-size: var(--text-title2);
-    line-height: var(--text-title2--line-height);
   }
 }
 @media (max-width: 639px) {
   .brand-download {
-    min-height: 160svh;
+    min-height: 100svh;
   }
   .brand-download-stage {
-    padding-block: 104px 48px;
-  }
-  .brand-download-heading {
-    margin-bottom: 48px;
+    position: relative;
+    padding: max(96px, env(safe-area-inset-top))
+      max(var(--brand-gutter), env(safe-area-inset-right)) max(64px, env(safe-area-inset-bottom))
+      max(var(--brand-gutter), env(safe-area-inset-left));
   }
   .brand-download h2 {
     font-size: var(--text-display1);
   }
-  .brand-download-wordmark {
-    display: none;
+  .brand-download-heading {
+    gap: 24px;
+    margin-bottom: 32px;
   }
-  .brand-store-links {
-    grid-template-columns: 1fr;
-    gap: 0;
+  .brand-download-wordmark {
+    width: 88px;
   }
   .brand-store-links > a {
-    min-height: 112px;
-    padding: 24px 12px;
-  }
-  .brand-store-links > a:last-child {
-    border-top: 0;
+    min-height: 72px;
+    padding: 12px;
+    gap: 8px;
   }
   .brand-store-links .brand-store-logo {
-    width: 40px;
-    height: 40px;
-  }
-  .brand-store-links > a > svg:last-child {
     width: 24px;
-    height: 24px;
+    height: 28px;
+  }
+  .brand-store-links strong {
+    font-size: var(--text-headline2);
+    line-height: var(--text-headline2--line-height);
+  }
+}
+@media (max-width: 359px) {
+  .brand-store-links {
+    grid-template-columns: minmax(0, 224px);
+  }
+  .brand-store-links > a {
+    padding-inline: 24px;
+    gap: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce), (max-height: 600px) {
@@ -169,10 +156,11 @@
   .brand-download-stage {
     padding-block: 96px 48px;
   }
+  .brand-download-heading {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
   .brand-download h2 {
     font-size: var(--text-display1);
-  }
-  .brand-download-heading {
-    margin-bottom: 40px;
   }
 }

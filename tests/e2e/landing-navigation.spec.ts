@@ -126,3 +126,27 @@ test('fits both store links on a mobile screen and skips the extra hold for redu
   const stage = (await page.locator('[data-download-stage]').boundingBox())!
   expect(section.height).toBe(stage.height)
 })
+
+test('keeps compact store badges reachable on small phones and landscape web views', async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 390, height: 844 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(viewport)
+    await page.goto('/#download')
+    await expect(page.locator('[data-download-stage]')).toHaveCSS('position', 'relative')
+    for (const name of ['App Store', 'Google Play']) {
+      const store = page.getByRole('link', { name: `${name}에서 BADA 다운로드 (새 탭)` })
+      await expect(store).toBeInViewport({ ratio: 1 })
+      const box = (await store.boundingBox())!
+      expect(box.height).toBeGreaterThanOrEqual(44)
+      expect(box.width).toBeLessThanOrEqual(224)
+      expect(box.x).toBeGreaterThanOrEqual(0)
+      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(viewport.width)
+  }
+})
