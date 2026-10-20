@@ -1,11 +1,11 @@
 import { FaApple } from 'react-icons/fa'
 import { LuArrowUpRight } from 'react-icons/lu'
-import oneStoreLogo from '@shared/assets/landing/onestore.png'
+import googlePlayLogo from '@shared/assets/landing/google-play.svg'
 import { landingLinks } from '../model/landingLinks'
 
 const stores = [
   { name: 'App Store', description: 'iPhone', url: landingLinks.appStore },
-  { name: 'ONE store', description: 'Android', url: landingLinks.oneStore },
+  { name: 'Google Play', description: 'Android', url: landingLinks.googlePlay },
 ]
 
 /** 확인된 공식 로고와 두 스토어로 이어지는 다운로드 동선입니다. */
@@ -22,8 +22,14 @@ export const AppDownload = () => (
             rel="noopener noreferrer"
             aria-label={`${name}에서 BADA 다운로드 (새 탭)`}
           >
-            {name === 'ONE store' ? (
-              <img className="brand-store-logo" src={oneStoreLogo} alt="" width="36" height="36" />
+            {name === 'Google Play' ? (
+              <img
+                className="brand-store-logo"
+                src={googlePlayLogo}
+                alt=""
+                width="36"
+                height="36"
+              />
             ) : (
               <FaApple className="brand-store-logo" aria-hidden="true" />
             )}
