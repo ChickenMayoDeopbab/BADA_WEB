@@ -4,7 +4,7 @@ import { WebStartLink } from './WebStartLink'
 
 /** 큰 타이포와 첫 인사 미리보기, 음성 선을 연결하는 브랜드 히어로입니다. */
 export const LandingHero = () => (
-  <section className="brand-hero" data-landing-hero aria-labelledby="hero-title">
+  <section id="intro" className="brand-hero" data-landing-hero aria-labelledby="hero-title">
     <h1 id="hero-title" className="brand-hero-title">
       <span className="brand-line-mask">
         <span data-hero-line>망설임에서,</span>

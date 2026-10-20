@@ -1,5 +1,6 @@
 import { useEffect, type RefObject } from 'react'
 import { buildVoicePath } from './brandMotion'
+import { LANDING_INTRO_COMPLETE_EVENT } from './useLandingIntro'
 
 /** 히어로 모션을 소유하고 라우트 및 모션 설정 변경 시 복원합니다. */
 export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
@@ -52,7 +53,7 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
               gsap.ticker.add(renderVoice)
             } else gsap.ticker.remove(renderVoice)
           }
-          const intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
+          const intro = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } })
           intro.from(select('[data-hero-line]'), { yPercent: 115, duration: 1.15, stagger: 0.14 })
           intro.from(
             select('[data-hero-object]'),
@@ -60,6 +61,10 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
             0.25,
           )
           intro.from(select('[data-hero-action]'), { y: 18, autoAlpha: 0, duration: 0.6 }, 0.7)
+          /** 로고 오프닝이 끝나면 멈춰 있던 첫 화면을 스스로 펼칩니다. */
+          const playIntro = () => intro.play()
+          if (!page.querySelector('[data-brand-intro]')) playIntro()
+          window.addEventListener(LANDING_INTRO_COMPLETE_EVENT, playIntro, { once: true })
           gsap.to(voice, {
             calm: 1,
             ease: 'none',
@@ -84,6 +89,7 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
             },
           })
           return () => {
+            window.removeEventListener(LANDING_INTRO_COMPLETE_EVENT, playIntro)
             gsap.ticker.remove(renderVoice)
             document.removeEventListener('visibilitychange', updateVoiceVisibility)
             voicePath.setAttribute('d', originalPath)

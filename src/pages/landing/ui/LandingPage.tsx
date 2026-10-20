@@ -11,14 +11,22 @@ import { AppDownload } from './AppDownload'
 import { LandingFooter } from './LandingFooter'
 import { LandingFaq } from './LandingFaq'
 import { WebStartLink } from './WebStartLink'
+import { SectionNavigation } from './SectionNavigation'
+import { BrandIntro } from './BrandIntro'
+import { useLandingIntro } from '../model/useLandingIntro'
+import { useLandingSectionMotion } from '../model/useLandingSectionMotion'
 import './landingBrand.css'
 
 /** 통화 흐름·자가진단·다운로드를 연결하는 랜딩을 구성합니다. */
 export const LandingPage = () => {
-  const { pageRef } = useLandingScroll()
+  const { pageRef, activeSection } = useLandingScroll()
+  const { isIntroVisible, handleIntroEnd } = useLandingIntro()
   useBrandMotion(pageRef)
+  useLandingSectionMotion(pageRef)
   return (
     <div ref={pageRef} className="landing-page brand-page bg-background-normal text-label-normal">
+      {isIntroVisible && <BrandIntro onEnd={handleIntroEnd} />}
+      <SectionNavigation activeSection={activeSection} />
       <a href="#main-content" className="brand-skip-link">
         본문으로 건너뛰기
       </a>

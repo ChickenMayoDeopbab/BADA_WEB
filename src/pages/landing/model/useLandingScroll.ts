@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { landingSections, type LandingSectionId } from './landingSections'
 
 /** 내비게이션 표시와 부드러운 섹션 이동을 관리합니다. */
 export const useLandingScroll = () => {
   const pageRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const [activeSection, setActiveSection] = useState<LandingSectionId>('intro')
 
   useEffect(() => {
     const page = pageRef.current
@@ -15,8 +17,12 @@ export const useLandingScroll = () => {
     let scrollDirection = 0
     let directionDistance = 0
     page.dataset.headerHidden = 'false'
+    const sections = landingSections.map((section) => ({
+      ...section,
+      element: page.querySelector<HTMLElement>(`#${section.id}`)!,
+    }))
 
-    /** DOM 상태는 프레임당 한 번만 갱신하며 React 렌더링을 발생시키지 않습니다. */
+    /** 헤더는 프레임당 한 번 갱신하고 현재 구간이 바뀔 때만 렌더링합니다. */
     const updateScroll = () => {
       animationFrame = 0
       const scrollRange = document.documentElement.scrollHeight - window.innerHeight
@@ -32,6 +38,11 @@ export const useLandingScroll = () => {
       else if (scrollDirection > 0 && directionDistance >= 12) page.dataset.headerHidden = 'true'
       else if (scrollDirection < 0 && directionDistance >= 6) page.dataset.headerHidden = 'false'
       previousScrollY = scrollY
+      const current =
+        sections.findLast(
+          (section) => section.element.getBoundingClientRect().top <= window.innerHeight * 0.45,
+        ) ?? sections[0]
+      setActiveSection((previous) => (previous === current.id ? previous : current.id))
     }
 
     /** 빠르게 연속 발생하는 스크롤과 크기 변경을 하나의 프레임으로 합칩니다. */
@@ -89,5 +100,5 @@ export const useLandingScroll = () => {
     }
   }, [navigate])
 
-  return { pageRef }
+  return { pageRef, activeSection }
 }
