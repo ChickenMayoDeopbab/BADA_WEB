@@ -10,6 +10,7 @@ import { FeatureTour } from './FeatureTour'
 import { AppDownload } from './AppDownload'
 import { LandingFooter } from './LandingFooter'
 import { LandingFaq } from './LandingFaq'
+import { TeamIntroduction } from './TeamIntroduction'
 import { WebStartLink } from './WebStartLink'
 import { SectionNavigation } from './SectionNavigation'
 import { BrandIntro } from './BrandIntro'
@@ -46,6 +47,7 @@ export const LandingPage = () => {
         <FeatureTour />
         <LandingDiagnosis />
         <LandingFaq />
+        <TeamIntroduction />
         <AppDownload />
       </main>
       <LandingFooter />

@@ -100,10 +100,9 @@ test('keeps mobile navigation, footer channels, and store link states usable', a
   await expect(
     page.getByRole('link', { name: 'App Store에서 BADA 다운로드 (새 탭)' }).locator('img'),
   ).toHaveAttribute('src', /app-store-badge-ko\.png/)
-  await expect(page.getByRole('link', { name: '팀·서비스 소개 (새 탭)' })).toHaveAttribute(
-    'href',
-    'https://github.com/orgs/ChickenMayoDeopbab',
-  )
+  await expect(
+    page.getByRole('region', { name: '편하게 말할 수 있는 내일을 만듭니다.' }),
+  ).toHaveCount(1)
   await expect(googlePlay).toHaveAttribute(
     'href',
     'https://play.google.com/store/apps/details?id=com.chickenmayodeopbab.bada.play',

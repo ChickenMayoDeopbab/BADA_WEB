@@ -57,7 +57,7 @@ test('offers an accessible mobile section menu that closes after selection or Es
   const toggle = rail.getByRole('button', { name: /구간 이동 메뉴/ })
   await toggle.click()
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(rail.getByRole('link')).toHaveCount(5)
+  await expect(rail.getByRole('link')).toHaveCount(6)
   await rail.getByRole('link', { name: '자주 묻는 질문', exact: true }).click()
   await expect(toggle).toHaveAttribute('aria-expanded', 'false')
   await expect(toggle).toHaveAttribute('aria-label', /현재 자주 묻는 질문/)

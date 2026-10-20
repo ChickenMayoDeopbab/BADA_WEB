@@ -1,0 +1,111 @@
+.brand-page #team {
+  scroll-margin-top: 0;
+}
+.brand-team {
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding: 112px max(80px, var(--brand-gutter)) 80px var(--brand-gutter);
+  background: var(--color-label-normal);
+  color: var(--color-background-normal);
+}
+.brand-team-inner {
+  width: 100%;
+  max-width: 1152px;
+  margin-inline: auto;
+}
+.brand-team-eyebrow {
+  margin-bottom: 32px;
+  color: var(--color-primary-normal);
+  font-size: var(--text-label);
+}
+.brand-team h2 {
+  font-size: var(--text-marketing-hero);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+  word-break: keep-all;
+}
+.brand-team-story {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  margin-top: 64px;
+  padding-top: 40px;
+  border-top: 1px solid var(--color-label-alternative);
+}
+.brand-team-signature img {
+  width: min(260px, 100%);
+  height: auto;
+}
+.brand-team-signature p {
+  margin-top: 24px;
+  color: var(--color-secondary-assistive);
+  font-size: var(--text-label);
+}
+.brand-team-description > p:first-child {
+  font-size: var(--text-title2);
+  line-height: 1.5;
+  letter-spacing: -0.03em;
+}
+.brand-team-description > p + p {
+  max-width: 440px;
+  margin-top: 20px;
+  color: var(--color-secondary-assistive);
+  font-size: var(--text-body);
+  line-height: 1.8;
+  word-break: keep-all;
+}
+.brand-team-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+.brand-team-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-label-alternative);
+  border-radius: var(--radius-control);
+  font-size: var(--text-label);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease;
+}
+.brand-team-links a:is(:hover, :focus-visible) {
+  border-color: var(--color-primary-normal);
+  color: var(--color-primary-normal);
+}
+@media (max-width: 767px) {
+  .brand-team {
+    padding-inline: var(--brand-gutter);
+    padding-block: 96px 72px;
+  }
+  .brand-team h2 {
+    font-size: var(--text-display1);
+  }
+  .brand-team-story {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    margin-top: 40px;
+    padding-top: 32px;
+  }
+  .brand-team-signature img {
+    width: 144px;
+  }
+  .brand-team-signature p {
+    margin-top: 16px;
+  }
+  .brand-team-description > p:first-child {
+    font-size: var(--text-headline1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-team-links a {
+    transition: none;
+  }
+}
