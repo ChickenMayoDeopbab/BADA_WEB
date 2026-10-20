@@ -1,26 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
 
-const questions = [
-  {
-    questionId: 12,
-    content: '전화를 걸기 전에 긴장한 적이 있다.',
-    orderIndex: 2,
-    questionnaireVersion: 'LANDING-test-v1',
-  },
-  {
-    questionId: 11,
-    content: '모르는 번호의 전화를 피한 적이 있다.',
-    orderIndex: 1,
-    questionnaireVersion: 'LANDING-test-v1',
-  },
-]
-const diagnosisResult = {
-  score: 3.5,
-  levelName: '나의 전화 습관',
-  levelDescription: '일부 상황에서 전화가 부담스러울 수 있어요.',
-  summary: '익숙한 상황부터 천천히 연습해보세요.',
-}
-
 /** 숨겨진 input 대신 사용자가 누르는 응답 라벨을 선택합니다. */
 const chooseAnswer = async (page: Page, name: string) => {
   await page
@@ -29,34 +8,22 @@ const chooseAnswer = async (page: Page, name: string) => {
     .click()
 }
 
-test('completes public LANDING diagnosis without consent or login and preserves previous answers', async ({
+test('completes the landing check even when all APIs require authentication, without sending answers', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  const memberRequests: string[] = []
-  const questionRequests: string[] = []
-  let submission: Record<string, unknown> | undefined
-  await page.route('**/api/v1/**', (route) => {
-    memberRequests.push(route.request().url())
-    return route.abort()
-  })
-  await page.route('**/api/diagnosis/questions?*', (route) => {
-    questionRequests.push(route.request().url())
-    expect(route.request().headers().authorization).toBeUndefined()
-    return route.fulfill({ json: { status: 200, data: questions } })
-  })
-  await page.route('**/api/diagnosis/submit', (route) => {
-    expect(route.request().headers().authorization).toBeUndefined()
-    submission = route.request().postDataJSON()
-    return route.fulfill({ json: { status: 200, data: diagnosisResult } })
-  })
-  await page.goto('/')
-  expect(questionRequests).toHaveLength(0)
+  const apiRequests: string[] = []
+  await page.route(
+    (url) => url.pathname.startsWith('/api/'),
+    (route) => {
+      apiRequests.push(route.request().url())
+      return route.fulfill({ status: 401, json: { message: '인증이 필요합니다.' } })
+    },
+  )
+  await page.goto('/#diagnosis')
   const start = page.getByRole('button', { name: '자가진단 시작하기', exact: true })
   await start.click()
-  await expect(page.getByRole('heading', { name: questions[1].content })).toBeVisible()
   await expect(page.getByRole('dialog')).toHaveCount(0)
-  expect(new URL(questionRequests[0]).searchParams.get('type')).toBe('LANDING')
   await expect(page.getByRole('button', { name: '다음 문항', exact: true })).toBeDisabled()
   await chooseAnswer(page, '2점')
   await page.getByRole('button', { name: '다음 문항', exact: true }).click()
@@ -65,60 +32,46 @@ test('completes public LANDING diagnosis without consent or login and preserves 
   await expect(page.getByRole('radio', { name: '2점', exact: true })).toBeChecked()
   await page.getByRole('button', { name: '다음 문항', exact: true }).click()
   await expect(page.getByRole('radio', { name: '자주 있다', exact: true })).toBeChecked()
-  await page.getByRole('button', { name: '결과 확인하기', exact: true }).click()
-  await expect(
-    page.getByRole('heading', { name: diagnosisResult.levelName, exact: true }),
-  ).toBeVisible()
+  await page.getByRole('button', { name: '다음 문항', exact: true }).click()
+  for (let index = 2; index < 5; index++) {
+    await chooseAnswer(page, '보통이다')
+    await page
+      .getByRole('button', { name: index === 4 ? '결과 확인하기' : '다음 문항', exact: true })
+      .click()
+  }
+  await expect(page.getByRole('heading', { name: '조금 부담스러워요', exact: true })).toBeVisible()
   await page.getByRole('button', { name: '레벨 설명 보기', exact: true }).focus()
-  await expect(page.getByRole('tooltip')).toHaveText(diagnosisResult.levelDescription)
+  await expect(page.getByRole('tooltip')).toContainText('상황에 따라 전화가 망설여지는')
   const resultLine = page.locator('.landing-diagnosis-result-line')
   await expect(resultLine).toHaveJSProperty('naturalWidth', 240)
   await expect(resultLine).toHaveCSS('width', '240px')
   await expect(resultLine).toHaveCSS('height', '2px')
-  expect(submission).toMatchObject({
-    type: 'LANDING',
-    answers: [2, 5],
-    questionnaireVersion: 'LANDING-test-v1',
-  })
-  expect(submission?.sessionId).toMatch(/^[0-9a-f-]{36}$/)
-  expect(memberRequests).toEqual([])
-  await expect(page).toHaveURL(/\/$/)
+  expect(apiRequests).toEqual([])
+  await expect(page).toHaveURL(/\/#diagnosis$/)
   await page.getByRole('button', { name: '다시 해보기', exact: true }).click()
   await expect(start).toBeVisible()
+  await start.click()
+  await expect(page.getByRole('radio', { name: '2점', exact: true })).not.toBeChecked()
 })
 
-test('retries question loading and submission without changing the diagnosis session', async ({
+test('finishes the landing check offline and does not persist answers across reloads', async ({
   page,
+  context,
 }) => {
-  let questionAttempts = 0
-  const submissions: Record<string, unknown>[] = []
-  await page.route('**/api/diagnosis/questions?*', (route) => {
-    questionAttempts++
-    return route.fulfill(
-      questionAttempts === 1
-        ? { status: 503, json: { message: '문항 조회 실패' } }
-        : { json: { status: 200, data: questions.slice(1) } },
-    )
-  })
-  await page.route('**/api/diagnosis/submit', (route) => {
-    submissions.push(route.request().postDataJSON())
-    return route.fulfill(
-      submissions.length === 1
-        ? { status: 503, json: { message: '제출을 처리하지 못했어요.' } }
-        : { json: { status: 200, data: diagnosisResult } },
-    )
-  })
-  await page.goto('/')
+  await page.goto('/#diagnosis')
+  await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
+  await context.setOffline(true)
   await page.getByRole('button', { name: '자가진단 시작하기', exact: true }).click()
-  await expect(page.getByRole('alert')).toHaveText('문항을 불러오지 못했어요.')
-  await page.getByRole('button', { name: '다시 불러오기', exact: true }).click()
-  await chooseAnswer(page, '전혀 없다')
-  await page.getByRole('button', { name: '결과 확인하기', exact: true }).click()
-  await expect(page.getByRole('alert')).toBeVisible()
-  await page.getByRole('button', { name: '다시 시도하기', exact: true }).click()
-  await expect(
-    page.getByRole('heading', { name: diagnosisResult.levelName, exact: true }),
-  ).toBeVisible()
-  expect(submissions).toHaveLength(2)
-  expect(submissions[1]).toEqual(submissions[0])
+  for (let index = 0; index < 5; index++) {
+    await chooseAnswer(page, '전혀 없다')
+    await page
+      .getByRole('button', { name: index === 4 ? '결과 확인하기' : '다음 문항', exact: true })
+      .click()
+  }
+  await expect(page.getByRole('heading', { name: '가벼운 편이에요', exact: true })).toBeVisible()
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await context.setOffline(false)
+  await page.reload()
+  await expect(page.getByRole('button', { name: '자가진단 시작하기', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '가벼운 편이에요', exact: true })).toHaveCount(0)
 })

@@ -91,9 +91,6 @@
   align-self: end;
   margin-top: 28px;
 }
-.landing-diagnosis-state > button {
-  margin-top: 24px;
-}
 .landing-diagnosis-result {
   padding-block: 32px;
   text-align: center;

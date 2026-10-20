@@ -1,14 +1,14 @@
 import { LuArrowUpRight, LuRotateCcw } from 'react-icons/lu'
 import resultHelp from '@shared/assets/landing/figma/0df77.svg'
 import resultLine from '@shared/assets/landing/figma/77781.svg'
-import { useSelfDiagnosis } from '../model/useSelfDiagnosis'
+import { useLandingDiagnosis } from '../model/useLandingDiagnosis'
 import { AnswerScale } from './AnswerScale'
 import './landingDiagnosis.css'
 
-/** 로그인 없이 LANDING 문항 조회·응답 제출·서버 결과 확인을 한 영역에서 진행합니다. */
+/** 서버와 인증에 연결하지 않는 랜딩용 간단 체크를 표시합니다. */
 export const LandingDiagnosis = () => {
-  const diagnosis = useSelfDiagnosis('LANDING')
-  const { step, currentQuestion, questionsStatus, result } = diagnosis
+  const diagnosis = useLandingDiagnosis()
+  const { step, currentQuestion, result } = diagnosis
 
   return (
     <section id="diagnosis" className="landing-diagnosis" aria-labelledby="landing-diagnosis-title">
@@ -21,7 +21,7 @@ export const LandingDiagnosis = () => {
         <p>
           간단한 질문으로 나의 통화불안을 살펴보세요.
           <br />
-          로그인 없이 진행할 수 있어요.
+          답변을 저장하지 않는 간단한 체험이에요.
         </p>
       </div>
       <div className="landing-diagnosis-panel">
@@ -43,76 +43,40 @@ export const LandingDiagnosis = () => {
         )}
         {step === 'question' && (
           <>
-            {questionsStatus === 'success' && currentQuestion ? (
-              <>
-                <div className="landing-diagnosis-question-top">
-                  <button type="button" onClick={diagnosis.goBack} aria-label="이전 문항으로">
-                    이전
-                  </button>
-                  <span aria-label="문항 진행">
-                    {diagnosis.currentIndex + 1} / {diagnosis.totalCount}
-                  </span>
-                </div>
-                <h3
-                  className="landing-diagnosis-question"
-                  aria-live="polite"
-                  key={currentQuestion.questionId}
-                >
-                  {currentQuestion.content}
-                </h3>
-                <AnswerScale
-                  name={`landing-diagnosis-${currentQuestion.questionId}`}
-                  value={diagnosis.currentAnswer}
-                  onChange={diagnosis.selectAnswer}
-                />
-                <button
-                  className="landing-diagnosis-action landing-diagnosis-next"
-                  type="button"
-                  disabled={diagnosis.currentAnswer == null}
-                  onClick={diagnosis.goNext}
-                >
-                  {diagnosis.currentIndex === diagnosis.totalCount - 1
-                    ? '결과 확인하기'
-                    : '다음 문항'}{' '}
-                  <LuArrowUpRight aria-hidden="true" />
-                </button>
-              </>
-            ) : questionsStatus === 'pending' ? (
-              <p role="status">문항을 불러오는 중이에요.</p>
-            ) : (
-              <div className="landing-diagnosis-state">
-                <p role="alert">
-                  {questionsStatus === 'error'
-                    ? '문항을 불러오지 못했어요.'
-                    : '현재 진행할 문항이 없어요.'}
-                </p>
-                <button
-                  type="button"
-                  className="landing-diagnosis-action"
-                  onClick={diagnosis.retryQuestions}
-                >
-                  다시 불러오기
-                </button>
-              </div>
-            )}
-          </>
-        )}
-        {step === 'submitting' && <p role="status">응답을 바탕으로 결과를 확인하고 있어요.</p>}
-        {step === 'error' && (
-          <div className="landing-diagnosis-state">
-            <p role="alert">{diagnosis.errorMessage}</p>
-            <button
-              type="button"
-              className="landing-diagnosis-action"
-              onClick={diagnosis.retrySubmit}
+            <div className="landing-diagnosis-question-top">
+              <button type="button" onClick={diagnosis.goBack} aria-label="이전 문항으로">
+                이전
+              </button>
+              <span aria-label="문항 진행">
+                {diagnosis.currentIndex + 1} / {diagnosis.totalCount}
+              </span>
+            </div>
+            <h3
+              className="landing-diagnosis-question"
+              aria-live="polite"
+              key={currentQuestion.questionId}
             >
-              다시 시도하기
+              {currentQuestion.content}
+            </h3>
+            <AnswerScale
+              name={`landing-diagnosis-${currentQuestion.questionId}`}
+              value={diagnosis.currentAnswer}
+              onChange={diagnosis.selectAnswer}
+            />
+            <button
+              className="landing-diagnosis-action landing-diagnosis-next"
+              type="button"
+              disabled={diagnosis.currentAnswer == null}
+              onClick={diagnosis.goNext}
+            >
+              {diagnosis.currentIndex === diagnosis.totalCount - 1 ? '결과 확인하기' : '다음 문항'}{' '}
+              <LuArrowUpRight aria-hidden="true" />
             </button>
-          </div>
+          </>
         )}
         {step === 'result' && result && (
           <div className="landing-diagnosis-result" aria-live="polite" data-figma-node="4966:5319">
-            <p>내 레벨은?</p>
+            <p>나의 통화 부담은?</p>
             <div className="landing-diagnosis-result-title">
               <h3>{result.levelName}</h3>
               <div className="landing-diagnosis-result-help">
