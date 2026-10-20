@@ -76,3 +76,47 @@ test('restores the mobile tour after desktop resizing and keeps short screens an
   await page.getByRole('tab', { name: '돌아보기', exact: true }).click()
   await expect(page.locator('#experience')).toHaveAttribute('data-active-scene', '2')
 })
+
+test('refits the phone when only the active panel height changes or a taller scene becomes visible', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/#experience')
+  const story = page.locator('#experience')
+  await page.getByRole('tab', { name: '상황 고르기', exact: true }).tap()
+  /** CSS에 반영된 실제 기기 배율로 크기 재계산을 확인합니다. */
+  const getScale = () =>
+    story.evaluate((element) =>
+      Number((element as HTMLElement).style.getPropertyValue('--tour-mobile-device-scale')),
+    )
+  await expect.poll(getScale).toBeGreaterThan(0)
+  const initialScale = await getScale()
+  const workspace = page.locator('.brand-tour-workspace')
+  const callout = page.locator('[data-tour-callout]')
+  const workspaceHeight = (await workspace.boundingBox())!.height
+  const calloutHeight = (await callout.boundingBox())!.height
+  const scenario = page.getByRole('tabpanel')
+  const panelHeight = (await scenario.boundingBox())!.height
+  await scenario.evaluate((element, height) => {
+    const panel = element as HTMLElement
+    panel.style.minHeight = `${height + 64}px`
+  }, panelHeight)
+  await expect.poll(getScale).toBeLessThan(initialScale - 0.05)
+  expect((await workspace.boundingBox())!.height).toBe(workspaceHeight)
+  expect((await callout.boundingBox())!.height).toBe(calloutHeight)
+  const scenarioScale = await getScale()
+
+  await page.locator('#feature-panel-call').evaluate((element, height) => {
+    const panel = element as HTMLElement
+    panel.style.minHeight = `${height + 112}px`
+  }, panelHeight)
+  await page.getByRole('tab', { name: 'AI 통화 연습', exact: true }).tap()
+  await expect(story).toHaveAttribute('data-active-scene', '1')
+  await expect.poll(getScale).toBeLessThan(scenarioScale - 0.04)
+  const callScale = await getScale()
+  await expect(callout).toBeInViewport({ ratio: 1 })
+  await page.getByRole('tab', { name: '돌아보기', exact: true }).tap()
+  await expect(story).toHaveAttribute('data-active-scene', '2')
+  await expect.poll(getScale).toBeGreaterThan(callScale + 0.05)
+  await expect(callout).toBeInViewport({ ratio: 1 })
+})

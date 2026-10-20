@@ -468,7 +468,8 @@
   top: auto;
   left: auto;
   width: 100%;
-  height: 196px;
+  min-height: 196px;
+  height: auto;
   flex-shrink: 0;
   transform: none;
 }
@@ -507,6 +508,7 @@
   transform: none;
 }
 .brand-tour[data-mobile-story='true'] .brand-tour-callout {
+  --tour-callout-layout: below;
   top: calc(100% + 12px);
   width: min(280px, calc(100vw - 48px));
   padding: 10px 14px;
@@ -554,7 +556,7 @@
     margin-top: 12px;
   }
   .brand-tour[data-mobile-story='true'] .brand-tour-panel {
-    height: 128px;
+    min-height: 128px;
   }
   .brand-tour[data-mobile-story='true'] .brand-tour-copy h3 {
     font-size: var(--text-headline2);
@@ -566,6 +568,7 @@
     margin-left: 0;
   }
   .brand-tour[data-mobile-story='true'] .brand-tour-callout {
+    --tour-callout-layout: side;
     top: 50%;
     left: calc(100% + 12px);
     width: calc(100vw - 70px - 402px * var(--tour-device-scale));

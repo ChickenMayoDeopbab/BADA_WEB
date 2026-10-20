@@ -4,6 +4,15 @@ import { tourFeatures } from './landingContent'
 import { useScrollStoryMode } from './useScrollStoryMode'
 import type { CallHintMode } from './callHints'
 
+// Figma 화면 높이, 기기 테두리와 무대 여백을 반영하는 모바일 크기 제한입니다.
+const mobileTourSizing = {
+  screenHeight: 874,
+  frameHeight: 10,
+  reservedGap: 28,
+  minScale: 0.12,
+  maxScale: 0.48,
+} as const
+
 /** 고정된 제품 무대의 스크롤 진행과 직접 선택·키보드 탐색을 동기화합니다. */
 export const useFeatureTour = () => {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -30,26 +39,32 @@ export const useFeatureTour = () => {
       const stage = story.querySelector<HTMLElement>('[data-feature-stage]')!
       const workspace = story.querySelector<HTMLElement>('.brand-tour-workspace')!
       const callout = story.querySelector<HTMLElement>('[data-tour-callout]')!
+      const panels = story.querySelectorAll<HTMLElement>('.brand-tour-panel')
       /** 글과 주석의 공간을 먼저 확보하고 남는 높이에 맞춰 세로 목업을 줄입니다. */
       const fitMobileDevice = () => {
         if (!isMobileStory) return
         const panel = story.querySelector<HTMLElement>('.brand-tour-panel:not([hidden])')!
-        const hasSideCallout = window.matchMedia('(max-height: 739px)').matches
+        const hasSideCallout =
+          getComputedStyle(callout).getPropertyValue('--tour-callout-layout').trim() === 'side'
         const availableHeight =
           workspace.clientHeight -
           panel.offsetHeight -
           (hasSideCallout ? 0 : callout.offsetHeight) -
-          28
-        story.style.setProperty(
-          '--tour-mobile-device-scale',
-          String(Math.min(0.48, Math.max(0.12, (availableHeight - 10) / 874))),
+          mobileTourSizing.reservedGap
+        const availableScale =
+          (availableHeight - mobileTourSizing.frameHeight) / mobileTourSizing.screenHeight
+        const deviceScale = Math.min(
+          mobileTourSizing.maxScale,
+          Math.max(mobileTourSizing.minScale, availableScale),
         )
+        story.style.setProperty('--tour-mobile-device-scale', String(deviceScale))
       }
       fitMobileDevice()
       const resizeObserver = new ResizeObserver(fitMobileDevice)
       if (isMobileStory) {
         resizeObserver.observe(workspace)
         resizeObserver.observe(callout)
+        panels.forEach((panel) => resizeObserver.observe(panel))
       }
       const context = gsap.context(() => {
         const carrier = story.querySelector<HTMLElement>('[data-tour-carrier]')!
