@@ -163,18 +163,46 @@ test('keeps direct scene selection and keyboard focus synchronized with the scro
     .toBeLessThan(0.3)
 })
 
-test('morphs the voice line with scrolling and restores it for reduced motion', async ({
+test('wiggles the voice line while idle, calms it on scroll, and pauses offscreen or for reduced motion', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
   await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
   const voice = page.locator('[data-voice-path]')
-  const initialVoice = await voice.getAttribute('d')
+  const staticVoice = (await voice.getAttribute('d'))!
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await expect(voice).not.toHaveAttribute('d', staticVoice)
+  const movingVoice = (await voice.getAttribute('d'))!
+  await expect(voice).not.toHaveAttribute('d', movingVoice)
+  expect(await page.evaluate(() => window.scrollY)).toBe(0)
+  // 좌표의 꺾임이 줄어야 실제 스크롤 모핑이며, 제자리 흔들림만으로는 통과하지 않습니다.
+  const getRoughness = () =>
+    voice.evaluate((path) => {
+      const points = [...path.getAttribute('d')!.matchAll(/[ML][\d.]+,(-?[\d.]+)/g)].map((match) =>
+        Number(match[1]),
+      )
+      return points
+        .slice(1, -1)
+        .reduce(
+          (sum, point, index) => sum + Math.abs(points[index + 2] - 2 * point + points[index]),
+          0,
+        )
+    })
+  const initialRoughness = await getRoughness()
   await page.mouse.wheel(0, 450)
-  await expect(voice).not.toHaveAttribute('d', initialVoice!)
+  await expect.poll(getRoughness).toBeLessThan(initialRoughness * 0.8)
+  await page.evaluate(() => document.getElementById('practice')!.scrollIntoView())
+  await page.waitForTimeout(150)
+  const pausedVoice = (await voice.getAttribute('d'))!
+  await page.waitForTimeout(200)
+  await expect(voice).toHaveAttribute('d', pausedVoice)
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await expect(voice).toHaveAttribute('d', initialVoice!)
+  await expect(voice).toHaveAttribute('d', staticVoice)
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.waitForTimeout(200)
+  await expect(voice).toHaveAttribute('d', staticVoice)
 })
 
 test('restores static readable content for reduced motion and normal scene selection on mobile', async ({

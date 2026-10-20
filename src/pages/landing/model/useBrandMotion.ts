@@ -22,6 +22,35 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
         '(prefers-reduced-motion: no-preference)',
         () => {
           const select = gsap.utils.selector(page)
+          const hero = page.querySelector<HTMLElement>('[data-landing-hero]')!
+          const voicePath = page.querySelector<SVGPathElement>('[data-voice-path]')!
+          const originalPath = voicePath.getAttribute('d')!
+          const voice = { calm: 0 }
+          let phase = 0
+          let lastPaint = gsap.ticker.time
+          let isVoiceActive = false
+
+          /** 초당 30회만 선을 다시 그려 제자리에서 부드럽게 꼼지락거리게 합니다. */
+          const renderVoice = (time: number) => {
+            const elapsed = time - lastPaint
+            if (elapsed < 1 / 30) return
+            lastPaint = time
+            phase += Math.min(elapsed, 0.1) * 1.3
+            voicePath.setAttribute('d', buildVoicePath(voice.calm, phase))
+          }
+
+          /** 첫 화면을 벗어나거나 탭이 숨겨지면 반복 렌더링을 멈춥니다. */
+          const updateVoiceVisibility = () => {
+            const bounds = hero.getBoundingClientRect()
+            const shouldAnimate =
+              !document.hidden && bounds.bottom > 0 && bounds.top < window.innerHeight
+            if (shouldAnimate === isVoiceActive) return
+            isVoiceActive = shouldAnimate
+            if (shouldAnimate) {
+              lastPaint = gsap.ticker.time
+              gsap.ticker.add(renderVoice)
+            } else gsap.ticker.remove(renderVoice)
+          }
           const intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
           intro.from(select('[data-hero-line]'), { yPercent: 115, duration: 1.15, stagger: 0.14 })
           intro.from(
@@ -30,16 +59,19 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
             0.25,
           )
           intro.from(select('[data-hero-action]'), { y: 18, autoAlpha: 0, duration: 0.6 }, 0.7)
-          gsap.to(select('[data-voice-path]'), {
-            attr: { d: buildVoicePath(true) },
+          gsap.to(voice, {
+            calm: 1,
             ease: 'none',
             scrollTrigger: {
-              trigger: select('[data-landing-hero]')[0],
+              trigger: hero,
               start: 'top top',
               end: 'bottom top',
               scrub: 0.8,
+              onToggle: updateVoiceVisibility,
             },
           })
+          document.addEventListener('visibilitychange', updateVoiceVisibility)
+          updateVoiceVisibility()
           gsap.to(select('[data-hero-object]'), {
             y: -80,
             rotation: -5,
@@ -69,6 +101,11 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
               },
             },
           )
+          return () => {
+            gsap.ticker.remove(renderVoice)
+            document.removeEventListener('visibilitychange', updateVoiceVisibility)
+            voicePath.setAttribute('d', originalPath)
+          }
         },
         page,
       )
