@@ -46,6 +46,7 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
               !document.hidden && bounds.bottom > 0 && bounds.top < window.innerHeight
             if (shouldAnimate === isVoiceActive) return
             isVoiceActive = shouldAnimate
+            hero.dataset.heroActive = String(shouldAnimate)
             if (shouldAnimate) {
               lastPaint = gsap.ticker.time
               gsap.ticker.add(renderVoice)
@@ -73,8 +74,7 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
           document.addEventListener('visibilitychange', updateVoiceVisibility)
           updateVoiceVisibility()
           gsap.to(select('[data-hero-object]'), {
-            y: -80,
-            rotation: -5,
+            y: -40,
             ease: 'none',
             scrollTrigger: {
               trigger: select('[data-landing-hero]')[0],
@@ -87,6 +87,7 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
             gsap.ticker.remove(renderVoice)
             document.removeEventListener('visibilitychange', updateVoiceVisibility)
             voicePath.setAttribute('d', originalPath)
+            delete hero.dataset.heroActive
           }
         },
         page,

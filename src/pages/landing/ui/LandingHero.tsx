@@ -1,8 +1,8 @@
 import { buildVoicePath } from '../model/brandMotion'
-import { AppScreen } from './AppScreen'
+import { HeroConversation } from './HeroConversation'
 import { WebStartLink } from './WebStartLink'
 
-/** 타이포·음성 선·한 장의 앱 화면으로 구성하는 에디토리얼 브랜드 포스터입니다. */
+/** 큰 타이포와 첫 인사 미리보기, 음성 선을 연결하는 브랜드 히어로입니다. */
 export const LandingHero = () => (
   <section className="brand-hero" data-landing-hero aria-labelledby="hero-title">
     <h1 id="hero-title" className="brand-hero-title">
@@ -15,9 +15,7 @@ export const LandingHero = () => (
         </span>
       </span>
     </h1>
-    <figure className="brand-hero-object" data-hero-object>
-      <AppScreen variant="call" />
-    </figure>
+    <HeroConversation />
     <div className="brand-hero-action" data-hero-action>
       <WebStartLink className="brand-hero-start">연습 시작하기</WebStartLink>
     </div>
