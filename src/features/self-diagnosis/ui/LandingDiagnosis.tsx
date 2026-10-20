@@ -1,14 +1,12 @@
 import { LuArrowUpRight, LuRotateCcw } from 'react-icons/lu'
-import { routePaths } from '@shared/config'
 import { useSelfDiagnosis } from '../model/useSelfDiagnosis'
 import { AnswerScale } from './AnswerScale'
-import { SensitiveConsentDialog } from './SensitiveConsentDialog'
 import './landingDiagnosis.css'
 
 /** 로그인 없이 LANDING 문항 조회·응답 제출·서버 결과 확인을 한 영역에서 진행합니다. */
 export const LandingDiagnosis = () => {
   const diagnosis = useSelfDiagnosis('LANDING')
-  const { step, consentStatus, currentQuestion, questionsStatus, result } = diagnosis
+  const { step, currentQuestion, questionsStatus, result } = diagnosis
 
   return (
     <section id="diagnosis" className="landing-diagnosis" aria-labelledby="landing-diagnosis-title">
@@ -127,23 +125,6 @@ export const LandingDiagnosis = () => {
           </div>
         )}
       </div>
-      {consentStatus === 'required' && (
-        <SensitiveConsentDialog
-          isSaving={false}
-          onAccept={() => void diagnosis.acceptConsent()}
-          onDecline={diagnosis.declineConsent}
-          description="자가진단 답변과 결과를 계산하기 위해 통화불안 관련 민감정보를 처리해요. 동의하지 않으면 진단을 진행하지 않으며, 다른 화면은 계속 둘러볼 수 있어요."
-        >
-          <a
-            className="text-label underline underline-offset-4"
-            href={routePaths.sensitiveInformation}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            민감정보 처리 안내 보기 (새 탭)
-          </a>
-        </SensitiveConsentDialog>
-      )}
     </section>
   )
 }

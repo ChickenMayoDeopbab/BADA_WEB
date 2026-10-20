@@ -61,13 +61,13 @@ export const useSelfDiagnosis = (type: DiagnosisType = 'SIGNUP') => {
     setStep('question')
   }
 
-  // 회원 진단은 서버 동의 상태를 확인하고, 공개 진단은 매 시작 시 현재 세션의 동의를 받습니다.
+  // 공개 진단은 바로 문항을 열고, 회원 진단은 기존 서버 동의 상태를 확인합니다.
   const start = async () => {
     if (consentStatus !== 'idle') return
 
     setErrorMessage('')
     if (isLanding) {
-      setConsentStatus('required')
+      beginQuestions()
       return
     }
     setConsentStatus('checking')
@@ -87,15 +87,9 @@ export const useSelfDiagnosis = (type: DiagnosisType = 'SIGNUP') => {
     }
   }
 
-  // 공개 진단은 현재 세션에서 동의를 받고, 회원 진단은 기존 프로필 이미지 선택을 유지해 동의를 저장합니다.
+  // 회원 진단은 기존 프로필 이미지 선택을 유지해 동의를 저장합니다.
   const acceptConsent = async () => {
     if (consentStatus !== 'required') return
-    if (isLanding) {
-      setConsentStatus('idle')
-      beginQuestions()
-      return
-    }
-
     setConsentStatus('saving')
     try {
       const status = await acceptLegalConsents({

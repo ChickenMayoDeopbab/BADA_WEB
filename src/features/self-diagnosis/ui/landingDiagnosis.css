@@ -56,6 +56,17 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
+.landing-diagnosis-action {
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+.landing-diagnosis-action:not(:disabled):is(:hover, :focus-visible) {
+  color: var(--color-label-normal);
+  background: var(--color-primary-normal);
+  transform: translateY(-2px);
+}
 .landing-diagnosis-intro .landing-diagnosis-action {
   margin-top: 32px;
 }
@@ -129,5 +140,13 @@
   }
   .landing-diagnosis-heading h2 {
     font-size: var(--text-title1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-diagnosis-action {
+    transition: none;
+  }
+  .landing-diagnosis-action:not(:disabled):is(:hover, :focus-visible) {
+    transform: none;
   }
 }

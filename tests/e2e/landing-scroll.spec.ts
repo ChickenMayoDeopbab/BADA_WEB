@@ -10,6 +10,58 @@ const scrollToFeature = async (page: Page, index: number) => {
   }, index)
 }
 
+/** 목업 전환의 특정 지점에서 스크롤을 멈춥니다. */
+const stopTourAt = async (page: Page, progress: number) => {
+  await page.evaluate((value) => {
+    const story = document.getElementById('experience')!
+    const start = window.scrollY + story.getBoundingClientRect().top - 80
+    window.scrollTo(0, start + (story.offsetHeight - (window.innerHeight - 80)) * value)
+  }, progress)
+}
+
+/** 부드러운 추적까지 끝난 실제 목업 진행률을 읽습니다. */
+const getTourProgress = (page: Page) =>
+  page
+    .locator('#experience')
+    .evaluate((element) =>
+      Number((element as HTMLElement).style.getPropertyValue('--tour-progress')),
+    )
+
+test('finishes interrupted transitions in either direction and leaves reading positions alone', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/')
+  await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
+  await expect(page.locator('[data-tour-device]')).not.toHaveCSS('transform', 'none')
+  for (const [stop, target, scene] of [
+    [0.28, 0.4, 'AI 통화 연습'],
+    [0.28, 0.2, '상황 고르기'],
+    [0.68, 0.8, '돌아보기'],
+    [0.68, 0.6, 'AI 통화 연습'],
+  ] as const) {
+    await stopTourAt(page, stop)
+    await expect.poll(() => getTourProgress(page)).toBeCloseTo(target, 2)
+    await expect(page.getByRole('tab', { name: scene, exact: true })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    await expect(page.getByRole('tabpanel')).toHaveCSS('opacity', '1')
+    await expect(page.locator('[data-tour-callout]')).toHaveCSS('opacity', '1')
+    const device = (await page.locator('[data-tour-device]').boundingBox())!
+    const copy = (await page.getByRole('tabpanel').boundingBox())!
+    expect(device.x + device.width <= copy.x || device.x >= copy.x + copy.width).toBe(true)
+  }
+  await stopTourAt(page, 0.48)
+  await expect.poll(() => getTourProgress(page)).toBeCloseTo(0.48, 2)
+  await page.waitForTimeout(1000)
+  expect(await getTourProgress(page)).toBeCloseTo(0.48, 2)
+  await page.evaluate(() => document.getElementById('faq')!.scrollIntoView())
+  const outsidePosition = await page.evaluate(() => window.scrollY)
+  await page.waitForTimeout(1000)
+  expect(await page.evaluate(() => window.scrollY)).toBe(outsidePosition)
+})
+
 test('moves one phone forward and backward through three scenes while the stage stays pinned', async ({
   page,
 }) => {

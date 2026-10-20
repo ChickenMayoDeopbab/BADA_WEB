@@ -29,7 +29,7 @@ const chooseAnswer = async (page: Page, name: string) => {
     .click()
 }
 
-test('completes public LANDING diagnosis after consent without login and preserves previous answers', async ({
+test('completes public LANDING diagnosis without consent or login and preserves previous answers', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 })
@@ -54,11 +54,8 @@ test('completes public LANDING diagnosis after consent without login and preserv
   expect(questionRequests).toHaveLength(0)
   const start = page.getByRole('button', { name: '자가진단 시작하기', exact: true })
   await start.click()
-  await page.getByRole('dialog').getByRole('button', { name: '나중에', exact: true }).click()
-  expect(questionRequests).toHaveLength(0)
-  await start.click()
-  await page.getByRole('dialog').getByRole('button', { name: '동의하기', exact: true }).click()
   await expect(page.getByRole('heading', { name: questions[1].content })).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
   expect(new URL(questionRequests[0]).searchParams.get('type')).toBe('LANDING')
   await expect(page.getByRole('button', { name: '다음 문항', exact: true })).toBeDisabled()
   await chooseAnswer(page, '2점')
@@ -107,7 +104,6 @@ test('retries question loading and submission without changing the diagnosis ses
   })
   await page.goto('/')
   await page.getByRole('button', { name: '자가진단 시작하기', exact: true }).click()
-  await page.getByRole('dialog').getByRole('button', { name: '동의하기', exact: true }).click()
   await expect(page.getByRole('alert')).toHaveText('문항을 불러오지 못했어요.')
   await page.getByRole('button', { name: '다시 불러오기', exact: true }).click()
   await chooseAnswer(page, '전혀 없다')

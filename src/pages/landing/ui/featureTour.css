@@ -34,13 +34,24 @@
   display: none;
 }
 .brand-tour-copy > .brand-kicker {
-  color: var(--color-label-alternative);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-label-neutral);
+  font-weight: 600;
+}
+.brand-tour-copy > .brand-kicker::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-normal);
 }
 .brand-tour-copy h3 {
   margin-top: 20px;
   white-space: pre-line;
-  font-size: var(--text-display1);
-  line-height: 1.25;
+  font-size: var(--text-marketing-title);
+  line-height: 1.3;
   letter-spacing: -0.04em;
   font-weight: 700;
 }
@@ -305,7 +316,7 @@
     --tour-device-scale: 0.44;
   }
   .brand-tour-copy h3 {
-    font-size: var(--text-title1);
+    font-size: var(--text-display1);
     margin-top: 12px;
   }
   .brand-tour-description {
@@ -393,6 +404,9 @@
 }
 
 @media (min-width: 1024px) and (max-width: 1199px) {
+  .brand-tour-copy h3 {
+    font-size: var(--text-display1);
+  }
   .brand-tour-callout {
     width: 196px;
     padding: 14px;

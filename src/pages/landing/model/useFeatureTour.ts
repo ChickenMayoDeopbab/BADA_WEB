@@ -35,20 +35,39 @@ export const useFeatureTour = () => {
             trigger: story,
             start: 'top 80px',
             end: 'bottom bottom',
-            scrub: 0.65,
+            scrub: 0.3,
             invalidateOnRefresh: true,
+            snap: {
+              // 읽는 구간은 그대로 두고, 이동 중에 멈춘 경우에만 해당 방향의 완성 장면까지 이어갑니다.
+              snapTo: (progress, trigger) => {
+                if (!trigger?.isActive) return progress
+                for (const [start, end] of [
+                  [0.2, 0.4],
+                  [0.6, 0.8],
+                ]) {
+                  if (progress > start && progress < end) {
+                    return trigger.direction > 0 ? end : start
+                  }
+                }
+                return progress
+              },
+              inertia: false,
+              delay: 0.18,
+              duration: { min: 0.18, max: 0.4 },
+              ease: 'power2.inOut',
+            },
           },
           onUpdate: () => {
             const progress = timeline.progress()
             const index = Math.min(
               tourFeatures.length - 1,
-              Math.floor(progress * tourFeatures.length),
+              progress < 0.3 ? 0 : progress < 0.7 ? 1 : 2,
             )
             // 기기가 설명 영역을 지나는 동안 글과 주석을 잠깐 비워 겹침을 피합니다.
-            const distance = Math.min(Math.abs(progress - 1 / 3), Math.abs(progress - 2 / 3))
+            const distance = Math.min(Math.abs(progress - 0.3), Math.abs(progress - 0.7))
             story.style.setProperty(
               '--scene-opacity',
-              String(gsap.utils.clamp(0, 1, (distance - 0.04) / 0.06)),
+              String(gsap.utils.clamp(0, 1, (distance - 0.06) / 0.04)),
             )
             story.style.setProperty('--tour-progress', String(progress))
             setActiveIndex((current) => (current === index ? current : index))
@@ -59,17 +78,17 @@ export const useFeatureTour = () => {
           .fromTo(
             carrier,
             { x: positionAt(0.66), y: 0, yPercent: -50 },
-            { x: positionAt(0.22), y: 10, duration: 0.22 },
-            0.22,
+            { x: positionAt(0.22), y: 0, duration: 0.12 },
+            0.24,
           )
-          .to(carrier, { x: positionAt(0.66), y: -8, duration: 0.22 }, 0.56)
+          .to(carrier, { x: positionAt(0.66), y: 0, duration: 0.12 }, 0.64)
           .fromTo(
             device,
             { transformPerspective: 1400, rotationY: -12, rotationZ: 5 },
-            { rotationY: 14, rotationZ: -5, duration: 0.22 },
-            0.22,
+            { rotationY: 10, rotationZ: -4, duration: 0.12 },
+            0.24,
           )
-          .to(device, { rotationY: -6, rotationZ: 3, duration: 0.22 }, 0.56)
+          .to(device, { rotationY: -6, rotationZ: 3, duration: 0.12 }, 0.64)
       }, story)
       cleanup = () => {
         context.revert()
@@ -93,10 +112,7 @@ export const useFeatureTour = () => {
     const range = story.offsetHeight - (window.innerHeight - 80)
     const start = window.scrollY + story.getBoundingClientRect().top - 80
     cancelScroll.current?.()
-    cancelScroll.current = scrollToPosition(
-      start + range * ((index + 0.35) / tourFeatures.length),
-      true,
-    )
+    cancelScroll.current = scrollToPosition(start + range * [0.12, 0.5, 0.88][index], true)
   }
   /** 방향키·Home·End로 장면과 초점을 함께 옮깁니다. */
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
