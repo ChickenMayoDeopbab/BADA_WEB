@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { scrollToPosition } from '@shared/lib'
 import { tourFeatures } from './landingContent'
-import { useScrollStoryEnabled } from './useScrollStoryEnabled'
+import { useScrollStoryMode } from './useScrollStoryMode'
 import type { CallHintMode } from './callHints'
 
 /** 고정된 제품 무대의 스크롤 진행과 직접 선택·키보드 탐색을 동기화합니다. */
@@ -11,7 +11,9 @@ export const useFeatureTour = () => {
   const [isSceneChanging, setIsSceneChanging] = useState(false)
   const storyRef = useRef<HTMLElement>(null)
   const cancelScroll = useRef<(() => void) | undefined>(undefined)
-  const isScrollStory = useScrollStoryEnabled()
+  const storyMode = useScrollStoryMode()
+  const isScrollStory = storyMode !== 'static'
+  const isMobileStory = storyMode === 'mobile'
   useEffect(() => {
     const story = storyRef.current
     if (!story || !isScrollStory) return
@@ -25,8 +27,31 @@ export const useFeatureTour = () => {
       ])
       if (isCanceled) return
       gsap.registerPlugin(ScrollTrigger)
+      const stage = story.querySelector<HTMLElement>('[data-feature-stage]')!
+      const workspace = story.querySelector<HTMLElement>('.brand-tour-workspace')!
+      const callout = story.querySelector<HTMLElement>('[data-tour-callout]')!
+      /** 글과 주석의 공간을 먼저 확보하고 남는 높이에 맞춰 세로 목업을 줄입니다. */
+      const fitMobileDevice = () => {
+        if (!isMobileStory) return
+        const panel = story.querySelector<HTMLElement>('.brand-tour-panel:not([hidden])')!
+        const hasSideCallout = window.matchMedia('(max-height: 739px)').matches
+        const availableHeight =
+          workspace.clientHeight -
+          panel.offsetHeight -
+          (hasSideCallout ? 0 : callout.offsetHeight) -
+          28
+        story.style.setProperty(
+          '--tour-mobile-device-scale',
+          String(Math.min(0.48, Math.max(0.12, (availableHeight - 10) / 874))),
+        )
+      }
+      fitMobileDevice()
+      const resizeObserver = new ResizeObserver(fitMobileDevice)
+      if (isMobileStory) {
+        resizeObserver.observe(workspace)
+        resizeObserver.observe(callout)
+      }
       const context = gsap.context(() => {
-        const workspace = story.querySelector<HTMLElement>('.brand-tour-workspace')!
         const carrier = story.querySelector<HTMLElement>('[data-tour-carrier]')!
         const device = story.querySelector<HTMLElement>('[data-tour-device]')!
         /** 기기의 중심을 무대 너비의 비율로 지정해 화면 크기가 바뀌어도 경로를 유지합니다. */
@@ -36,8 +61,8 @@ export const useFeatureTour = () => {
           defaults: { ease: 'power2.inOut' },
           scrollTrigger: {
             trigger: story,
-            start: 'top 80px',
-            end: 'bottom bottom',
+            start: () => `top ${Number.parseFloat(getComputedStyle(stage).top) || 0}px`,
+            end: () => `+=${story.offsetHeight - stage.offsetHeight}`,
             scrub: 0.3,
             invalidateOnRefresh: true,
             snap: {
@@ -68,32 +93,37 @@ export const useFeatureTour = () => {
             )
             // 기기가 설명 영역을 지나는 동안 글과 주석을 잠깐 비워 겹침을 피합니다.
             const distance = Math.min(Math.abs(progress - 0.3), Math.abs(progress - 0.7))
-            const sceneOpacity = gsap.utils.clamp(0, 1, (distance - 0.06) / 0.04)
+            const sceneOpacity = isMobileStory
+              ? 1
+              : gsap.utils.clamp(0, 1, (distance - 0.06) / 0.04)
             setIsSceneChanging(sceneOpacity < 0.98)
             story.style.setProperty('--scene-opacity', String(sceneOpacity))
             story.style.setProperty('--tour-progress', String(progress))
             setActiveIndex((current) => (current === index ? current : index))
           },
         })
-        timeline
-          .to({}, { duration: 1 }, 0)
-          .fromTo(
-            carrier,
-            { x: positionAt(0.66), y: 0, yPercent: -50 },
-            { x: positionAt(0.22), y: 0, duration: 0.12 },
-            0.24,
-          )
-          .to(carrier, { x: positionAt(0.66), y: 0, duration: 0.12 }, 0.64)
-          .fromTo(
-            device,
-            { transformPerspective: 1400, rotationY: -12, rotationZ: 5 },
-            { rotationY: 10, rotationZ: -4, duration: 0.12 },
-            0.24,
-          )
-          .to(device, { rotationY: -6, rotationZ: 3, duration: 0.12 }, 0.64)
+        timeline.to({}, { duration: 1 }, 0)
+        if (!isMobileStory)
+          timeline
+            .fromTo(
+              carrier,
+              { x: positionAt(0.66), y: 0, yPercent: -50 },
+              { x: positionAt(0.22), y: 0, duration: 0.12 },
+              0.24,
+            )
+            .to(carrier, { x: positionAt(0.66), y: 0, duration: 0.12 }, 0.64)
+            .fromTo(
+              device,
+              { transformPerspective: 1400, rotationY: -12, rotationZ: 5 },
+              { rotationY: 10, rotationZ: -4, duration: 0.12 },
+              0.24,
+            )
+            .to(device, { rotationY: -6, rotationZ: 3, duration: 0.12 }, 0.64)
       }, story)
       cleanup = () => {
+        resizeObserver.disconnect()
         context.revert()
+        story.style.removeProperty('--tour-mobile-device-scale')
         story.style.removeProperty('--scene-opacity')
         story.style.removeProperty('--tour-progress')
       }
@@ -104,7 +134,7 @@ export const useFeatureTour = () => {
       cleanup?.()
       cancelScroll.current?.()
     }
-  }, [isScrollStory])
+  }, [isScrollStory, isMobileStory])
 
   /** 탭을 누르면 애니메이션과 같은 타임라인의 해당 장면으로 이동합니다. */
   const selectFeature = (index: number) => {
@@ -113,8 +143,10 @@ export const useFeatureTour = () => {
       setActiveIndex(index)
       return
     }
-    const range = story.offsetHeight - (window.innerHeight - 80)
-    const start = window.scrollY + story.getBoundingClientRect().top - 80
+    const stage = story.querySelector<HTMLElement>('[data-feature-stage]')!
+    const range = story.offsetHeight - stage.offsetHeight
+    const stageTop = Number.parseFloat(getComputedStyle(stage).top) || 0
+    const start = window.scrollY + story.getBoundingClientRect().top - stageTop
     const target = start + range * [0.12, 0.5, 0.88][index]
     if (Math.abs(window.scrollY - target) < 2) return
     cancelScroll.current?.()
@@ -141,6 +173,7 @@ export const useFeatureTour = () => {
     activeIndex,
     storyRef,
     isScrollStory,
+    isMobileStory,
     selectFeature,
     handleTabKeyDown,
     hintMode,

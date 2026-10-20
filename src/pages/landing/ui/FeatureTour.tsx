@@ -10,6 +10,7 @@ export const FeatureTour = () => {
     activeIndex,
     storyRef,
     isScrollStory,
+    isMobileStory,
     selectFeature,
     handleTabKeyDown,
     hintMode,
@@ -23,6 +24,7 @@ export const FeatureTour = () => {
       ref={storyRef}
       className="brand-tour"
       data-scroll-story={isScrollStory}
+      data-mobile-story={isMobileStory}
       data-active-scene={activeIndex}
       aria-labelledby="experience-title"
     >

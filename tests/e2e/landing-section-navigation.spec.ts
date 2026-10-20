@@ -8,7 +8,9 @@ test('automatically enlarges the BADA logo and reveals the first view without us
   await expect(intro).toBeVisible()
   const logo = intro.locator('.brand-intro-logo')
   const width = (await logo.boundingBox())!.width
-  await expect.poll(async () => (await logo.boundingBox())?.width ?? 0).toBeGreaterThan(width * 3)
+  await expect
+    .poll(async () => (await logo.boundingBox())?.width ?? 0, { intervals: [50] })
+    .toBeGreaterThan(width * 3)
   await expect(intro).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1 })).toBeInViewport()
   await expect(
