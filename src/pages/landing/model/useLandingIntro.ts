@@ -21,7 +21,12 @@ export const useLandingIntro = () => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
     /** 오프닝은 스크롤이나 키보드 사용을 붙잡지 않습니다. */
     const finish = () => setIsIntroVisible(false)
-    const timer = window.setTimeout(finish, 2000)
+    const intro = document.querySelector<HTMLElement>('[data-brand-intro]')
+    const durationMs = intro
+      ? Number.parseFloat(getComputedStyle(intro).animationDuration) * 1000
+      : 0
+    // CSS 길이를 따르되 animationend가 누락될 때만 여유 시간 뒤 정리합니다.
+    const timer = window.setTimeout(finish, durationMs + 600)
     const events = ['wheel', 'touchstart', 'pointerdown', 'keydown', 'hashchange'] as const
     events.forEach((event) => window.addEventListener(event, finish, { passive: true }))
     media.addEventListener('change', finish)

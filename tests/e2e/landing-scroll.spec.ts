@@ -227,7 +227,7 @@ test('restores static readable content for reduced motion and normal scene selec
     page.locator('.brand-tour-screen[data-current="true"] [data-app-screen]'),
   ).toHaveAttribute('data-app-screen', 'call')
   await expect(page.locator('[data-tour-callout]')).toContainText(
-    '스크립트를 보며 천천히 이어가요.',
+    '다음 한마디가 어렵다면 문장을 참고해요.',
   )
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })

@@ -21,7 +21,7 @@ export const useLandingSectionMotion = (pageRef: RefObject<HTMLDivElement | null
         '(prefers-reduced-motion: no-preference)',
         () => {
           const removeListeners: (() => void)[] = []
-          for (const id of ['experience', 'diagnosis', 'faq', 'download']) {
+          for (const id of ['experience', 'diagnosis', 'faq', 'team', 'download']) {
             const section = page.querySelector<HTMLElement>(`#${id}`)!
             const heading = section.querySelector<HTMLElement>('h2')!
             const content = section.querySelectorAll<HTMLElement>(
@@ -31,7 +31,9 @@ export const useLandingSectionMotion = (pageRef: RefObject<HTMLDivElement | null
                   ? '.landing-diagnosis-panel'
                   : id === 'faq'
                     ? 'details'
-                    : '.brand-download-wordmark, .brand-store-links > a',
+                    : id === 'team'
+                      ? '[data-team-story]'
+                      : '.brand-download-wordmark',
             )
             const timeline = gsap.timeline({
               paused: true,

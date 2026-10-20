@@ -33,7 +33,7 @@ const questions = [
   { questionId: 12, content: '두 번째 문항', orderIndex: 2 },
   { questionId: 11, content: '첫 번째 문항', orderIndex: 1 },
 ]
-const result = { score: 4, levelName: '전화 마스터', levelDescription: '설명', summary: '요약' }
+const result = { score: 4, levelName: '통화 경계형', levelDescription: '설명', summary: '요약' }
 
 const wrapper = ({ children }: { children: ReactNode }) =>
   createElement(

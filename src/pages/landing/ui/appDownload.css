@@ -55,50 +55,35 @@
   min-height: 80px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-component);
-  background: var(--color-label-normal);
-  color: var(--color-background-normal);
-  text-align: left;
-  transition:
-    background-color 200ms ease,
-    transform 200ms ease;
+  justify-content: center;
+  border-radius: var(--radius-control);
+  transition: transform 180ms ease;
 }
-.brand-store-links .brand-store-logo {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
+.brand-store-badge {
+  display: block;
+  width: auto;
+  height: 60px;
+  max-width: 100%;
   object-fit: contain;
 }
-.brand-store-links small,
-.brand-store-links strong {
-  display: block;
-}
-.brand-store-links small {
-  margin-bottom: 3px;
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-  color: var(--color-secondary-assistive);
-}
-.brand-store-links strong {
-  font-size: var(--text-title2);
-  line-height: var(--text-title2--line-height);
-  font-weight: 500;
-  white-space: nowrap;
+.brand-store-links [data-store='google-play'] .brand-store-badge {
+  height: 80px;
 }
 .brand-store-links > a:focus-visible {
-  background: var(--color-label-neutral);
+  outline: 2px solid var(--color-label-normal);
+  outline-offset: 4px;
 }
 @media (hover: hover) and (pointer: fine) {
   .brand-store-links > a:hover {
-    background: var(--color-label-neutral);
+    transform: scale(1.04);
   }
 }
-@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
-  .brand-store-links > a:is(:hover, :focus-visible) {
-    transform: translateY(-3px);
+@media (prefers-reduced-motion: reduce) {
+  .brand-store-links > a {
+    transition: none;
+  }
+  .brand-store-links > a:hover {
+    transform: none;
   }
 }
 @media (max-width: 639px) {
@@ -123,25 +108,11 @@
   }
   .brand-store-links > a {
     min-height: 72px;
-    padding: 12px;
-    gap: 8px;
-  }
-  .brand-store-links .brand-store-logo {
-    width: 24px;
-    height: 28px;
-  }
-  .brand-store-links strong {
-    font-size: var(--text-headline2);
-    line-height: var(--text-headline2--line-height);
   }
 }
 @media (max-width: 359px) {
   .brand-store-links {
     grid-template-columns: minmax(0, 224px);
-  }
-  .brand-store-links > a {
-    padding-inline: 24px;
-    gap: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce), (max-height: 600px) {

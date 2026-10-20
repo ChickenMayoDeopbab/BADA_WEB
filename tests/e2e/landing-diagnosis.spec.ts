@@ -39,9 +39,23 @@ test('completes the landing check even when all APIs require authentication, wit
       .getByRole('button', { name: index === 4 ? '결과 확인하기' : '다음 문항', exact: true })
       .click()
   }
-  await expect(page.getByRole('heading', { name: '조금 부담스러워요', exact: true })).toBeVisible()
-  await page.getByRole('button', { name: '레벨 설명 보기', exact: true }).focus()
-  await expect(page.getByRole('tooltip')).toContainText('상황에 따라 전화가 망설여지는')
+  await expect(page.getByRole('heading', { name: '통화 긴장형', exact: true })).toBeVisible()
+  const help = page.getByRole('button', { name: '자가진단 결과 설명 보기', exact: true })
+  const explanation = page.getByRole('dialog', { name: '통화 긴장형', exact: true })
+  await expect(explanation).not.toBeVisible()
+  await help.click()
+  await expect(explanation).toBeVisible()
+  await expect(page.locator('.landing-diagnosis-result-description')).toContainText(
+    '전화가 오거나 걸어야 하는 상황에서 긴장과 부담을 자주 느끼는 상태예요.',
+  )
+  await page.getByText('나의 통화 부담은?', { exact: true }).click()
+  await expect(explanation).not.toBeVisible()
+  await help.focus()
+  await help.press('Enter')
+  await expect(explanation).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(explanation).not.toBeVisible()
+  await expect(help).toBeFocused()
   const resultLine = page.locator('.landing-diagnosis-result-line')
   await expect(resultLine).toHaveJSProperty('naturalWidth', 240)
   await expect(resultLine).toHaveCSS('width', '240px')
@@ -68,12 +82,12 @@ test('finishes the landing check offline and does not persist answers across rel
       .getByRole('button', { name: index === 4 ? '결과 확인하기' : '다음 문항', exact: true })
       .click()
   }
-  await expect(page.getByRole('heading', { name: '가벼운 편이에요', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '통화 안정형', exact: true })).toBeVisible()
   await expect(page.getByRole('alert')).toHaveCount(0)
   await context.setOffline(false)
   await page.reload()
   await expect(page.getByRole('button', { name: '자가진단 시작하기', exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: '가벼운 편이에요', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: '통화 안정형', exact: true })).toHaveCount(0)
 })
 
 test('keeps the diagnosis section and following content steady across all questions and result lengths', async ({
@@ -89,7 +103,13 @@ test('keeps the diagnosis section and following content steady across all questi
       height: element.getBoundingClientRect().height,
       nextTop: document.getElementById('faq')!.offsetTop,
     }))
-    for (const answer of ['전혀 없다', '보통이다', '자주 있다']) {
+    for (const [answer, levelName, description] of [
+      ['전혀 없다', '통화 안정형', '전화 통화에 대한 부담이 거의 없는 상태예요.'],
+      ['2점', '통화 적응형', '전화 통화에 약간의 긴장감은 느끼지만,'],
+      ['보통이다', '통화 긴장형', '긴장과 부담을 자주 느끼는 상태예요.'],
+      ['4점', '통화 경계형', '벨소리나 부재중 전화에도 스트레스를 느끼며,'],
+      ['자주 있다', '통화 회피형', '통화를 피하려는 경향이 강한 상태예요.'],
+    ]) {
       await page.getByRole('button', { name: '자가진단 시작하기', exact: true }).click()
       for (let index = 0; index < 5; index++) {
         const layout = await section.evaluate((element) => ({
@@ -104,12 +124,24 @@ test('keeps the diagnosis section and following content steady across all questi
           .click()
       }
       await expect(page.locator('.landing-diagnosis-result')).toBeVisible()
+      await expect(page.getByRole('heading', { name: levelName, exact: true })).toBeVisible()
       const resultLayout = await section.evaluate((element) => ({
         height: element.getBoundingClientRect().height,
         nextTop: document.getElementById('faq')!.offsetTop,
       }))
       expect(resultLayout.height).toBeCloseTo(initial.height, 0)
       expect(resultLayout.nextTop).toBe(initial.nextTop)
+      await page.getByRole('button', { name: '자가진단 결과 설명 보기', exact: true }).click()
+      const explanation = page.getByRole('dialog', { name: levelName, exact: true })
+      await expect(explanation).toBeInViewport({ ratio: 1 })
+      await expect(explanation).toContainText(description)
+      const openLayout = await section.evaluate((element) => ({
+        height: element.getBoundingClientRect().height,
+        nextTop: document.getElementById('faq')!.offsetTop,
+      }))
+      expect(openLayout).toEqual(resultLayout)
+      await explanation.getByRole('button', { name: '결과 설명 닫기', exact: true }).click()
+      await expect(explanation).not.toBeVisible()
       await page.getByRole('button', { name: '다시 해보기', exact: true }).click()
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)

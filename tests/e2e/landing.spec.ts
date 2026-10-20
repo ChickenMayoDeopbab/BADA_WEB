@@ -96,6 +96,13 @@ test('keeps mobile navigation, footer channels, and store link states usable', a
   )
   await expect(page.locator('a[href="#"]')).toHaveCount(0)
   const googlePlay = page.getByRole('link', { name: 'Google Play에서 BADA 다운로드 (새 탭)' })
+  await expect(googlePlay.locator('img')).toHaveAttribute('src', /google-play-badge-ko\.png/)
+  await expect(
+    page.getByRole('link', { name: 'App Store에서 BADA 다운로드 (새 탭)' }).locator('img'),
+  ).toHaveAttribute('src', /app-store-badge-ko\.png/)
+  await expect(
+    page.getByRole('region', { name: '편하게 말할 수 있는 내일을 만듭니다.' }),
+  ).toHaveCount(1)
   await expect(googlePlay).toHaveAttribute(
     'href',
     'https://play.google.com/store/apps/details?id=com.chickenmayodeopbab.bada.play',

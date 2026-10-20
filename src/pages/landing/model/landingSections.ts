@@ -3,6 +3,7 @@ export const landingSections = [
   { id: 'experience', label: '연습 흐름' },
   { id: 'diagnosis', label: '자가진단' },
   { id: 'faq', label: '자주 묻는 질문' },
+  { id: 'team', label: '팀·서비스 소개' },
   { id: 'download', label: '앱 다운로드' },
 ] as const
 

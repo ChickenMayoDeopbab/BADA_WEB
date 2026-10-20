@@ -53,7 +53,6 @@
 .brand-header > a img {
   width: auto;
   height: 30px;
-  filter: brightness(0);
 }
 .brand-header nav {
   display: flex;
@@ -73,6 +72,7 @@
   transform: translateY(0);
 }
 .brand-web-link {
+  border-radius: var(--radius-control);
   word-break: keep-all;
   display: inline-flex;
   align-items: center;
@@ -162,11 +162,13 @@
 .brand-call-orbit > span:nth-child(3) {
   inset: 52px;
 }
-.brand-greeting {
+.brand-greeting-motion {
   position: absolute;
   top: 56px;
   left: 0;
   width: 80%;
+}
+.brand-greeting {
   padding: 20px 28px 24px;
   background: var(--color-primary-normal);
   border-radius: var(--radius-dialog) var(--radius-dialog) var(--radius-dialog)
@@ -215,11 +217,13 @@
 .brand-hero[data-hero-active='true'] .brand-call-wave i {
   animation-play-state: running;
 }
-.brand-answer {
+.brand-answer-motion {
   position: absolute;
   top: 220px;
   right: 0;
   width: 76%;
+}
+.brand-answer {
   min-height: 124px;
   padding: 22px 26px;
   border: 1px solid var(--color-label-normal);
@@ -477,8 +481,10 @@
   .brand-greeting p {
     font-size: var(--text-display1);
   }
-  .brand-answer {
+  .brand-answer-motion {
     top: 200px;
+  }
+  .brand-answer {
     padding: 20px;
   }
   .brand-answer p {
@@ -504,14 +510,45 @@
   }
 }
 @media (max-width: 639px) {
-  .brand-answer {
+  .brand-answer-motion {
     top: 196px;
+  }
+  .brand-answer {
     min-height: 112px;
   }
-  .brand-greeting {
+  .brand-greeting-motion {
     top: 48px;
   }
   .brand-hero-action {
     margin-top: 32px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .brand-greeting-motion,
+  .brand-answer-motion {
+    animation: brand-card-drop 6s ease-in-out infinite paused;
+  }
+  .brand-answer-motion {
+    animation-delay: 450ms;
+  }
+  .brand-hero[data-hero-entered='true'][data-hero-active='true'] .brand-greeting-motion,
+  .brand-hero[data-hero-entered='true'][data-hero-active='true'] .brand-answer-motion {
+    animation-play-state: running;
+  }
+}
+@keyframes brand-card-drop {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  18% {
+    translate: 0 5px;
+  }
+  28%,
+  60% {
+    translate: 0 0;
+  }
+  82% {
+    translate: 0 -12px;
   }
 }

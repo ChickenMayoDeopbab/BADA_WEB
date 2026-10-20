@@ -45,7 +45,9 @@ export const SectionNavigation = ({ activeSection }: SectionNavigationProps) => 
         onClick={toggle}
       >
         <span className="brand-section-current-dot" aria-hidden="true" />
-        <span aria-hidden="true">0{activeIndex + 1} / 05</span>
+        <span aria-hidden="true">
+          0{activeIndex + 1} / {String(landingSections.length).padStart(2, '0')}
+        </span>
         <LuChevronUp aria-hidden="true" />
       </button>
     </nav>

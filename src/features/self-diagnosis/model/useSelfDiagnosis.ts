@@ -57,7 +57,7 @@ export const useSelfDiagnosis = () => {
     setStep('question')
   }
 
-  // 기존 서버 동의 상태를 확인한 뒤 회원 진단을 시작합니다.
+  // 로그인한 사용자의 서버 동의 상태를 확인한 뒤 자가진단을 시작합니다.
   const start = async () => {
     if (consentStatus !== 'idle') return
 
@@ -79,7 +79,7 @@ export const useSelfDiagnosis = () => {
     }
   }
 
-  // 회원 진단은 기존 프로필 이미지 선택을 유지해 동의를 저장합니다.
+  // 로그인 후 자가진단은 기존 프로필 이미지 선택을 유지해 동의를 저장합니다.
   const acceptConsent = async () => {
     if (consentStatus !== 'required') return
     setConsentStatus('saving')
@@ -100,7 +100,7 @@ export const useSelfDiagnosis = () => {
     }
   }
 
-  /** 문항 버전과 같은 세션 ID로 회원 진단 응답을 제출합니다. */
+  /** 문항 버전과 같은 세션 ID로 로그인 후 자가진단 응답을 제출합니다. */
   const submit = async (submittedAnswers: DiagnosisAnswer[]) => {
     setStep('submitting')
     try {

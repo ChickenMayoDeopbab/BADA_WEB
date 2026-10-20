@@ -29,7 +29,7 @@ describe('useLandingDiagnosis', () => {
     }
     expect(result.current.step).toBe('result')
     expect(result.current.result?.score).toBe(3.6)
-    expect(result.current.result?.levelName).toBe('많이 부담스러워요')
+    expect(result.current.result?.levelName).toBe('통화 경계형')
     act(() => result.current.restart())
     expect(result.current.step).toBe('intro')
     expect(result.current.result).toBeNull()
@@ -38,10 +38,26 @@ describe('useLandingDiagnosis', () => {
   })
 
   it.each([
-    { answers: [1, 1, 1, 1, 1] as const, name: '가벼운 편이에요' },
-    { answers: [3, 3, 3, 3, 3] as const, name: '조금 부담스러워요' },
-    { answers: [5, 5, 5, 5, 5] as const, name: '많이 부담스러워요' },
-  ])('응답에 따라 $name 안내를 만든다', ({ answers, name }) => {
+    { answers: [1, 1, 1, 1, 1] as const, name: '통화 안정형' },
+    { answers: [2, 2, 2, 2, 2] as const, name: '통화 적응형' },
+    { answers: [3, 3, 3, 3, 3] as const, name: '통화 긴장형' },
+    { answers: [4, 4, 4, 4, 4] as const, name: '통화 경계형' },
+    { answers: [5, 5, 5, 5, 5] as const, name: '통화 회피형' },
+    { answers: [1, 1, 1, 2, 2] as const, name: '통화 안정형' },
+    { answers: [1, 1, 2, 2, 2] as const, name: '통화 적응형' },
+    { answers: [2, 2, 2, 3, 3] as const, name: '통화 적응형' },
+    { answers: [2, 2, 3, 3, 3] as const, name: '통화 긴장형' },
+    { answers: [3, 3, 3, 4, 4] as const, name: '통화 긴장형' },
+    { answers: [3, 3, 4, 4, 4] as const, name: '통화 경계형' },
+    { answers: [4, 4, 4, 5, 5] as const, name: '통화 경계형' },
+    { answers: [4, 4, 5, 5, 5] as const, name: '통화 회피형' },
+  ])('서버와 같은 평균 반올림으로 $name 결과를 계산한다 ($answers)', ({ answers, name }) => {
     expect(getLandingDiagnosisResult(answers).levelName).toBe(name)
+    expect(getLandingDiagnosisResult(answers)).not.toHaveProperty('summary')
+  })
+
+  it('일부 문항만 응답한 상태에서는 결과를 만들지 않는다', () => {
+    expect(() => getLandingDiagnosisResult([])).toThrow('모든 문항')
+    expect(() => getLandingDiagnosisResult([1, 2, 3, 4])).toThrow('모든 문항')
   })
 })
