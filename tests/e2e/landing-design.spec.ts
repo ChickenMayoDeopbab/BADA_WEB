@@ -59,6 +59,8 @@ test('keeps the editorial hero, navigation, and readable sections within small a
   for (const width of [320, 390, 768, 1280, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/')
+    await expect(page.locator('#practice')).toHaveCount(0)
+    await expect(page.getByText('훈련 설정 미리보기', { exact: true })).toHaveCount(0)
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('망설임에서,첫마디로.')
     await expect(page.locator('.brand-hero-start')).toBeInViewport()
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
@@ -72,7 +74,7 @@ test('keeps the editorial hero, navigation, and readable sections within small a
         .getByRole('navigation', { name: '랜딩 메뉴' })
         .getByRole('link', { name: '웹에서 시작하기', exact: true }),
     ).toBeVisible()
-    for (const section of ['#experience', '#practice', '#diagnosis', '#faq', '#download']) {
+    for (const section of ['#experience', '#diagnosis', '#faq', '#download']) {
       const box = (await page.locator(section).boundingBox())!
       expect(box.width).toBeLessThanOrEqual(width)
     }

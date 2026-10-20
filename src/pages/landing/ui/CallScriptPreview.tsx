@@ -1,6 +1,6 @@
 import help from '@shared/assets/landing/figma/31777.svg'
 import scriptLine from '@shared/assets/landing/figma/30be2.svg'
-import type { CallHintMode } from '../model/practicePreview'
+import type { CallHintMode } from '../model/callHints'
 
 const scriptNodes = { advice: '6097:6878', suggestion: '6097:6850', none: '6097:6825' }
 

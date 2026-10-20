@@ -75,3 +75,43 @@ test('finishes the landing check offline and does not persist answers across rel
   await expect(page.getByRole('button', { name: '자가진단 시작하기', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: '가벼운 편이에요', exact: true })).toHaveCount(0)
 })
+
+test('keeps the diagnosis section and following content steady across all questions and result lengths', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  for (const width of [320, 390, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('/#diagnosis')
+    const section = page.locator('#diagnosis')
+    await expect(page.getByRole('button', { name: '자가진단 시작하기', exact: true })).toBeVisible()
+    const initial = await section.evaluate((element) => ({
+      height: element.getBoundingClientRect().height,
+      nextTop: document.getElementById('faq')!.offsetTop,
+    }))
+    for (const answer of ['전혀 없다', '보통이다', '자주 있다']) {
+      await page.getByRole('button', { name: '자가진단 시작하기', exact: true }).click()
+      for (let index = 0; index < 5; index++) {
+        const layout = await section.evaluate((element) => ({
+          height: element.getBoundingClientRect().height,
+          nextTop: document.getElementById('faq')!.offsetTop,
+        }))
+        expect(layout.height).toBeCloseTo(initial.height, 0)
+        expect(layout.nextTop).toBe(initial.nextTop)
+        await chooseAnswer(page, answer)
+        await page
+          .getByRole('button', { name: index === 4 ? '결과 확인하기' : '다음 문항', exact: true })
+          .click()
+      }
+      await expect(page.locator('.landing-diagnosis-result')).toBeVisible()
+      const resultLayout = await section.evaluate((element) => ({
+        height: element.getBoundingClientRect().height,
+        nextTop: document.getElementById('faq')!.offsetTop,
+      }))
+      expect(resultLayout.height).toBeCloseTo(initial.height, 0)
+      expect(resultLayout.nextTop).toBe(initial.nextTop)
+      await page.getByRole('button', { name: '다시 해보기', exact: true }).click()
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
+  }
+})

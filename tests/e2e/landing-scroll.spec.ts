@@ -193,7 +193,7 @@ test('wiggles the voice line while idle, calms it on scroll, and pauses offscree
   const initialRoughness = await getRoughness()
   await page.mouse.wheel(0, 450)
   await expect.poll(getRoughness).toBeLessThan(initialRoughness * 0.8)
-  await page.evaluate(() => document.getElementById('practice')!.scrollIntoView())
+  await page.evaluate(() => document.getElementById('diagnosis')!.scrollIntoView())
   await page.waitForTimeout(150)
   const pausedVoice = (await voice.getAttribute('d'))!
   await page.waitForTimeout(200)

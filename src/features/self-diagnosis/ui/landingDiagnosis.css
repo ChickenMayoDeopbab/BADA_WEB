@@ -25,7 +25,7 @@
 }
 .landing-diagnosis-panel {
   min-width: 0;
-  min-height: 340px;
+  min-height: 480px;
   border-top: 1px solid var(--color-line-normal);
   padding-top: 32px;
   display: flex;
@@ -81,6 +81,9 @@
   padding: 8px 0;
 }
 .landing-diagnosis-question {
+  min-height: 164px;
+  display: flex;
+  align-items: center;
   padding: 28px 0;
   font-size: var(--text-title2);
   line-height: 1.5;
@@ -168,12 +171,13 @@
   .landing-diagnosis-heading h2 {
     font-size: var(--text-display1);
   }
-  .landing-diagnosis-panel {
-    min-height: 300px;
-  }
 }
 @media (max-width: 479px) {
+  .landing-diagnosis-panel {
+    min-height: 560px;
+  }
   .landing-diagnosis-question {
+    min-height: 216px;
     font-size: var(--text-headline1);
   }
   .landing-diagnosis-heading h2 {

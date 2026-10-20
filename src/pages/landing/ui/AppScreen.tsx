@@ -28,29 +28,22 @@ import waveform from '@shared/assets/landing/figma/1d556.svg'
 import playhead from '@shared/assets/landing/figma/2aba8.svg'
 import marker from '@shared/assets/training-records/audio-marker.svg'
 import applause from '@shared/assets/landing/figma/01a2d.svg'
-import { AppSettingsScreen } from './AppSettingsScreen'
 import { CallScriptPreview } from './CallScriptPreview'
-import {
-  callHintOptions,
-  type CallHintMode,
-  type PracticePreviewSelection,
-} from '../model/practicePreview'
+import { callHintOptions, type CallHintMode } from '../model/callHints'
 import './appScreen.css'
 
-export type AppScreenVariant = 'call' | 'scenario' | 'report' | 'settings'
+export type AppScreenVariant = 'call' | 'scenario' | 'report'
 
 interface AppScreenProps {
   variant: AppScreenVariant
   className?: string
   hintMode?: CallHintMode
-  settings?: PracticePreviewSelection
 }
 
 const screenLabels = {
   call: 'BADA 앱 AI 통화 화면: 배준하 피자와 통화하며 스크립트로 연습해요.',
   scenario: 'BADA 앱 시나리오 화면: 피자 주문, 병원 예약, 배달 문의 등 상황을 선택해요.',
   report: 'BADA 앱 훈련 리포트: 통화 타임라인과 구간별 음성 분석, 피드백을 확인해요.',
-  settings: 'BADA 앱 훈련 설정: 난이도와 상대의 태도를 내게 맞게 선택해요.',
 }
 
 /** Figma의 상태 표시줄을 원본 아이콘 크기로 구성합니다. */
@@ -242,12 +235,7 @@ const ReportScreen = () => (
 )
 
 /** 스크린샷 대신 실제 레이아웃과 로컬 Figma 에셋으로 만든 앱 화면 목업입니다. */
-export const AppScreen = ({
-  variant,
-  className = '',
-  hintMode = 'advice',
-  settings = { difficulty: 0, personality: 0 },
-}: AppScreenProps) => (
+export const AppScreen = ({ variant, className = '', hintMode = 'advice' }: AppScreenProps) => (
   <div
     className={`app-device ${className}`}
     role="img"
@@ -258,13 +246,7 @@ export const AppScreen = ({
       className={`app-screen app-screen-${variant}`}
       aria-hidden="true"
       data-figma-node={
-        variant === 'call'
-          ? '5932:8139'
-          : variant === 'scenario'
-            ? '5932:8231'
-            : variant === 'settings'
-              ? '3765:2869'
-              : '5932:8425'
+        variant === 'call' ? '5932:8139' : variant === 'scenario' ? '5932:8231' : '5932:8425'
       }
     >
       <ScreenStatus />
@@ -272,11 +254,6 @@ export const AppScreen = ({
         <CallScreen hintMode={hintMode} />
       ) : variant === 'scenario' ? (
         <ScenarioScreen />
-      ) : variant === 'settings' ? (
-        <>
-          <AppSettingsScreen {...settings} />
-          <ScreenNavigation />
-        </>
       ) : (
         <ReportScreen />
       )}

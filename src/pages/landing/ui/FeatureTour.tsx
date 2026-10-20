@@ -1,6 +1,6 @@
 import { tourFeatures } from '../model/landingContent'
 import { useFeatureTour } from '../model/useFeatureTour'
-import { callHintOptions } from '../model/practicePreview'
+import { callHintOptions } from '../model/callHints'
 import { AppScreen } from './AppScreen'
 import './featureTour.css'
 

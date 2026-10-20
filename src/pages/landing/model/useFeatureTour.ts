@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { scrollToPosition } from '@shared/lib'
 import { tourFeatures } from './landingContent'
 import { useScrollStoryEnabled } from './useScrollStoryEnabled'
-import type { CallHintMode } from './practicePreview'
+import type { CallHintMode } from './callHints'
 
 /** 고정된 제품 무대의 스크롤 진행과 직접 선택·키보드 탐색을 동기화합니다. */
 export const useFeatureTour = () => {
