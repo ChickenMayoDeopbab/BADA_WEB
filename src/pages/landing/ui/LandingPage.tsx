@@ -1,15 +1,15 @@
 import { Link } from 'react-router-dom'
-import { LuArrowUpRight, LuPlus } from 'react-icons/lu'
+import { LuArrowUpRight } from 'react-icons/lu'
 import { routePaths } from '@shared/config'
 import { LandingDiagnosis } from '@features/self-diagnosis'
 import logo from '@shared/assets/auth/logo.svg'
-import { landingQuestions } from '../model/landingContent'
 import { useLandingScroll } from '../model/useLandingScroll'
 import { useBrandMotion } from '../model/useBrandMotion'
 import { LandingHero } from './LandingHero'
 import { FeatureTour } from './FeatureTour'
 import { AppDownload } from './AppDownload'
 import { LandingFooter } from './LandingFooter'
+import { LandingFaq } from './LandingFaq'
 import { WebStartLink } from './WebStartLink'
 import './landingBrand.css'
 
@@ -37,22 +37,7 @@ export const LandingPage = () => {
         <LandingHero />
         <FeatureTour />
         <LandingDiagnosis />
-        <section id="faq" className="brand-faq" aria-labelledby="faq-title">
-          <div>
-            <h2 id="faq-title">궁금한 점</h2>
-          </div>
-          <div>
-            {landingQuestions.map(({ question, answer }) => (
-              <details key={question}>
-                <summary>
-                  {question}
-                  <LuPlus aria-hidden="true" />
-                </summary>
-                <p>{answer}</p>
-              </details>
-            ))}
-          </div>
-        </section>
+        <LandingFaq />
         <AppDownload />
       </main>
       <LandingFooter />

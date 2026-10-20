@@ -342,56 +342,6 @@
   stroke-linejoin: round;
   stroke-linecap: round;
 }
-.brand-faq {
-  min-height: 100svh;
-  align-content: center;
-  display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  gap: 100px;
-  max-width: 1440px;
-  padding: 80px var(--brand-gutter);
-  margin: auto;
-}
-.brand-faq h2 {
-  font-size: var(--text-marketing-title);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-}
-.brand-faq details {
-  border-top: 1px solid var(--color-line-normal);
-}
-.brand-faq details:last-child {
-  border-bottom: 1px solid var(--color-line-normal);
-}
-.brand-faq summary {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 80px;
-  padding: 20px 0;
-  font-size: var(--text-body);
-  font-weight: 500;
-  cursor: pointer;
-  list-style: none;
-}
-.brand-faq summary::-webkit-details-marker {
-  display: none;
-}
-.brand-faq summary svg {
-  flex-shrink: 0;
-  width: 20px;
-  margin-left: auto;
-  transition: transform 0.2s ease;
-}
-.brand-faq details[open] summary svg {
-  transform: rotate(45deg);
-}
-.brand-faq details > p {
-  padding: 0 0 24px;
-  font-size: var(--text-label);
-  line-height: 1.8;
-  color: var(--color-label-alternative);
-}
 .brand-footer {
   overflow: hidden;
 }
@@ -418,9 +368,6 @@
     width: 320px;
     height: 390px;
     top: 235px;
-  }
-  .brand-faq {
-    gap: 48px;
   }
 }
 @media (max-width: 639px) {
@@ -471,21 +418,6 @@
   }
   .brand-voice-line path {
     stroke-width: 24;
-  }
-  .brand-faq {
-    grid-template-columns: 1fr;
-    gap: 40px;
-    padding-block: 80px;
-  }
-  .brand-faq h2 {
-    font-size: var(--text-display1);
-  }
-  .brand-faq summary {
-    min-height: 88px;
-    gap: 12px;
-  }
-  .brand-faq details > p {
-    padding-left: 0;
   }
 }
 @media (max-width: 359px) {
