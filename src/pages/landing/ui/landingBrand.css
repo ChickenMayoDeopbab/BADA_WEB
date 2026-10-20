@@ -140,23 +140,6 @@
   height: 100%;
   isolation: isolate;
 }
-.brand-conversation-caption {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 24px;
-  font-size: var(--text-caption);
-  color: var(--color-label-alternative);
-}
-.brand-conversation-caption > span {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary-normal);
-}
 .brand-call-orbit {
   position: absolute;
   z-index: -1;
