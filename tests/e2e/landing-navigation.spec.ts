@@ -82,3 +82,47 @@ test('keeps section navigation immediate for reduced motion preferences', async 
   await expect(page.getByRole('heading', { name: '앱으로 시작해보기' })).toBeInViewport()
   await expect(page.locator('[data-landing-header]')).toHaveCSS('transition-duration', '0s')
 })
+
+test('holds the full-screen download stage during native scrolling and releases into the footer', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/')
+  await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
+  await page
+    .getByRole('navigation', { name: '랜딩 메뉴' })
+    .getByRole('link', { name: '앱 다운로드', exact: true })
+    .click()
+  const stage = page.locator('[data-download-stage]')
+  await expect.poll(async () => (await stage.boundingBox())!.y).toBeCloseTo(0, 0)
+  expect((await stage.boundingBox())!.height).toBe(900)
+  await expect(
+    page.getByRole('link', { name: 'Google Play에서 BADA 다운로드 (새 탭)' }),
+  ).toBeInViewport()
+  const start = await page.evaluate(() => window.scrollY)
+  await page.mouse.move(640, 450)
+  await page.mouse.wheel(0, 240)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(start + 200)
+  await expect.poll(async () => (await stage.boundingBox())!.y).toBeCloseTo(0, 0)
+  await expect(page.getByRole('contentinfo')).not.toBeInViewport()
+  await page.mouse.wheel(0, 1000)
+  await expect(page.getByRole('contentinfo')).toBeInViewport()
+})
+
+test('fits both store links on a mobile screen and skips the extra hold for reduced motion', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/#download')
+  await expect(page.locator('[data-download-stage]')).toHaveCSS('position', 'relative')
+  await expect(page.getByRole('heading', { name: '앱으로 시작해보기' })).toBeInViewport()
+  for (const name of ['App Store', 'Google Play']) {
+    await expect(
+      page.getByRole('link', { name: `${name}에서 BADA 다운로드 (새 탭)` }),
+    ).toBeInViewport()
+  }
+  const section = (await page.locator('#download').boundingBox())!
+  const stage = (await page.locator('[data-download-stage]').boundingBox())!
+  expect(section.height).toBe(stage.height)
+})

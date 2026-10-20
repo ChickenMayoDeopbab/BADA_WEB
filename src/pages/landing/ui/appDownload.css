@@ -1,0 +1,178 @@
+/* 네이티브 스크롤을 유지한 채 한 화면의 다운로드 무대에 머무는 구간입니다. */
+.brand-page #download {
+  scroll-margin-top: 0;
+}
+.brand-download {
+  position: relative;
+  min-height: 180svh;
+  background: var(--color-label-normal);
+  color: var(--color-background-normal);
+}
+.brand-download-stage {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding: 112px var(--brand-gutter) 64px;
+}
+.brand-download-inner {
+  width: 100%;
+  max-width: 1312px;
+  margin-inline: auto;
+}
+.brand-download-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 64px;
+  margin-bottom: clamp(48px, 8vh, 96px);
+}
+.brand-download h2 {
+  margin: 0;
+  font-size: clamp(var(--text-marketing-title), 7.5vw, var(--text-marketing-statement));
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.06em;
+}
+.brand-download h2 > span {
+  display: block;
+}
+.brand-download-wordmark {
+  width: clamp(128px, 18vw, 260px);
+  height: auto;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.brand-store-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+}
+.brand-store-links > a {
+  min-width: 0;
+  min-height: 152px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 32px;
+  border-top: 1px solid var(--color-background-normal);
+  border-bottom: 1px solid var(--color-label-alternative);
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    transform 200ms ease;
+}
+.brand-store-links .brand-store-logo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.brand-store-links small,
+.brand-store-links strong {
+  display: block;
+}
+.brand-store-links small {
+  font-size: var(--text-label);
+  color: var(--color-secondary-assistive);
+}
+.brand-store-links strong {
+  margin-top: 8px;
+  font-size: var(--text-display2);
+  line-height: var(--text-display2--line-height);
+  font-weight: 500;
+}
+.brand-store-links > a > svg:last-child {
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 200ms ease;
+}
+.brand-store-links > a:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--color-primary-normal) 8%, transparent);
+  border-color: var(--color-primary-normal);
+}
+.brand-store-links > a:is(:hover, :focus-visible) strong {
+  color: var(--color-primary-normal);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .brand-store-links > a:is(:hover, :focus-visible) {
+    transform: translateY(-3px);
+  }
+  .brand-store-links > a:is(:hover, :focus-visible) > svg:last-child {
+    transform: translate(3px, -3px);
+  }
+}
+@media (max-width: 1023px) {
+  .brand-download-heading {
+    gap: 32px;
+  }
+  .brand-store-links {
+    gap: 24px;
+  }
+  .brand-store-links > a {
+    padding-inline: 20px;
+    gap: 20px;
+  }
+  .brand-store-links strong {
+    font-size: var(--text-title2);
+    line-height: var(--text-title2--line-height);
+  }
+}
+@media (max-width: 639px) {
+  .brand-download {
+    min-height: 160svh;
+  }
+  .brand-download-stage {
+    padding-block: 104px 48px;
+  }
+  .brand-download-heading {
+    margin-bottom: 48px;
+  }
+  .brand-download h2 {
+    font-size: var(--text-marketing-title);
+  }
+  .brand-download-wordmark {
+    display: none;
+  }
+  .brand-store-links {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .brand-store-links > a {
+    min-height: 112px;
+    padding: 24px 12px;
+  }
+  .brand-store-links > a:last-child {
+    border-top: 0;
+  }
+  .brand-store-links .brand-store-logo {
+    width: 40px;
+    height: 40px;
+  }
+  .brand-store-links > a > svg:last-child {
+    width: 24px;
+    height: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce), (max-height: 600px) {
+  .brand-download {
+    min-height: 100svh;
+  }
+  .brand-download-stage {
+    position: relative;
+  }
+}
+@media (max-height: 600px) {
+  .brand-download-stage {
+    padding-block: 96px 48px;
+  }
+  .brand-download h2 {
+    font-size: var(--text-marketing-title);
+  }
+  .brand-download-heading {
+    margin-bottom: 40px;
+  }
+}

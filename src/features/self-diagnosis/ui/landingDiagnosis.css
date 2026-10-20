@@ -1,4 +1,6 @@
 .landing-diagnosis {
+  min-height: 100svh;
+  align-content: center;
   max-width: 1440px;
   margin: auto;
   padding: 100px var(--brand-gutter, 24px);

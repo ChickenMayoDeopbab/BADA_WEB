@@ -343,6 +343,8 @@
   stroke-linecap: round;
 }
 .brand-faq {
+  min-height: 100svh;
+  align-content: center;
   display: grid;
   grid-template-columns: 1fr 1.3fr;
   gap: 100px;
@@ -351,7 +353,7 @@
   margin: auto;
 }
 .brand-faq h2 {
-  font-size: var(--text-display1);
+  font-size: var(--text-marketing-title);
   font-weight: 700;
   letter-spacing: -0.04em;
 }
@@ -390,52 +392,6 @@
   line-height: 1.8;
   color: var(--color-label-alternative);
 }
-.brand-download {
-  padding: 88px var(--brand-gutter);
-  background: var(--color-label-normal);
-  color: var(--color-background-normal);
-}
-.brand-download h2 {
-  margin: 0 0 48px;
-  font-size: var(--text-display1);
-  line-height: 1.1;
-  letter-spacing: -0.06em;
-  font-weight: 700;
-}
-.brand-store-links {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 64px;
-}
-.brand-store-links > a {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  text-align: left;
-  gap: 24px;
-  min-height: 128px;
-  padding: 28px 28px;
-  border-top: 1px solid var(--color-background-normal);
-  border-bottom: 1px solid var(--color-label-alternative);
-}
-.brand-store-links > a > svg {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-}
-.brand-store-links small,
-.brand-store-links strong {
-  display: block;
-}
-.brand-store-links small {
-  font-size: var(--text-caption);
-  color: var(--color-secondary-assistive);
-}
-.brand-store-links strong {
-  margin-top: 4px;
-  font-size: var(--text-title2);
-  font-weight: 500;
-}
 .brand-footer {
   overflow: hidden;
 }
@@ -465,9 +421,6 @@
   }
   .brand-faq {
     gap: 48px;
-  }
-  .brand-store-links {
-    gap: 32px;
   }
 }
 @media (max-width: 639px) {
@@ -534,28 +487,6 @@
   .brand-faq details > p {
     padding-left: 0;
   }
-  .brand-download {
-    padding-block: 64px;
-  }
-  .brand-download h2 {
-    margin: 0 0 32px;
-    font-size: var(--text-title1);
-  }
-  .brand-store-links {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-  .brand-store-links > a {
-    gap: 20px;
-    padding: 24px 16px;
-    min-height: 120px;
-  }
-  .brand-store-links > a > svg:last-child {
-    margin-left: auto;
-  }
-  .brand-store-links > a:last-child {
-    border-top: none;
-  }
 }
 @media (max-width: 359px) {
   .brand-header nav {
@@ -579,34 +510,8 @@
 .brand-header nav > a:first-child {
   font-size: var(--text-caption);
 }
-.brand-store-links > a > svg:last-child {
-  margin-left: auto;
-}
 .brand-footer {
   padding-inline: var(--brand-gutter);
-}
-
-.brand-store-links .brand-store-logo {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-.brand-store-links > a {
-  transition:
-    background-color 200ms ease,
-    border-color 200ms ease,
-    transform 200ms ease;
-}
-.brand-store-links > a > svg:last-child {
-  transition: transform 200ms ease;
-}
-.brand-store-links > a:is(:hover, :focus-visible) {
-  background: color-mix(in srgb, var(--color-primary-normal) 8%, transparent);
-  border-color: var(--color-primary-normal);
-}
-.brand-store-links > a:is(:hover, :focus-visible) strong {
-  color: var(--color-primary-normal);
 }
 .brand-header nav > a[href='#download'] {
   position: relative;
@@ -626,24 +531,11 @@
 .brand-header nav > a[href='#download']:is(:hover, :focus-visible)::after {
   transform: scaleX(1);
 }
-@media (prefers-reduced-motion: no-preference) {
-  .brand-store-links > a:is(:hover, :focus-visible) {
-    transform: translateY(-3px);
-  }
-  .brand-store-links > a:is(:hover, :focus-visible) > svg:last-child {
-    transform: translate(3px, -3px);
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .brand-hero-start:is(:hover, :focus-visible) {
     transform: none;
   }
-}
-
-.brand-download-inner {
-  max-width: 1312px;
-  margin-inline: auto;
 }
 
 @media (max-width: 1279px) {
