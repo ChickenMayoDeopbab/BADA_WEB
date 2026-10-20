@@ -4,5 +4,6 @@ export const BORDER_RADIUS = {
   component: '12px',
   card: '20px',
   dialog: '24px',
+  device: '44px',
   pill: '999px',
 } as const

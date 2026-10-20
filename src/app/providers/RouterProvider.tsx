@@ -1,5 +1,6 @@
 import { RouteErrorPage } from './RouteErrorPage'
 import { ServiceLayout } from '../layouts/ServiceLayout'
+import { PublicLayout } from '../layouts/PublicLayout'
 import { AuthProvider, RequireAuth } from '@features/auth'
 import {
   FindIdPage,
@@ -10,7 +11,9 @@ import {
 } from '@pages/auth'
 import { CommunityPage } from '@pages/community'
 import { DashboardPage } from '@pages/dashboard'
-import { NotFoundPage, PlaceholderPage } from '@pages/placeholders'
+import { LandingPage } from '@pages/landing'
+import { LegalPage } from '@pages/legal'
+import { NotFoundPage } from '@pages/placeholders'
 import { NotificationsPage } from '@pages/notifications'
 import {
   ProfileInquiryPage,
@@ -52,8 +55,13 @@ const ProtectedRoutes = () => {
 
 const applicationRoutes: RouteObject[] = [
   {
-    path: routePaths.landing,
-    element: <PlaceholderPage title="전화가 편해지는 연습, Bada" />,
+    element: <PublicLayout />,
+    children: [
+      { path: routePaths.landing, element: <LandingPage /> },
+      { path: routePaths.terms, element: <LegalPage document="terms" /> },
+      { path: routePaths.privacy, element: <LegalPage document="privacy" /> },
+      { path: routePaths.sensitiveInformation, element: <LegalPage document="sensitive" /> },
+    ],
   },
   {
     path: routePaths.login,

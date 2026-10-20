@@ -12,7 +12,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const DIAGNOSIS_TYPE = 'SIGNUP'
 /** 계산 완료 화면을 보여준 뒤 결과 화면으로 넘어가기까지의 시간입니다. */
 export const RESULT_TRANSITION_DELAY_MS = 3000
 
@@ -34,8 +33,8 @@ export const useSelfDiagnosis = () => {
   const [errorMessage, setErrorMessage] = useState('')
 
   const questionsQuery = useQuery({
-    queryKey: ['diagnosis', 'questions', DIAGNOSIS_TYPE],
-    queryFn: () => getDiagnosisQuestions(DIAGNOSIS_TYPE),
+    queryKey: ['diagnosis', 'questions', 'SIGNUP'],
+    queryFn: getDiagnosisQuestions,
     select: (questions) => [...questions].sort((a, b) => a.orderIndex - b.orderIndex),
   })
   const questions = questionsQuery.data ?? []
@@ -58,12 +57,12 @@ export const useSelfDiagnosis = () => {
     setStep('question')
   }
 
-  // 민감정보 처리에 동의한 사용자만 진단을 제출할 수 있어 시작 전에 동의 상태를 확인합니다.
+  // 기존 서버 동의 상태를 확인한 뒤 회원 진단을 시작합니다.
   const start = async () => {
     if (consentStatus !== 'idle') return
 
-    setConsentStatus('checking')
     setErrorMessage('')
+    setConsentStatus('checking')
     try {
       const status = await getLegalConsentStatus()
       if (status.sensitiveInformationAgreed) {
@@ -80,10 +79,9 @@ export const useSelfDiagnosis = () => {
     }
   }
 
-  // 민감정보 처리 동의를 저장하고 진단을 시작합니다. 프로필 이미지 동의는 기존 값을 유지합니다.
+  // 회원 진단은 기존 프로필 이미지 선택을 유지해 동의를 저장합니다.
   const acceptConsent = async () => {
     if (consentStatus !== 'required') return
-
     setConsentStatus('saving')
     try {
       const status = await acceptLegalConsents({
@@ -102,17 +100,21 @@ export const useSelfDiagnosis = () => {
     }
   }
 
+  /** 문항 버전과 같은 세션 ID로 회원 진단 응답을 제출합니다. */
   const submit = async (submittedAnswers: DiagnosisAnswer[]) => {
     setStep('submitting')
     try {
       const nextResult = await submitDiagnosis({
         sessionId,
-        type: DIAGNOSIS_TYPE,
+        type: 'SIGNUP',
         answers: submittedAnswers,
+        ...(questions[0]?.questionnaireVersion
+          ? { questionnaireVersion: questions[0].questionnaireVersion }
+          : {}),
       })
       setResult(nextResult)
       setStep('done')
-      // 진단 결과가 사이드바 레벨과 대시보드 지표에 반영되도록 캐시를 갱신합니다.
+      // 진단 결과를 사이드바 레벨과 대시보드 지표에 반영합니다.
       void queryClient.invalidateQueries({ queryKey: ['user'] })
       void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     } catch (error) {
@@ -121,6 +123,7 @@ export const useSelfDiagnosis = () => {
     }
   }
 
+  /** 현재 문항의 선택을 보존합니다. */
   const selectAnswer = (answer: DiagnosisAnswer) => {
     setAnswers((previous) => {
       const next = [...previous]
@@ -169,6 +172,13 @@ export const useSelfDiagnosis = () => {
     selectAnswer,
     goNext,
     goBack,
+    restart: () => {
+      setResult(null)
+      setAnswers([])
+      setCurrentIndex(0)
+      setErrorMessage('')
+      setStep('intro')
+    },
     goToDashboard: () => navigate(routePaths.dashboard, { replace: true }),
   }
 }

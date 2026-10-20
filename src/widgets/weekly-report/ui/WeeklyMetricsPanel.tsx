@@ -1,47 +1,74 @@
 import {
   buildWeeklyMetricDays,
-  METRIC_MAX_SCORE,
-  type MetricKey,
+  getWeeklyMetricBarHeight,
+  weeklyMetrics,
 } from '../model/buildWeeklyMetricDays'
 import { Skeleton, LoadingRegion, StatusState } from '@shared/ui'
-import { useDashboardMetrics } from '@entities/dashboard'
-import conversationDot from '@shared/assets/dashboard/legend-conversation.svg'
-import fluencyDot from '@shared/assets/dashboard/legend-fluency.svg'
-import stabilityDot from '@shared/assets/dashboard/legend-stability.svg'
+import { useWeeklyDashboardOverview } from '@entities/dashboard'
+import { buildWeeklyMetricSummary, describeWeeklyMeasurement } from '../model/weeklyMetricSummary'
 
-const BAR_MAX_HEIGHT = 84
-const EMPTY_BAR_HEIGHT = 4
-
-const METRICS: { key: MetricKey; label: string; dot: string; barClassName: string }[] = [
-  { key: 'stability', label: '안정도', dot: stabilityDot, barClassName: 'bg-metric-stability' },
-  {
-    key: 'conversation',
-    label: '대화 유지',
-    dot: conversationDot,
-    barClassName: 'bg-metric-conversation',
-  },
-  { key: 'fluency', label: '유창성', dot: fluencyDot, barClassName: 'bg-metric-fluency' },
-]
-
-// 점수를 막대 높이로 변환합니다. 기록이 없으면 최소 높이 막대를 표시합니다.
-const getBarHeight = (score: number | null) =>
-  score === null
-    ? EMPTY_BAR_HEIGHT
-    : Math.max(EMPTY_BAR_HEIGHT, Math.round((score / METRIC_MAX_SCORE) * BAR_MAX_HEIGHT))
-
-// 이번 주 요일별 안정도·대화 유지·유창성 점수를 막대 차트로 표시합니다.
-export const WeeklyMetricsPanel = () => {
-  const { data: metrics, isError, isPending, refetch, isFetching } = useDashboardMetrics()
-  const days = buildWeeklyMetricDays(metrics)
+/** 기존 주간 차트 영역에 개요 API의 6개 지표를 원래 단위로 표시합니다. */
+export const WeeklyMetricsPanel = ({
+  onOpenComparison,
+  onOpenScenarios,
+}: {
+  onOpenComparison: () => void
+  onOpenScenarios: () => void
+}) => {
+  const { data: overview, isError, isPending, refetch, isFetching } = useWeeklyDashboardOverview()
+  const days = buildWeeklyMetricDays(overview)
+  const summary = buildWeeklyMetricSummary(overview)
 
   return (
     <section className="min-w-0 gap-2.5 p-5 rounded-2xl flex h-full min-h-[240px] flex-1 flex-col bg-fill-normal">
-      <h2 className="text-headline1 font-bold text-label-normal">{'주간 지표'}</h2>
-      <ul className="gap-3.5 flex items-center">
-        {METRICS.map((metric) => (
-          <li key={metric.key} className="flex items-center gap-[5px]">
-            <img src={metric.dot} alt="" width={8} height={8} />
-            <span className="text-caption font-medium text-label-neutral">{metric.label}</span>
+      <div className="gap-2 flex items-center justify-between">
+        <h2 className="shrink-0 text-headline1 font-bold text-label-normal">주간 지표</h2>
+        <div className="gap-2 flex shrink-0">
+          <button
+            type="button"
+            onClick={onOpenComparison}
+            className="px-2 py-1 rounded-control text-caption font-medium text-label-neutral hover:bg-fill-pressed"
+          >
+            기간 비교
+          </button>
+          <button
+            type="button"
+            onClick={onOpenScenarios}
+            className="px-2 py-1 rounded-control text-caption font-medium text-label-neutral hover:bg-fill-pressed"
+          >
+            상황별 현황
+          </button>
+        </div>
+      </div>
+      <ul
+        aria-label="주간 지표 평균"
+        className="gap-3.5 flex shrink-0 [scrollbar-width:none] items-center overflow-x-auto [&::-webkit-scrollbar]:hidden"
+      >
+        {summary.items.map((metric) => (
+          <li
+            key={metric.key}
+            className="gap-1.5 flex shrink-0 items-center"
+            title={metric.description}
+          >
+            <span
+              aria-hidden="true"
+              className={`size-2 rounded-pill ${metric.isMissing ? 'bg-fill-alternative' : metric.colorClassName}`}
+            />
+            <span
+              className={`text-caption whitespace-nowrap ${metric.isMissing ? 'text-label-alternative/60' : 'text-label-alternative'}`}
+            >
+              {metric.label}
+            </span>
+            {overview && (
+              <>
+                {' '}
+                <strong
+                  className={`text-caption font-bold whitespace-nowrap ${metric.isMissing ? 'text-label-alternative/60' : 'text-label-normal'}`}
+                >
+                  {metric.value}
+                </strong>
+              </>
+            )}
           </li>
         ))}
       </ul>
@@ -53,7 +80,7 @@ export const WeeklyMetricsPanel = () => {
             ))}
           </div>
         </LoadingRegion>
-      ) : isError && !metrics ? (
+      ) : isError && !overview ? (
         <StatusState
           isError
           title={'주간 지표를 불러오지 못했어요'}
@@ -61,19 +88,27 @@ export const WeeklyMetricsPanel = () => {
           isRetrying={isFetching}
         />
       ) : (
-        <ol className="flex w-full items-start">
+        <ol
+          aria-label="요일별 훈련 지표"
+          className="flex w-full items-start"
+          aria-description="불안은 0~10점, 비율은 0~100% 기준이며 응답 시간은 이번 주 최댓값에 맞춰 막대 높이를 표시해요."
+        >
           {days.map((day) => (
             <li key={day.dateKey} className="min-w-0 gap-1.5 flex flex-1 flex-col items-center">
-              <div className="gap-1 flex h-[84px] items-end justify-center">
-                {METRICS.map((metric) => {
-                  const score = day.scores[metric.key]
-
+              <div className="gap-0.5 flex h-[84px] items-end justify-center">
+                {weeklyMetrics.map((metric) => {
+                  const measurement = day.metrics[metric.key]
+                  const isMissing =
+                    !measurement || measurement.value === null || measurement.status === 'NO_DATA'
+                  const label = `${day.dateKey} ${describeWeeklyMeasurement(metric.label, metric.unit, measurement)}`
                   return (
                     <span
                       key={metric.key}
-                      className={`ux-transition w-2.5 transition-[height] ${score === null ? 'rounded-[2px]' : 'rounded-[3px]'} ${metric.barClassName}`}
-                      style={{ height: getBarHeight(score) }}
-                      title={`${metric.label} ${score === null ? '기록 없음' : `${score}점`}`}
+                      role="img"
+                      aria-label={label}
+                      title={label}
+                      className={`ux-transition w-1 rounded-control transition-[height] ${isMissing ? 'bg-fill-alternative' : metric.colorClassName}`}
+                      style={{ height: getWeeklyMetricBarHeight(day, metric.key, days) }}
                     />
                   )
                 })}
@@ -83,8 +118,8 @@ export const WeeklyMetricsPanel = () => {
           ))}
         </ol>
       )}
-      <p className="text-caption text-neutral-60">
-        {isError ? '주간 지표를 불러오지 못했어요' : '각 지표는 높을수록 좋아요'}
+      <p className="text-caption text-label-alternative">
+        {isError ? '주간 지표를 불러오지 못했어요' : summary.notice}
       </p>
     </section>
   )

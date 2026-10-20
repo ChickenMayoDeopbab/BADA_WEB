@@ -1,19 +1,14 @@
-import type {
-  DiagnosisQuestion,
-  DiagnosisResult,
-  DiagnosisSubmitRequest,
-  DiagnosisType,
-} from '../model/types'
+import type { DiagnosisQuestion, DiagnosisResult, DiagnosisSubmitRequest } from '../model/types'
 import { httpClient } from '@shared/api'
 import type { ApiResponse } from '@shared/types'
 
 const DIAGNOSIS_PATH = '/api/diagnosis'
 
-/** 유형에 맞는 자가진단 문항 목록을 조회합니다. */
-export const getDiagnosisQuestions = async (type: DiagnosisType) => {
+/** 인증된 회원의 자가진단 문항 목록을 조회합니다. */
+export const getDiagnosisQuestions = async () => {
   const { data } = await httpClient.get<ApiResponse<DiagnosisQuestion[]>>(
     `${DIAGNOSIS_PATH}/questions`,
-    { params: { type } },
+    { params: { type: 'SIGNUP' } },
   )
 
   return data.data

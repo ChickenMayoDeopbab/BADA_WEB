@@ -15,11 +15,11 @@ describe('diagnosisApi', () => {
     vi.mocked(httpClient.post).mockReset()
   })
 
-  it('유형별 문항 목록을 조회한다', async () => {
+  it('회원 진단 문항을 SIGNUP 유형으로 조회한다', async () => {
     const questions = [{ questionId: 1, content: '문항', orderIndex: 1 }]
     vi.mocked(httpClient.get).mockResolvedValue({ data: { data: questions } })
 
-    await expect(getDiagnosisQuestions('SIGNUP')).resolves.toEqual(questions)
+    await expect(getDiagnosisQuestions()).resolves.toEqual(questions)
     expect(httpClient.get).toHaveBeenCalledWith('/api/diagnosis/questions', {
       params: { type: 'SIGNUP' },
     })

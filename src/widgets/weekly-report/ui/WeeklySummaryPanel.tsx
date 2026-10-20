@@ -30,7 +30,7 @@ export const WeeklySummaryPanel = () => {
           isRetrying={isFetching}
         />
       )}
-      <p className="text-caption text-neutral-60">{'매주 월요일 아침에 업데이트돼요'}</p>
+      <p className="text-caption text-neutral-60">{'이번 주 월요일부터 오늘까지의 기록이에요'}</p>
     </section>
   )
 }
