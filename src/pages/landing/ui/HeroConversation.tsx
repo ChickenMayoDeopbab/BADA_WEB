@@ -13,28 +13,32 @@ export const HeroConversation = () => {
           <span />
           <span />
         </div>
-        <div className="brand-greeting">
-          <span className="brand-speaker">AI</span>
-          <p>{greeting}</p>
-          <div className="brand-call-wave" aria-hidden="true">
-            {Array.from({ length: 17 }, (_, index) => (
-              <i key={index} />
-            ))}
+        <div className="brand-greeting-motion" data-hero-card="greeting">
+          <div className="brand-greeting">
+            <span className="brand-speaker">AI</span>
+            <p>{greeting}</p>
+            <div className="brand-call-wave" aria-hidden="true">
+              {Array.from({ length: 17 }, (_, index) => (
+                <i key={index} />
+              ))}
+            </div>
           </div>
         </div>
-        <div className="brand-answer" id="hero-answer" aria-live="polite" aria-atomic="true">
-          <span className="brand-speaker">나의 첫마디</span>
-          <p>
-            {hasAnswered ? (
-              reply
-            ) : (
-              <span className="brand-waiting-dots" aria-label="아직 시작하지 않은 대화">
-                <i />
-                <i />
-                <i />
-              </span>
-            )}
-          </p>
+        <div className="brand-answer-motion" data-hero-card="answer">
+          <div className="brand-answer" id="hero-answer" aria-live="polite" aria-atomic="true">
+            <span className="brand-speaker">나의 첫마디</span>
+            <p>
+              {hasAnswered ? (
+                reply
+              ) : (
+                <span className="brand-waiting-dots" aria-label="아직 시작하지 않은 대화">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              )}
+            </p>
+          </div>
         </div>
         <button
           type="button"

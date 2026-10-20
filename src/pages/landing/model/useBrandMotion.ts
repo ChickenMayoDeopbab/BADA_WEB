@@ -53,12 +53,35 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
               gsap.ticker.add(renderVoice)
             } else gsap.ticker.remove(renderVoice)
           }
-          const intro = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } })
+          const intro = gsap.timeline({
+            paused: true,
+            defaults: { ease: 'power3.out' },
+            onComplete: () => {
+              hero.dataset.heroEntered = 'true'
+            },
+          })
           intro.from(select('[data-hero-line]'), { yPercent: 115, duration: 1.15, stagger: 0.14 })
           intro.from(
-            select('[data-hero-object]'),
-            { clipPath: 'inset(100% 0% 0% 0%)', duration: 1.1 },
+            select('[data-hero-card="greeting"]'),
+            {
+              y: -120,
+              autoAlpha: 0,
+              duration: 1,
+              ease: 'back.out(1.1)',
+              clearProps: 'transform,opacity,visibility',
+            },
             0.25,
+          )
+          intro.from(
+            select('[data-hero-card="answer"]'),
+            {
+              y: -150,
+              autoAlpha: 0,
+              duration: 1,
+              ease: 'back.out(1.1)',
+              clearProps: 'transform,opacity,visibility',
+            },
+            0.6,
           )
           intro.from(select('[data-hero-action]'), { y: 18, autoAlpha: 0, duration: 0.6 }, 0.7)
           /** 로고 오프닝이 끝나면 멈춰 있던 첫 화면을 스스로 펼칩니다. */
@@ -77,6 +100,8 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
             },
           })
           document.addEventListener('visibilitychange', updateVoiceVisibility)
+          const visibilityObserver = new IntersectionObserver(updateVoiceVisibility)
+          visibilityObserver.observe(hero)
           updateVoiceVisibility()
           gsap.to(select('[data-hero-object]'), {
             y: -40,
@@ -92,8 +117,10 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
             window.removeEventListener(LANDING_INTRO_COMPLETE_EVENT, playIntro)
             gsap.ticker.remove(renderVoice)
             document.removeEventListener('visibilitychange', updateVoiceVisibility)
+            visibilityObserver.disconnect()
             voicePath.setAttribute('d', originalPath)
             delete hero.dataset.heroActive
+            delete hero.dataset.heroEntered
           }
         },
         page,
