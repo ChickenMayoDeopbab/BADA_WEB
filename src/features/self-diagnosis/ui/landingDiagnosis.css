@@ -1,0 +1,194 @@
+.landing-diagnosis {
+  max-width: 1440px;
+  margin: auto;
+  padding: 100px var(--brand-gutter, 24px);
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 80px;
+}
+.landing-diagnosis-heading > p:first-child {
+  font-size: var(--text-label);
+  color: var(--color-label-alternative);
+}
+.landing-diagnosis-heading h2 {
+  margin-top: 24px;
+  font-size: var(--text-marketing-title);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+.landing-diagnosis-heading > p:last-child {
+  margin-top: 24px;
+  font-size: var(--text-body);
+  line-height: 1.7;
+  color: var(--color-label-alternative);
+}
+.landing-diagnosis-panel {
+  min-width: 0;
+  min-height: 480px;
+  border-top: 1px solid var(--color-line-normal);
+  padding-top: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+}
+.landing-diagnosis-intro > p {
+  font-size: var(--text-title2);
+  line-height: 1.6;
+  font-weight: 500;
+}
+.landing-diagnosis-action {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  width: max-content;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 14px 24px;
+  border-radius: var(--radius-pill);
+  color: var(--color-background-normal);
+  background: var(--color-label-normal);
+  font-size: var(--text-label);
+}
+.landing-diagnosis-action:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.landing-diagnosis-action {
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+.landing-diagnosis-action:not(:disabled):is(:hover, :focus-visible) {
+  color: var(--color-label-normal);
+  background: var(--color-primary-normal);
+  transform: translateY(-2px);
+}
+.landing-diagnosis-intro .landing-diagnosis-action {
+  margin-top: 32px;
+}
+.landing-diagnosis-question-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--text-caption);
+  color: var(--color-label-alternative);
+}
+.landing-diagnosis-question-top button {
+  padding: 8px 0;
+}
+.landing-diagnosis-question {
+  min-height: 164px;
+  display: flex;
+  align-items: center;
+  padding: 28px 0;
+  font-size: var(--text-title2);
+  line-height: 1.5;
+  font-weight: 600;
+  word-break: keep-all;
+}
+.landing-diagnosis-next {
+  align-self: end;
+  margin-top: 28px;
+}
+.landing-diagnosis-result {
+  padding-block: 32px;
+  text-align: center;
+}
+.landing-diagnosis-result > p {
+  font-size: var(--text-label);
+  line-height: 1.7;
+  color: var(--color-label-alternative);
+}
+.landing-diagnosis-result h3 {
+  margin-block: 4px;
+  font-size: var(--text-display2);
+  line-height: 1.2;
+  font-weight: 700;
+}
+.landing-diagnosis-result-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.landing-diagnosis-result-line {
+  margin: 28px auto;
+}
+.landing-diagnosis-result-help {
+  position: relative;
+  display: flex;
+}
+.landing-diagnosis-result-help > button {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+.landing-diagnosis-result-help > p {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 2;
+  width: 240px;
+  padding: 16px;
+  border: 1px solid var(--color-line-neutral);
+  border-radius: var(--radius-component);
+  background: var(--color-background-normal);
+  box-shadow: var(--shadow-elevated-card);
+  font-size: var(--text-label);
+  line-height: 1.7;
+  visibility: hidden;
+}
+.landing-diagnosis-result-help:is(:hover, :focus-within) > p {
+  visibility: visible;
+}
+.landing-diagnosis-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 28px;
+}
+.landing-diagnosis-result-actions > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-caption);
+}
+@media (max-width: 1023px) {
+  .landing-diagnosis {
+    gap: 40px;
+    grid-template-columns: 1fr;
+    padding-block: 72px;
+  }
+  .landing-diagnosis-heading h2 {
+    font-size: var(--text-display1);
+  }
+}
+@media (max-width: 479px) {
+  .landing-diagnosis-panel {
+    min-height: 560px;
+  }
+  .landing-diagnosis-question {
+    min-height: 216px;
+    font-size: var(--text-headline1);
+  }
+  .landing-diagnosis-heading h2 {
+    font-size: var(--text-title1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-diagnosis-action {
+    transition: none;
+  }
+  .landing-diagnosis-action:not(:disabled):is(:hover, :focus-visible) {
+    transform: none;
+  }
+}

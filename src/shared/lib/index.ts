@@ -10,3 +10,4 @@ export {
 export { useDialogFocus } from './useDialogFocus'
 export { getDrawerCloseDelay } from './getDrawerCloseDelay'
 export { lockPageScroll } from './lockPageScroll'
+export { scrollToPosition, getSectionScrollTop } from './scroll'

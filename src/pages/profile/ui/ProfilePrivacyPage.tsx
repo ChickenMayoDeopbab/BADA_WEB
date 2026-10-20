@@ -3,13 +3,13 @@ import { FiChevronDown } from 'react-icons/fi'
 import { useId, useState, type ReactNode } from 'react'
 import { LoadingRegion, Skeleton, ConfirmDialog, ServicePageContent } from '@shared/ui'
 import { getApiErrorMessage } from '@shared/api'
-import { PRIVACY_POLICY_TEXT } from '../model/privacyPolicy'
 import {
+  PRIVACY_POLICY_TEXT,
   PROFILE_IMAGE_SECTIONS,
   SENSITIVE_INFORMATION_SECTIONS,
   TERMS_OF_SERVICE_SECTIONS,
   type LegalDocumentSection,
-} from '../model/legalDocuments'
+} from '@entities/legal-consent'
 import { usePrivacySettings, type OptionalConsent } from '../model/usePrivacySettings'
 
 /** 앱의 개인정보 안내 문서 내용을 동일하게 표시합니다. */

@@ -20,7 +20,8 @@ import { SEMANTIC_COLORS, TYPOGRAPHY } from '@shared/design-system'
 
 - Color: `text-label-normal`, `bg-primary-normal`, `border-line-normal`, `bg-fill-field`
 - Typography: `text-display1`, `text-display2`, `text-title1`, `text-title2`, `text-headline1`, `text-headline2`, `text-body`, `text-label`, `text-caption`
-- Radius: `rounded-control`, `rounded-component`, `rounded-card`, `rounded-dialog`, `rounded-pill`
+- Marketing: `text-marketing-statement` (112px), `text-marketing-billboard` (88px), `text-marketing-hero` (72px), `text-marketing-title` (48px). `text-brand-wordmark` (320px)는 큰 브랜드 워드마크와 장면 번호에 사용합니다. 모바일에서는 기존 display/title 단계로 축소합니다.
+- Radius: `rounded-control`, `rounded-component`, `rounded-card`, `rounded-dialog`, `rounded-device` (앱 프리뷰), `rounded-pill`
 - Effect: `shadow-elevated-card`, `shadow-surface-card`, `shadow-subtle-card`
 
 루트 요소에 `dark` 클래스를 적용하면 의미 기반 색상이 어두운 테마 값으로 전환됩니다.

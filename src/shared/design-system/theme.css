@@ -5,6 +5,22 @@
   --font-weight-medium: 500;
   --font-weight-bold: 700;
 
+  --text-marketing-statement: 112px;
+  --text-marketing-statement--line-height: 120.96px;
+  --text-marketing-statement--letter-spacing: -7.28px;
+  --text-brand-wordmark: 320px;
+  --text-brand-wordmark--line-height: 304px;
+  --text-brand-wordmark--letter-spacing: -25.6px;
+  --text-marketing-hero: 72px;
+  --text-marketing-billboard: 88px;
+  --text-marketing-billboard--line-height: 96.8px;
+  --text-marketing-billboard--letter-spacing: -4.4px;
+  --text-marketing-hero--line-height: 79.2px;
+  --text-marketing-hero--letter-spacing: -2.88px;
+  --text-marketing-title: 48px;
+  --text-marketing-title--line-height: 57.6px;
+  --text-marketing-title--letter-spacing: -1.92px;
+
   --text-display1: 36px;
   --text-display1--line-height: 46.8px;
   --text-display1--letter-spacing: -0.72px;
@@ -37,6 +53,7 @@
   --radius-component: 12px;
   --radius-card: 20px;
   --radius-dialog: 24px;
+  --radius-device: 44px;
   --radius-pill: 999px;
 
   --shadow-elevated-card: 0 2px 5.3px 0 rgb(0 0 0 / 12%);
@@ -122,6 +139,7 @@
   --color-status-success: #0bf46d;
   --color-status-warning: #ffcc00;
   --color-record-icon-background: #e7f2fa;
+  --color-record-audio-background: #e6f7ed;
   --color-record-summary-gradient-start: #092ec3;
   --color-record-summary-gradient-end: #44aab7;
   --color-train-call-gradient-start: #f5f5f5;
@@ -144,6 +162,12 @@
   --color-metric-stability: #62dc75;
   --color-metric-conversation: #4a86d8;
   --color-metric-fluency: #d9a94f;
+  --color-metric-anxiety: var(--color-green-40);
+  --color-metric-tremor: var(--color-blue-40);
+  --color-metric-pause: var(--color-yellow-40);
+  --color-metric-quiet: var(--color-red-40);
+  --color-metric-fast: var(--color-neutral-50);
+  --color-metric-delay: #1e2546;
 }
 
 .dark {

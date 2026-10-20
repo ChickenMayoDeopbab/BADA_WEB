@@ -34,9 +34,8 @@ export const SensitiveConsentDialog = ({
             id="sensitive-consent-description"
             className="text-label font-medium break-keep text-label-alternative"
           >
-            {
-              '통화불안 진단 답변과 점수, 음성 분석 결과, 훈련 분석 및 피드백을 제공하기 위해 민감정보를 처리합니다. 동의하지 않아도 일반 서비스는 이용할 수 있어요.'
-            }
+            통화불안 진단 답변과 점수, 음성 분석 결과, 훈련 분석 및 피드백을 제공하기 위해
+            민감정보를 처리합니다. 동의하지 않아도 일반 서비스는 이용할 수 있어요.
           </p>
         </div>
         <div className="gap-3 flex">

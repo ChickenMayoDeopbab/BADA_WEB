@@ -175,4 +175,40 @@ describe('useSelfDiagnosis', () => {
     act(() => hook.current.goToDashboard())
     expect(navigate).toHaveBeenCalledWith('/dashboard', { replace: true })
   })
+  it('공개 진단은 시작 버튼에서 동의 절차 없이 LANDING 문항을 조회한다', async () => {
+    const { result: hook } = renderHook(() => useSelfDiagnosis('LANDING'), { wrapper })
+    expect(getDiagnosisQuestions).not.toHaveBeenCalled()
+    await act(() => hook.current.start())
+    expect(hook.current.consentStatus).toBe('idle')
+    expect(getLegalConsentStatus).not.toHaveBeenCalled()
+    await waitFor(() => expect(hook.current.questionsStatus).toBe('success'))
+    expect(getDiagnosisQuestions).toHaveBeenCalledWith('LANDING')
+    expect(acceptLegalConsents).not.toHaveBeenCalled()
+    expect(hook.current.step).toBe('question')
+  })
+
+  it('공개 진단은 문항 버전과 LANDING 유형으로 제출하고 서버 결과를 바로 표시한다', async () => {
+    vi.mocked(getDiagnosisQuestions).mockResolvedValue(
+      questions.map((q) => ({ ...q, questionnaireVersion: 'LANDING-v1' })),
+    )
+    vi.mocked(submitDiagnosis).mockResolvedValue(result)
+    const { result: hook } = renderHook(() => useSelfDiagnosis('LANDING'), { wrapper })
+    await act(() => hook.current.start())
+    await waitFor(() => expect(hook.current.questionsStatus).toBe('success'))
+    act(() => hook.current.selectAnswer(2))
+    act(() => hook.current.goNext())
+    act(() => hook.current.selectAnswer(4))
+    await act(async () => hook.current.goNext())
+    expect(submitDiagnosis).toHaveBeenCalledWith({
+      sessionId: 'session-1',
+      type: 'LANDING',
+      answers: [2, 4],
+      questionnaireVersion: 'LANDING-v1',
+    })
+    expect(hook.current.step).toBe('result')
+    expect(hook.current.result).toEqual(result)
+    act(() => hook.current.restart())
+    expect(hook.current.step).toBe('intro')
+    expect(hook.current.result).toBeNull()
+  })
 })

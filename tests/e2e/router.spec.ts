@@ -4,7 +4,7 @@ import { authenticate } from './authFixture'
 test('renders the landing page', async ({ page }) => {
   await page.goto('/')
 
-  await expect(page.getByRole('heading', { name: '전화가 편해지는 연습, Bada' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '망설임에서, 첫마디로.' })).toBeVisible()
   await expect(page.getByRole('link', { name: /대시보드/ })).toHaveCount(0)
   await expect
     .poll(() => page.evaluate(() => document.fonts.check('16px "Pretendard Variable"')))
