@@ -57,6 +57,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-control);
+  transition: transform 180ms ease;
 }
 .brand-store-badge {
   display: block;
@@ -69,13 +70,20 @@
   height: 80px;
 }
 .brand-store-links > a:focus-visible {
-  outline: 2px solid var(--color-primary-normal);
+  outline: 2px solid var(--color-label-normal);
   outline-offset: 4px;
 }
 @media (hover: hover) and (pointer: fine) {
   .brand-store-links > a:hover {
-    outline: 2px solid var(--color-primary-normal);
-    outline-offset: 4px;
+    transform: scale(1.04);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-store-links > a {
+    transition: none;
+  }
+  .brand-store-links > a:hover {
+    transform: none;
   }
 }
 @media (max-width: 639px) {
