@@ -30,10 +30,10 @@
 }
 .brand-download h2 {
   margin: 0;
-  font-size: clamp(var(--text-marketing-title), 7.5vw, var(--text-marketing-statement));
+  font-size: clamp(var(--text-display1), 5vw, var(--text-marketing-hero));
   font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.06em;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
 }
 .brand-download h2 > span {
   display: block;
@@ -132,7 +132,7 @@
     margin-bottom: 48px;
   }
   .brand-download h2 {
-    font-size: var(--text-marketing-title);
+    font-size: var(--text-display1);
   }
   .brand-download-wordmark {
     display: none;
@@ -170,7 +170,7 @@
     padding-block: 96px 48px;
   }
   .brand-download h2 {
-    font-size: var(--text-marketing-title);
+    font-size: var(--text-display1);
   }
   .brand-download-heading {
     margin-bottom: 40px;
