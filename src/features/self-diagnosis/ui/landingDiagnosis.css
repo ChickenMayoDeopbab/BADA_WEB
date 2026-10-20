@@ -94,24 +94,65 @@
 .landing-diagnosis-state > button {
   margin-top: 24px;
 }
+.landing-diagnosis-result {
+  padding-block: 32px;
+  text-align: center;
+}
 .landing-diagnosis-result > p {
   font-size: var(--text-label);
   line-height: 1.7;
   color: var(--color-label-alternative);
 }
 .landing-diagnosis-result h3 {
-  margin-block: 16px;
-  font-size: var(--text-display1);
+  margin-block: 4px;
+  font-size: var(--text-display2);
   line-height: 1.2;
   font-weight: 700;
 }
-.landing-diagnosis-result > p + p {
-  margin-top: 12px;
+.landing-diagnosis-result-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.landing-diagnosis-result-line {
+  margin: 28px auto;
+}
+.landing-diagnosis-result-help {
+  position: relative;
+  display: flex;
+}
+.landing-diagnosis-result-help > button {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+.landing-diagnosis-result-help > p {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 2;
+  width: 240px;
+  padding: 16px;
+  border: 1px solid var(--color-line-neutral);
+  border-radius: var(--radius-component);
+  background: var(--color-background-normal);
+  box-shadow: var(--shadow-elevated-card);
+  font-size: var(--text-label);
+  line-height: 1.7;
+  visibility: hidden;
+}
+.landing-diagnosis-result-help:is(:hover, :focus-within) > p {
+  visibility: visible;
 }
 .landing-diagnosis-result-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 24px;
   margin-top: 28px;
 }

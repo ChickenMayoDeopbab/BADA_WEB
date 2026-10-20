@@ -1,7 +1,7 @@
 import { useEffect, type RefObject } from 'react'
 import { buildVoicePath } from './brandMotion'
 
-/** 히어로의 파형·타이포 모션을 소유하고 라우트 및 모션 설정 변경 시 복원합니다. */
+/** 히어로·설정 목업 모션을 소유하고 라우트 및 모션 설정 변경 시 복원합니다. */
 export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
   useEffect(() => {
     const page = pageRef.current
@@ -51,6 +51,24 @@ export const useBrandMotion = (pageRef: RefObject<HTMLDivElement | null>) => {
               scrub: 0.8,
             },
           })
+          gsap.fromTo(
+            select('[data-practice-phone]'),
+            {
+              y: 56,
+              rotation: -5,
+            },
+            {
+              y: 0,
+              rotation: 0,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: select('#practice')[0],
+                start: 'top bottom',
+                end: 'center center',
+                scrub: 0.4,
+              },
+            },
+          )
         },
         page,
       )

@@ -2,10 +2,13 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { scrollToPosition } from '@shared/lib'
 import { tourFeatures } from './landingContent'
 import { useScrollStoryEnabled } from './useScrollStoryEnabled'
+import type { CallHintMode } from './practicePreview'
 
 /** 고정된 제품 무대의 스크롤 진행과 직접 선택·키보드 탐색을 동기화합니다. */
 export const useFeatureTour = () => {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [hintMode, setHintMode] = useState<CallHintMode>('advice')
+  const [isSceneChanging, setIsSceneChanging] = useState(false)
   const storyRef = useRef<HTMLElement>(null)
   const cancelScroll = useRef<(() => void) | undefined>(undefined)
   const isScrollStory = useScrollStoryEnabled()
@@ -65,10 +68,9 @@ export const useFeatureTour = () => {
             )
             // 기기가 설명 영역을 지나는 동안 글과 주석을 잠깐 비워 겹침을 피합니다.
             const distance = Math.min(Math.abs(progress - 0.3), Math.abs(progress - 0.7))
-            story.style.setProperty(
-              '--scene-opacity',
-              String(gsap.utils.clamp(0, 1, (distance - 0.06) / 0.04)),
-            )
+            const sceneOpacity = gsap.utils.clamp(0, 1, (distance - 0.06) / 0.04)
+            setIsSceneChanging(sceneOpacity < 0.98)
+            story.style.setProperty('--scene-opacity', String(sceneOpacity))
             story.style.setProperty('--tour-progress', String(progress))
             setActiveIndex((current) => (current === index ? current : index))
           },
@@ -106,13 +108,17 @@ export const useFeatureTour = () => {
 
   /** 탭을 누르면 애니메이션과 같은 타임라인의 해당 장면으로 이동합니다. */
   const selectFeature = (index: number) => {
-    setActiveIndex(index)
     const story = storyRef.current
-    if (!story || !isScrollStory) return
+    if (!story || !isScrollStory) {
+      setActiveIndex(index)
+      return
+    }
     const range = story.offsetHeight - (window.innerHeight - 80)
     const start = window.scrollY + story.getBoundingClientRect().top - 80
+    const target = start + range * [0.12, 0.5, 0.88][index]
+    if (Math.abs(window.scrollY - target) < 2) return
     cancelScroll.current?.()
-    cancelScroll.current = scrollToPosition(start + range * [0.12, 0.5, 0.88][index], true)
+    cancelScroll.current = scrollToPosition(target, true)
   }
   /** 방향키·Home·End로 장면과 초점을 함께 옮깁니다. */
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -131,5 +137,14 @@ export const useFeatureTour = () => {
     selectFeature(next)
     document.getElementById(`feature-tab-${tourFeatures[next].id}`)?.focus({ preventScroll: true })
   }
-  return { activeIndex, storyRef, isScrollStory, selectFeature, handleTabKeyDown }
+  return {
+    activeIndex,
+    storyRef,
+    isScrollStory,
+    selectFeature,
+    handleTabKeyDown,
+    hintMode,
+    setHintMode,
+    isSceneChanging,
+  }
 }

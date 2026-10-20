@@ -140,6 +140,15 @@
   color: var(--color-label-alternative);
   white-space: nowrap;
 }
+.app-call-dialogue {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app-call-hint > .app-call-suggestion {
+  font-weight: 700;
+  color: var(--color-label-strong);
+}
 .app-call-end {
   position: absolute;
   top: 702px;
@@ -524,4 +533,107 @@
   border-radius: var(--radius-component);
   background: var(--color-primary-normal);
   color: var(--color-label-button-text);
+}
+
+.app-screen-settings {
+  background: var(--color-background-normal);
+}
+.app-settings-header {
+  position: absolute;
+  top: 54px;
+  width: 402px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-headline1);
+  color: var(--color-label-neutral);
+}
+.app-settings-header > img {
+  position: absolute;
+  left: 33px;
+  top: 16px;
+}
+.app-settings-progress {
+  position: absolute;
+  top: 118.83px;
+  left: 33px;
+  width: 336px;
+  display: flex;
+  gap: 6px;
+}
+.app-settings-progress span {
+  height: 4px;
+  flex: 1;
+  border-radius: var(--radius-pill);
+  background: var(--color-fill-alternative);
+}
+.app-settings-progress span:first-child {
+  background: var(--color-primary-normal);
+}
+.app-settings-field {
+  position: absolute;
+  left: 33px;
+  width: 336px;
+}
+.app-settings-difficulty {
+  top: 193px;
+}
+.app-settings-personality {
+  top: 377px;
+}
+.app-settings-field > p {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-headline1);
+  line-height: var(--text-headline1--line-height);
+  font-weight: 700;
+  color: var(--color-label-normal);
+}
+.app-settings-rail {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 20px;
+  padding: 4px;
+  margin-top: 32px;
+  background: var(--color-fill-neutral);
+  border-radius: var(--radius-pill);
+}
+.app-settings-rail > .app-settings-thumb {
+  position: absolute;
+  top: -6px;
+  left: calc((100% - 20px) * var(--preview-position) - 6px);
+  transition: left 240ms ease;
+}
+.app-settings-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 0 4px;
+  font-size: var(--text-caption);
+  color: var(--color-label-alternative);
+}
+.app-settings-labels [data-selected='true'] {
+  font-weight: 700;
+  color: var(--color-primary-normal);
+}
+.app-settings-next {
+  position: absolute;
+  top: 692.5px;
+  left: 33px;
+  width: 336px;
+  padding: 14px;
+  background: var(--color-primary-normal);
+  border-radius: var(--radius-component);
+  color: var(--color-label-button-text);
+  text-align: center;
+  font-size: var(--text-headline2);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-settings-rail > .app-settings-thumb {
+    transition: none;
+  }
 }

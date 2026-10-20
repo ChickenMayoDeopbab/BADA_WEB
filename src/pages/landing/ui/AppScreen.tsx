@@ -9,8 +9,6 @@ import parcel from '@shared/assets/scenario-training/school.png'
 import school from '@shared/assets/scenario-training/other.png'
 import callStatus from '@shared/assets/landing/figma/cb93d.svg'
 import callEnd from '@shared/assets/landing/figma/1c24a.svg'
-import help from '@shared/assets/landing/figma/31777.svg'
-import scriptLine from '@shared/assets/landing/figma/30be2.svg'
 import search from '@shared/assets/landing/figma/29853.svg'
 import activeTab from '@shared/assets/landing/figma/f47a9.svg'
 import history from '@shared/assets/landing/figma/61721.svg'
@@ -30,19 +28,29 @@ import waveform from '@shared/assets/landing/figma/1d556.svg'
 import playhead from '@shared/assets/landing/figma/2aba8.svg'
 import marker from '@shared/assets/training-records/audio-marker.svg'
 import applause from '@shared/assets/landing/figma/01a2d.svg'
+import { AppSettingsScreen } from './AppSettingsScreen'
+import { CallScriptPreview } from './CallScriptPreview'
+import {
+  callHintOptions,
+  type CallHintMode,
+  type PracticePreviewSelection,
+} from '../model/practicePreview'
 import './appScreen.css'
 
-export type AppScreenVariant = 'call' | 'scenario' | 'report'
+export type AppScreenVariant = 'call' | 'scenario' | 'report' | 'settings'
 
 interface AppScreenProps {
   variant: AppScreenVariant
   className?: string
+  hintMode?: CallHintMode
+  settings?: PracticePreviewSelection
 }
 
 const screenLabels = {
   call: 'BADA 앱 AI 통화 화면: 배준하 피자와 통화하며 스크립트로 연습해요.',
   scenario: 'BADA 앱 시나리오 화면: 피자 주문, 병원 예약, 배달 문의 등 상황을 선택해요.',
   report: 'BADA 앱 훈련 리포트: 통화 타임라인과 구간별 음성 분석, 피드백을 확인해요.',
+  settings: 'BADA 앱 훈련 설정: 난이도와 상대의 태도를 내게 맞게 선택해요.',
 }
 
 /** Figma의 상태 표시줄을 원본 아이콘 크기로 구성합니다. */
@@ -76,7 +84,7 @@ const ScreenNavigation = () => (
 )
 
 /** 5932:8139 통화 화면을 402×874 디자인 좌표계 안에 구현합니다. */
-const CallScreen = () => (
+const CallScreen = ({ hintMode }: { hintMode: CallHintMode }) => (
   <>
     <div className="app-call-timer">
       <img src={callStatus} alt="" />
@@ -93,20 +101,7 @@ const CallScreen = () => (
       </div>
     </div>
     <div className="app-call-script-label">스크립트 가리기</div>
-    <div className="app-call-script">
-      <div className="space-y-3">
-        <p>상대 : 죄송하지만, 페퍼로니 피자의 재료가 소진되었습니다.</p>
-        <p>나 : 저는 페퍼로니 피자가 아니면 먹지 못합니다.</p>
-        <p>상대 : 손님 죄송합니다만 다른 메뉴로 주문 부탁드립니다.</p>
-      </div>
-      <div className="app-call-hint">
-        <img src={scriptLine} alt="" />
-        <p>
-          <img src={help} alt="" />
-          상대방의 마음을 헤아리며 대답해볼까요?
-        </p>
-      </div>
-    </div>
+    <CallScriptPreview hintMode={hintMode} />
     <div className="app-call-end">
       <img src={callEnd} alt="" />
     </div>
@@ -247,25 +242,41 @@ const ReportScreen = () => (
 )
 
 /** 스크린샷 대신 실제 레이아웃과 로컬 Figma 에셋으로 만든 앱 화면 목업입니다. */
-export const AppScreen = ({ variant, className = '' }: AppScreenProps) => (
+export const AppScreen = ({
+  variant,
+  className = '',
+  hintMode = 'advice',
+  settings = { difficulty: 0, personality: 0 },
+}: AppScreenProps) => (
   <div
     className={`app-device ${className}`}
     role="img"
-    aria-label={screenLabels[variant]}
+    aria-label={`${screenLabels[variant]}${variant === 'call' ? ` ${callHintOptions.find((option) => option.id === hintMode)!.label} 미리보기.` : ''}`}
     data-app-screen={variant}
   >
     <div
       className={`app-screen app-screen-${variant}`}
       aria-hidden="true"
       data-figma-node={
-        variant === 'call' ? '5932:8139' : variant === 'scenario' ? '5932:8231' : '5932:8425'
+        variant === 'call'
+          ? '5932:8139'
+          : variant === 'scenario'
+            ? '5932:8231'
+            : variant === 'settings'
+              ? '3765:2869'
+              : '5932:8425'
       }
     >
       <ScreenStatus />
       {variant === 'call' ? (
-        <CallScreen />
+        <CallScreen hintMode={hintMode} />
       ) : variant === 'scenario' ? (
         <ScenarioScreen />
+      ) : variant === 'settings' ? (
+        <>
+          <AppSettingsScreen {...settings} />
+          <ScreenNavigation />
+        </>
       ) : (
         <ReportScreen />
       )}

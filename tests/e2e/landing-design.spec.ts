@@ -72,7 +72,7 @@ test('keeps the editorial hero, navigation, and readable sections within small a
         .getByRole('navigation', { name: '랜딩 메뉴' })
         .getByRole('link', { name: '웹에서 시작하기', exact: true }),
     ).toBeVisible()
-    for (const section of ['#experience', '#diagnosis', '#faq', '#download']) {
+    for (const section of ['#experience', '#practice', '#diagnosis', '#faq', '#download']) {
       const box = (await page.locator(section).boundingBox())!
       expect(box.width).toBeLessThanOrEqual(width)
     }

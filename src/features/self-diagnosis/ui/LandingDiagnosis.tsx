@@ -1,4 +1,6 @@
 import { LuArrowUpRight, LuRotateCcw } from 'react-icons/lu'
+import resultHelp from '@shared/assets/landing/figma/0df77.svg'
+import resultLine from '@shared/assets/landing/figma/77781.svg'
 import { useSelfDiagnosis } from '../model/useSelfDiagnosis'
 import { AnswerScale } from './AnswerScale'
 import './landingDiagnosis.css'
@@ -109,10 +111,24 @@ export const LandingDiagnosis = () => {
           </div>
         )}
         {step === 'result' && result && (
-          <div className="landing-diagnosis-result" aria-live="polite">
-            <p>나의 자가진단 결과</p>
-            <h3>{result.levelName}</h3>
-            <p>{result.levelDescription}</p>
+          <div className="landing-diagnosis-result" aria-live="polite" data-figma-node="4966:5319">
+            <p>내 레벨은?</p>
+            <div className="landing-diagnosis-result-title">
+              <h3>{result.levelName}</h3>
+              <div className="landing-diagnosis-result-help">
+                <button
+                  type="button"
+                  aria-label="레벨 설명 보기"
+                  aria-describedby="landing-diagnosis-level-description"
+                >
+                  <img src={resultHelp} alt="" />
+                </button>
+                <p id="landing-diagnosis-level-description" role="tooltip">
+                  {result.levelDescription}
+                </p>
+              </div>
+            </div>
+            <img className="landing-diagnosis-result-line" src={resultLine} alt="" />
             <p>{result.summary}</p>
             <div className="landing-diagnosis-result-actions">
               <a className="landing-diagnosis-action" href="#download">

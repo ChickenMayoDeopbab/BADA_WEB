@@ -1,11 +1,21 @@
 import { tourFeatures } from '../model/landingContent'
 import { useFeatureTour } from '../model/useFeatureTour'
+import { callHintOptions } from '../model/practicePreview'
 import { AppScreen } from './AppScreen'
 import './featureTour.css'
 
 /** 하나의 기기를 이동시키며 상황 선택·통화·리포트를 한 통의 이야기로 연결합니다. */
 export const FeatureTour = () => {
-  const { activeIndex, storyRef, isScrollStory, selectFeature, handleTabKeyDown } = useFeatureTour()
+  const {
+    activeIndex,
+    storyRef,
+    isScrollStory,
+    selectFeature,
+    handleTabKeyDown,
+    hintMode,
+    setHintMode,
+    isSceneChanging,
+  } = useFeatureTour()
   const currentFeature = tourFeatures[activeIndex]
   return (
     <section
@@ -57,6 +67,25 @@ export const FeatureTour = () => {
                 <p className="brand-kicker">{feature.eyebrow}</p>
                 <h3>{feature.title}</h3>
                 <p className="brand-tour-description">{feature.description}</p>
+                {feature.id === 'call' && (
+                  <div
+                    className="brand-tour-hints"
+                    role="group"
+                    aria-label="통화 도움 방식"
+                    inert={isScrollStory && isSceneChanging}
+                  >
+                    {callHintOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        aria-pressed={hintMode === option.id}
+                        onClick={() => setHintMode(option.id)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -73,7 +102,7 @@ export const FeatureTour = () => {
                     data-current={activeIndex === index}
                     aria-hidden={activeIndex !== index}
                   >
-                    <AppScreen variant={feature.id} />
+                    <AppScreen variant={feature.id} hintMode={hintMode} />
                   </div>
                 ))}
                 <span className="brand-tour-focus" aria-hidden="true" />
@@ -102,7 +131,11 @@ export const FeatureTour = () => {
                   <span>{currentFeature.eyebrow}</span>
                 </div>
                 <strong>{currentFeature.focusTitle}</strong>
-                <p>{currentFeature.focusDescription}</p>
+                <p>
+                  {activeIndex === 1
+                    ? callHintOptions.find((option) => option.id === hintMode)!.description
+                    : currentFeature.focusDescription}
+                </p>
               </div>
             </div>
           </figure>

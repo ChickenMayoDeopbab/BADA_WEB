@@ -8,12 +8,13 @@ import { useLandingScroll } from '../model/useLandingScroll'
 import { useBrandMotion } from '../model/useBrandMotion'
 import { LandingHero } from './LandingHero'
 import { FeatureTour } from './FeatureTour'
+import { PracticePreview } from './PracticePreview'
 import { AppDownload } from './AppDownload'
 import { LandingFooter } from './LandingFooter'
 import { WebStartLink } from './WebStartLink'
 import './landingBrand.css'
 
-/** 소개·통화 흐름·핵심 질문·다운로드로 짧게 이어지는 랜딩을 구성합니다. */
+/** 통화 흐름·설정 미리보기·자가진단·다운로드를 연결하는 랜딩을 구성합니다. */
 export const LandingPage = () => {
   const { pageRef } = useLandingScroll()
   useBrandMotion(pageRef)
@@ -36,6 +37,7 @@ export const LandingPage = () => {
       <main id="main-content">
         <LandingHero />
         <FeatureTour />
+        <PracticePreview />
         <LandingDiagnosis />
         <section id="faq" className="brand-faq" aria-labelledby="faq-title">
           <div>

@@ -62,6 +62,31 @@
   line-height: 1.7;
   color: var(--color-label-alternative);
 }
+.brand-tour-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+.brand-tour-hints button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--color-line-normal);
+  border-radius: var(--radius-pill);
+  background: var(--color-background-normal);
+  color: var(--color-label-alternative);
+  font-size: var(--text-label);
+  cursor: pointer;
+}
+.brand-tour-hints button[aria-pressed='true'] {
+  border-color: var(--color-label-normal);
+  background: var(--color-label-normal);
+  color: var(--color-background-normal);
+}
+.brand-tour-hints button:not([aria-pressed='true']):is(:hover, :focus-visible) {
+  color: var(--color-label-normal);
+  border-color: var(--color-label-normal);
+}
 .brand-tour-visual {
   position: relative;
   margin: 0;

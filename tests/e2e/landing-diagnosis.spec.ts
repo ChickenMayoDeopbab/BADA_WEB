@@ -69,6 +69,12 @@ test('completes public LANDING diagnosis without consent or login and preserves 
   await expect(
     page.getByRole('heading', { name: diagnosisResult.levelName, exact: true }),
   ).toBeVisible()
+  await page.getByRole('button', { name: '레벨 설명 보기', exact: true }).focus()
+  await expect(page.getByRole('tooltip')).toHaveText(diagnosisResult.levelDescription)
+  const resultLine = page.locator('.landing-diagnosis-result-line')
+  await expect(resultLine).toHaveJSProperty('naturalWidth', 240)
+  await expect(resultLine).toHaveCSS('width', '240px')
+  await expect(resultLine).toHaveCSS('height', '2px')
   expect(submission).toMatchObject({
     type: 'LANDING',
     answers: [2, 5],
