@@ -24,7 +24,7 @@ test('introduces the team in a full-screen section reachable from desktop and mo
     await expect(section.getByRole('heading', { level: 2 })).toBeInViewport()
     await expect(navigation.locator('a[href="#team"]')).toHaveAttribute('aria-current', 'location')
     expect((await section.boundingBox())!.height).toBeGreaterThanOrEqual(viewport.height)
-    await expect(section.getByText('치킨마요덮밥이 만드는 통화 연습 서비스')).toBeVisible()
+    await expect(section.getByRole('img', { name: 'BADA', exact: true })).toBeVisible()
     await expect(section.getByRole('link', { name: '팀 GitHub', exact: true })).toHaveAttribute(
       'href',
       'https://github.com/orgs/ChickenMayoDeopbab',

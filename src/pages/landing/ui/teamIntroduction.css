@@ -14,11 +14,6 @@
   max-width: 1152px;
   margin-inline: auto;
 }
-.brand-team-eyebrow {
-  margin-bottom: 32px;
-  color: var(--color-primary-normal);
-  font-size: var(--text-label);
-}
 .brand-team h2 {
   font-size: var(--text-marketing-hero);
   line-height: 1.2;
@@ -27,9 +22,10 @@
   word-break: keep-all;
 }
 .brand-team-story {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 64px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
   margin-top: 64px;
   padding-top: 40px;
   border-top: 1px solid var(--color-label-alternative);
@@ -38,29 +34,10 @@
   width: min(260px, 100%);
   height: auto;
 }
-.brand-team-signature p {
-  margin-top: 24px;
-  color: var(--color-secondary-assistive);
-  font-size: var(--text-label);
-}
-.brand-team-description > p:first-child {
-  font-size: var(--text-title2);
-  line-height: 1.5;
-  letter-spacing: -0.03em;
-}
-.brand-team-description > p + p {
-  max-width: 440px;
-  margin-top: 20px;
-  color: var(--color-secondary-assistive);
-  font-size: var(--text-body);
-  line-height: 1.8;
-  word-break: keep-all;
-}
 .brand-team-links {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 28px;
 }
 .brand-team-links a {
   display: inline-flex;
@@ -89,19 +66,13 @@
     font-size: var(--text-display1);
   }
   .brand-team-story {
-    grid-template-columns: 1fr;
-    gap: 40px;
+    flex-direction: column;
+    align-items: start;
     margin-top: 40px;
     padding-top: 32px;
   }
   .brand-team-signature img {
     width: 144px;
-  }
-  .brand-team-signature p {
-    margin-top: 16px;
-  }
-  .brand-team-description > p:first-child {
-    font-size: var(--text-headline1);
   }
 }
 @media (prefers-reduced-motion: reduce) {
