@@ -4,5 +4,4 @@ export type {
   DiagnosisQuestion,
   DiagnosisResult,
   DiagnosisSubmitRequest,
-  DiagnosisType,
 } from './model/types'

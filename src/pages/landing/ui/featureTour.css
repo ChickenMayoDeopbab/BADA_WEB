@@ -303,7 +303,8 @@
   transform: translateY(-50%);
   opacity: var(--scene-opacity, 1);
 }
-.brand-tour[data-scroll-story='true'][data-active-scene='1'] .brand-tour-panel {
+.brand-tour[data-scroll-story='true'][data-active-scene='1']:not([data-mobile-story='true'])
+  .brand-tour-panel {
   left: 58%;
 }
 .brand-tour[data-scroll-story='true'] .brand-tour-visual {
@@ -436,5 +437,144 @@
     width: 196px;
     padding: 14px;
     left: calc(100% + 16px);
+  }
+}
+
+/* 세로 모바일은 한 화면에 설명과 기기를 담고 스크롤로 장면만 바꿉니다. */
+.brand-tour[data-mobile-story='true'] .brand-tour-stage {
+  --tour-device-scale: var(--tour-mobile-device-scale, 0.3);
+  --tour-header-offset: 72px;
+  top: var(--tour-header-offset);
+  height: calc(100svh - var(--tour-header-offset));
+  padding-block: 16px max(64px, env(safe-area-inset-bottom));
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-heading {
+  gap: 12px;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-heading h2 {
+  font-size: var(--text-headline1);
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-tabs button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-workspace {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-panel {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  min-height: 196px;
+  height: auto;
+  flex-shrink: 0;
+  transform: none;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-copy h3 {
+  margin-top: 8px;
+  font-size: var(--text-title2);
+  line-height: 1.3;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-description {
+  max-width: none;
+  margin-top: 8px;
+  font-size: var(--text-label);
+  line-height: 1.5;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-hints {
+  gap: 6px;
+  margin-top: 10px;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-hints button {
+  padding-inline: 12px;
+  font-size: var(--text-caption);
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-visual {
+  position: relative;
+  inset: auto;
+  flex: 1;
+  min-height: 0;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-carrier {
+  position: relative;
+  top: auto;
+  left: auto;
+  margin-inline: auto;
+  transform: none;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-callout {
+  --tour-callout-layout: below;
+  top: calc(100% + 12px);
+  width: min(280px, calc(100vw - 48px));
+  padding: 10px 14px;
+  box-shadow: none;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-callout-heading {
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-callout-index {
+  width: 20px;
+  height: 20px;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-callout p {
+  margin-top: 4px;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-connector-mobile {
+  top: -12px;
+  height: 12px;
+}
+.brand-tour[data-mobile-story='true'] .brand-tour-number {
+  top: 40%;
+}
+
+@media (min-width: 640px) {
+  .brand-tour[data-mobile-story='true'] .brand-tour-stage {
+    --tour-header-offset: 80px;
+  }
+}
+
+/* 짧은 세로 화면은 설명창을 옆으로 옮겨 기기를 지나치게 축소하지 않습니다. */
+@media (max-height: 739px) {
+  .brand-tour[data-mobile-story='true'] .brand-tour-stage {
+    padding-top: 12px;
+  }
+  .brand-tour[data-mobile-story='true'] .brand-tour-heading h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .brand-tour[data-mobile-story='true'] .brand-tour-workspace {
+    margin-top: 12px;
+  }
+  .brand-tour[data-mobile-story='true'] .brand-tour-panel {
+    min-height: 128px;
+  }
+  .brand-tour[data-mobile-story='true'] .brand-tour-copy h3 {
+    font-size: var(--text-headline2);
+  }
+  .brand-tour[data-mobile-story='true'] .brand-tour-description {
+    display: none;
+  }
+  .brand-tour[data-mobile-story='true'] .brand-tour-carrier {
+    margin-left: 0;
+  }
+  .brand-tour[data-mobile-story='true'] .brand-tour-callout {
+    --tour-callout-layout: side;
+    top: 50%;
+    left: calc(100% + 12px);
+    width: calc(100vw - 70px - 402px * var(--tour-device-scale));
+    transform: translateY(-50%);
+  }
+  .brand-tour[data-mobile-story='true'] .brand-tour-connector-mobile {
+    display: none;
   }
 }

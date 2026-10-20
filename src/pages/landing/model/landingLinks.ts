@@ -16,9 +16,9 @@ export const landingLinks = {
   appStore:
     readOfficialUrl(import.meta.env.VITE_BADA_APP_STORE_URL) ??
     'https://apps.apple.com/us/app/바다-콜포비아-극복을-위한-전화-훈련-서비스/id6795040092',
-  oneStore:
-    readOfficialUrl(import.meta.env.VITE_BADA_ONE_STORE_URL) ??
-    'https://m.onestore.co.kr/v2/ko-kr/app/0001007890',
+  googlePlay:
+    readOfficialUrl(import.meta.env.VITE_BADA_GOOGLE_PLAY_URL) ??
+    'https://play.google.com/store/apps/details?id=com.chickenmayodeopbab.bada.play',
   instagram:
     readOfficialUrl(import.meta.env.VITE_BADA_INSTAGRAM_URL) ??
     'https://www.instagram.com/bada.callphobia/',

@@ -1,0 +1,166 @@
+/* 넓은 화면의 짧은 고정 구간과 모바일 웹의 일반 스크롤을 함께 제공합니다. */
+.brand-page #download {
+  scroll-margin-top: 0;
+}
+.brand-download {
+  position: relative;
+  min-height: 150svh;
+  background: var(--color-fill-normal);
+  color: var(--color-label-normal);
+}
+.brand-download-stage {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding: 104px var(--brand-gutter) 64px;
+}
+.brand-download-inner {
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+  text-align: center;
+}
+.brand-download-heading {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 36px;
+}
+.brand-download h2 {
+  margin: 0;
+  font-size: var(--text-marketing-title);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+.brand-download h2 > span {
+  display: block;
+}
+.brand-download-wordmark {
+  width: 104px;
+  height: auto;
+  object-fit: contain;
+}
+.brand-store-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 224px));
+  justify-content: center;
+  gap: 12px;
+}
+.brand-store-links > a {
+  min-width: 0;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-component);
+  background: var(--color-label-normal);
+  color: var(--color-background-normal);
+  text-align: left;
+  transition:
+    background-color 200ms ease,
+    transform 200ms ease;
+}
+.brand-store-links .brand-store-logo {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.brand-store-links small,
+.brand-store-links strong {
+  display: block;
+}
+.brand-store-links small {
+  margin-bottom: 3px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-secondary-assistive);
+}
+.brand-store-links strong {
+  font-size: var(--text-title2);
+  line-height: var(--text-title2--line-height);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.brand-store-links > a:focus-visible {
+  background: var(--color-label-neutral);
+}
+@media (hover: hover) and (pointer: fine) {
+  .brand-store-links > a:hover {
+    background: var(--color-label-neutral);
+  }
+}
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .brand-store-links > a:is(:hover, :focus-visible) {
+    transform: translateY(-3px);
+  }
+}
+@media (max-width: 639px) {
+  .brand-download {
+    min-height: 100svh;
+  }
+  .brand-download-stage {
+    position: relative;
+    padding: max(96px, env(safe-area-inset-top))
+      max(var(--brand-gutter), env(safe-area-inset-right)) max(64px, env(safe-area-inset-bottom))
+      max(var(--brand-gutter), env(safe-area-inset-left));
+  }
+  .brand-download h2 {
+    font-size: var(--text-display1);
+  }
+  .brand-download-heading {
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .brand-download-wordmark {
+    width: 88px;
+  }
+  .brand-store-links > a {
+    min-height: 72px;
+    padding: 12px;
+    gap: 8px;
+  }
+  .brand-store-links .brand-store-logo {
+    width: 24px;
+    height: 28px;
+  }
+  .brand-store-links strong {
+    font-size: var(--text-headline2);
+    line-height: var(--text-headline2--line-height);
+  }
+}
+@media (max-width: 359px) {
+  .brand-store-links {
+    grid-template-columns: minmax(0, 224px);
+  }
+  .brand-store-links > a {
+    padding-inline: 24px;
+    gap: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce), (max-height: 600px) {
+  .brand-download {
+    min-height: 100svh;
+  }
+  .brand-download-stage {
+    position: relative;
+  }
+}
+@media (max-height: 600px) {
+  .brand-download-stage {
+    padding-block: 96px 48px;
+  }
+  .brand-download-heading {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .brand-download h2 {
+    font-size: var(--text-display1);
+  }
+}

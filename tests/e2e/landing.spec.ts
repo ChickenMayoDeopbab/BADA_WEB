@@ -19,6 +19,7 @@ test('supports keyboard feature navigation and keeps the real feature destinatio
   page,
 }) => {
   await page.goto('/')
+  await expect(page.locator('.brand-page')).toHaveAttribute('data-brand-ready', 'true')
   const firstTab = page.getByRole('tab', { name: '상황 고르기', exact: true })
   await firstTab.focus()
   await firstTab.press('ArrowRight')
@@ -40,6 +41,9 @@ test('sends an existing session to the actual web service', async ({ page }) => 
   await entry.click()
   await expect(page).toHaveURL(/\/dashboard$/)
   await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible()
+  await expect(page.locator('html')).toHaveCSS('scrollbar-width', 'auto')
+  await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('overflow-y', 'auto')
+  await expect(page.locator('[data-scroll-lock-target]')).toHaveCSS('scrollbar-width', 'auto')
 })
 
 test('opens policy documents publicly without authentication or consent requests', async ({
@@ -91,6 +95,19 @@ test('keeps mobile navigation, footer channels, and store link states usable', a
     'https://www.instagram.com/bada.callphobia/',
   )
   await expect(page.locator('a[href="#"]')).toHaveCount(0)
+  const googlePlay = page.getByRole('link', { name: 'Google Play에서 BADA 다운로드 (새 탭)' })
+  await expect(googlePlay).toHaveAttribute(
+    'href',
+    'https://play.google.com/store/apps/details?id=com.chickenmayodeopbab.bada.play',
+  )
+  await expect
+    .poll(() =>
+      googlePlay
+        .locator('img')
+        .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+    )
+    .toBe(true)
+  await expect(page.getByRole('link', { name: /ONE store/ })).toHaveCount(0)
   const stores = page.locator('#download').locator('a, button')
   await expect(stores).toHaveCount(2)
   for (const store of await stores.all()) {

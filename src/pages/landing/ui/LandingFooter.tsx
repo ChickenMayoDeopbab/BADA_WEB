@@ -58,8 +58,8 @@ export const LandingFooter = () => (
           </a>
           <p className="mt-1">
             개인정보 보호책임자: 이도연 ·{' '}
-            <a href="mailto:dgsw0509@dgsw.hs.kr" className="break-all">
-              dgsw0509@dgsw.hs.kr
+            <a href={landingLinks.support} className="break-all">
+              team.bada.service@gmail.com
             </a>
           </p>
         </div>

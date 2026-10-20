@@ -32,7 +32,7 @@ export const landingQuestions = [
   {
     question: '앱을 설치해야만 연습할 수 있나요?',
     answer:
-      '설치 없이 웹에서 로그인해 연습할 수 있어요. 휴대폰에서는 App Store와 ONE store에서 앱을 받을 수 있어요.',
+      '설치 없이 웹에서 로그인해 연습할 수 있어요. 휴대폰에서는 App Store와 Google Play에서 앱을 받을 수 있어요.',
   },
   {
     question: '실제 사람에게 전화가 걸리나요?',

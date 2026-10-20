@@ -19,11 +19,11 @@ body,
   margin: 0;
 }
 
-/* 스크롤과 키보드 이동을 유지하면서 전체 앱의 스크롤바만 숨깁니다. */
-* {
+/* 랜딩의 페이지 스크롤바만 숨기고 내부 목록과 다른 화면의 스크롤바는 유지합니다. */
+html:has(.landing-page) {
   scrollbar-width: none;
 }
-*::-webkit-scrollbar {
+html:has(.landing-page)::-webkit-scrollbar {
   display: none;
 }
 

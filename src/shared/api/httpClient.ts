@@ -14,7 +14,7 @@ export const httpClient = axios.create({
   baseURL: env.apiBaseUrl,
 })
 
-/** 인증 갱신과 공개 자가진단처럼 인증 인터셉터가 필요 없는 요청에 사용합니다. */
+/** 인증 갱신처럼 인증 인터셉터가 필요 없는 요청에 사용합니다. */
 export const plainHttpClient = axios.create({
   ...defaultHttpConfig,
   baseURL: env.apiBaseUrl,

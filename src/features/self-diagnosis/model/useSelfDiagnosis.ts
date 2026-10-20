@@ -4,7 +4,6 @@ import {
   submitDiagnosis,
   type DiagnosisAnswer,
   type DiagnosisResult,
-  type DiagnosisType,
 } from '@entities/diagnosis'
 import { acceptLegalConsents, getLegalConsentStatus } from '@entities/legal-consent'
 import { getApiErrorMessage } from '@shared/api'
@@ -21,8 +20,7 @@ const CONSENT_SAVE_ERROR_MESSAGE = '동의를 저장하지 못했어요. 잠시 
 const SUBMIT_ERROR_MESSAGE = '레벨 계산에 실패했어요. 다시 시도해 주세요.'
 
 // 자가진단의 단계 이동, 응답 저장, 민감정보 동의 확인, 결과 제출을 관리합니다.
-export const useSelfDiagnosis = (type: DiagnosisType = 'SIGNUP') => {
-  const isLanding = type === 'LANDING'
+export const useSelfDiagnosis = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [step, setStep] = useState<SelfDiagnosisStep>('intro')
@@ -35,10 +33,8 @@ export const useSelfDiagnosis = (type: DiagnosisType = 'SIGNUP') => {
   const [errorMessage, setErrorMessage] = useState('')
 
   const questionsQuery = useQuery({
-    queryKey: ['diagnosis', 'questions', type],
-    queryFn: () => getDiagnosisQuestions(type),
-    enabled: !isLanding || step !== 'intro',
-    retry: isLanding ? false : undefined,
+    queryKey: ['diagnosis', 'questions', 'SIGNUP'],
+    queryFn: getDiagnosisQuestions,
     select: (questions) => [...questions].sort((a, b) => a.orderIndex - b.orderIndex),
   })
   const questions = questionsQuery.data ?? []
@@ -61,15 +57,11 @@ export const useSelfDiagnosis = (type: DiagnosisType = 'SIGNUP') => {
     setStep('question')
   }
 
-  // 공개 진단은 바로 문항을 열고, 회원 진단은 기존 서버 동의 상태를 확인합니다.
+  // 기존 서버 동의 상태를 확인한 뒤 회원 진단을 시작합니다.
   const start = async () => {
     if (consentStatus !== 'idle') return
 
     setErrorMessage('')
-    if (isLanding) {
-      beginQuestions()
-      return
-    }
     setConsentStatus('checking')
     try {
       const status = await getLegalConsentStatus()
@@ -108,25 +100,23 @@ export const useSelfDiagnosis = (type: DiagnosisType = 'SIGNUP') => {
     }
   }
 
-  /** 문항 버전과 같은 세션 ID로 응답을 제출합니다. 공개 진단은 회원 지표를 변경하지 않습니다. */
+  /** 문항 버전과 같은 세션 ID로 회원 진단 응답을 제출합니다. */
   const submit = async (submittedAnswers: DiagnosisAnswer[]) => {
     setStep('submitting')
     try {
       const nextResult = await submitDiagnosis({
         sessionId,
-        type,
+        type: 'SIGNUP',
         answers: submittedAnswers,
         ...(questions[0]?.questionnaireVersion
           ? { questionnaireVersion: questions[0].questionnaireVersion }
           : {}),
       })
       setResult(nextResult)
-      setStep(isLanding ? 'result' : 'done')
-      // 회원 진단만 사이드바 레벨과 대시보드 지표에 반영합니다.
-      if (!isLanding) {
-        void queryClient.invalidateQueries({ queryKey: ['user'] })
-        void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      }
+      setStep('done')
+      // 진단 결과를 사이드바 레벨과 대시보드 지표에 반영합니다.
+      void queryClient.invalidateQueries({ queryKey: ['user'] })
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, SUBMIT_ERROR_MESSAGE))
       setStep('error')
