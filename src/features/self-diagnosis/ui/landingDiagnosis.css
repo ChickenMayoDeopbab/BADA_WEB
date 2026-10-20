@@ -180,35 +180,10 @@
 .landing-diagnosis-result-line {
   margin: 28px auto;
 }
-.landing-diagnosis-result-help {
-  position: relative;
-  display: flex;
-}
-.landing-diagnosis-result-help > button {
-  display: grid;
-  place-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-}
-.landing-diagnosis-result-help > p {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  z-index: 2;
-  width: 240px;
-  padding: 16px;
-  border: 1px solid var(--color-line-neutral);
-  border-radius: var(--radius-component);
-  background: var(--color-background-normal);
-  box-shadow: var(--shadow-elevated-card);
-  font-size: var(--text-label);
-  line-height: 1.7;
-  visibility: hidden;
-}
-.landing-diagnosis-result-help:is(:hover, :focus-within) > p {
-  visibility: visible;
+.landing-diagnosis-result-description {
+  max-width: 620px;
+  margin-inline: auto;
+  word-break: keep-all;
 }
 .landing-diagnosis-result-actions {
   display: flex;

@@ -235,7 +235,7 @@ const ReportScreen = () => (
 )
 
 /** 스크린샷 대신 실제 레이아웃과 로컬 Figma 에셋으로 만든 앱 화면 목업입니다. */
-export const AppScreen = ({ variant, className = '', hintMode = 'advice' }: AppScreenProps) => (
+export const AppScreen = ({ variant, className = '', hintMode = 'suggestion' }: AppScreenProps) => (
   <div
     className={`app-device ${className}`}
     role="img"

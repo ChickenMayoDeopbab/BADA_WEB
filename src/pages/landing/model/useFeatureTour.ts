@@ -16,7 +16,7 @@ const mobileTourSizing = {
 /** 고정된 제품 무대의 스크롤 진행과 직접 선택·키보드 탐색을 동기화합니다. */
 export const useFeatureTour = () => {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [hintMode, setHintMode] = useState<CallHintMode>('advice')
+  const [hintMode, setHintMode] = useState<CallHintMode>('suggestion')
   const [isSceneChanging, setIsSceneChanging] = useState(false)
   const storyRef = useRef<HTMLElement>(null)
   const cancelScroll = useRef<(() => void) | undefined>(undefined)

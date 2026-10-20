@@ -53,7 +53,6 @@
 .brand-header > a img {
   width: auto;
   height: 30px;
-  filter: brightness(0);
 }
 .brand-header nav {
   display: flex;
@@ -73,6 +72,7 @@
   transform: translateY(0);
 }
 .brand-web-link {
+  border-radius: var(--radius-control);
   word-break: keep-all;
   display: inline-flex;
   align-items: center;

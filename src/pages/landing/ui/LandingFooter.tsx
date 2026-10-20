@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { LuGithub, LuInstagram } from 'react-icons/lu'
+import { LuArrowUpRight, LuGithub, LuInstagram } from 'react-icons/lu'
 import logo from '@shared/assets/auth/logo.svg'
 import { routePaths } from '@shared/config'
 import { landingLinks } from '../model/landingLinks'
@@ -9,9 +9,20 @@ export const LandingFooter = () => (
   <footer className="brand-footer border-t border-line-alternative bg-background-normal">
     <div className="max-w-6xl py-10 mx-auto">
       <div className="gap-6 flex flex-wrap items-center justify-between">
-        <Link to={routePaths.landing} aria-label="BADA 홈">
-          <img src={logo} alt="BADA" className="h-8 w-auto" />
-        </Link>
+        <div className="gap-6 flex flex-wrap items-center">
+          <Link to={routePaths.landing} aria-label="BADA 홈">
+            <img src={logo} alt="BADA" className="h-8 w-auto" />
+          </Link>
+          <a
+            href={landingLinks.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="팀·서비스 소개 (새 탭)"
+            className="gap-3 px-4 py-3 min-h-11 inline-flex items-center rounded-control border border-line-normal text-label text-label-normal hover:bg-fill-normal"
+          >
+            팀·서비스 소개 <LuArrowUpRight aria-hidden="true" />
+          </a>
+        </div>
         <nav
           aria-label="BADA 공식 채널"
           className="gap-6 flex items-center text-label text-label-alternative"

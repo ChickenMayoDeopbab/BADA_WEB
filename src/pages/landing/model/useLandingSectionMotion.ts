@@ -31,7 +31,7 @@ export const useLandingSectionMotion = (pageRef: RefObject<HTMLDivElement | null
                   ? '.landing-diagnosis-panel'
                   : id === 'faq'
                     ? 'details'
-                    : '.brand-download-wordmark, .brand-store-links > a',
+                    : '.brand-download-wordmark',
             )
             const timeline = gsap.timeline({
               paused: true,
