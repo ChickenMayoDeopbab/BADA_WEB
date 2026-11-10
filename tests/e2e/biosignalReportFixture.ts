@@ -85,3 +85,25 @@ export const makeWatch6BiosignalReport = (sessionId: string) => {
     },
   }
 }
+
+/** 서버 `GET /api/v1/biosignals/trend` 응답 형식의 예시입니다. 뒤에 적은 통화일수록 최근입니다. */
+export const makeBiosignalTrend = (sessionIds: string[]) => ({
+  version: 'BIOSIGNAL_TREND_V1',
+  sessions: sessionIds.length,
+  groups: [
+    {
+      scenario_id: 3,
+      difficulty: 'NORMAL',
+      ai_personality: 'NORMAL',
+      sessions: sessionIds.map((sessionId, index) => ({
+        session_id: sessionId,
+        at: new Date(Date.UTC(2026, 10, 8 + index, 0, 25)).toISOString(),
+        hr_call_delta: 9.4,
+      })),
+      trend: { hr_call_delta: { status: 'INSUFFICIENT_DATA', sessions: sessionIds.length } },
+    },
+  ],
+  first_encounters: { sessions: [], trend: {} },
+  anticipation: { status: 'INSUFFICIENT_DATA', sessions: 0 },
+  recovery: { status: 'INSUFFICIENT_DATA', sessions: 0 },
+})
