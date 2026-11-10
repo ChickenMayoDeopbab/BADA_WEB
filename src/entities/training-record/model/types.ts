@@ -13,6 +13,7 @@ export interface TrainingFeedback {
 export interface TrainingRecord {
   id: number
   sessionId: string
+  sessionType: TrainingSessionType
   date: string
   trainedAt: string
   title: string

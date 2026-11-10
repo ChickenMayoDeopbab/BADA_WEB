@@ -139,6 +139,7 @@ const mapPositiveFeedback = (
 export const mapTrainingRecord = (record: TrainingRecordResponse): TrainingRecord => ({
   id: record.recordId,
   sessionId: record.sessionId,
+  sessionType: record.sessionType,
   date: formatTrainedDate(record.trainedAt),
   trainedAt: record.trainedAt,
   title: record.scenarioName,
