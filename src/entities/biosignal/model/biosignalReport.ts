@@ -188,6 +188,14 @@ export const formatCallSecond = (seconds: number) => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 }
 
+const PEAK_PHASE_LABELS = { speak: '내가 말할 때', listen: '상대 말을 들을 때' } as const
+
+/** 가장 높았던 순간을 'M:SS · 말한 쪽'으로 적습니다. */
+export const formatPeakMoment = (peak: BiosignalPeak) =>
+  [formatCallSecond(peak.atSec), peak.phase && PEAK_PHASE_LABELS[peak.phase]]
+    .filter(Boolean)
+    .join(' · ')
+
 /** 부호를 붙인 숫자를 만듭니다. 0은 부호 없이 적습니다. */
 export const formatSigned = (value: number, digits: number) => {
   const rounded = Number(value.toFixed(digits))
