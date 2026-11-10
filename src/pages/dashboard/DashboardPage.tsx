@@ -1,6 +1,7 @@
 import { AttendanceCalendar } from '@widgets/attendance-calendar'
 import { DashboardHeader } from '@widgets/dashboard-header'
 import { DashboardPromoCards } from '@widgets/dashboard-promo'
+import { RecentBiosignalReport } from '@widgets/recent-biosignal-report'
 import { RecentTrainingRecords } from '@widgets/recent-training-records'
 import { WeeklyReport } from '@widgets/weekly-report'
 import { ServicePageContent } from '@shared/ui'
@@ -17,6 +18,7 @@ export default function DashboardPage() {
           <AttendanceCalendar />
           <RecentTrainingRecords />
         </div>
+        <RecentBiosignalReport />
       </div>
     </ServicePageContent>
   )
