@@ -1,6 +1,6 @@
 import { FiChevronDown } from 'react-icons/fi'
-import { buildBiosignalChartGeometry } from '../model/biosignalChart'
-import { formatCallSecond, formatSigned } from '../model/biosignalReport'
+import { buildEdaChartGeometry, buildHeartChartGeometry } from '../model/biosignalChart'
+import { formatPeakMoment, formatSigned } from '../model/biosignalReport'
 import type {
   BiosignalEdaView,
   BiosignalHeartView,
@@ -8,30 +8,9 @@ import type {
   BiosignalSkinTempView,
 } from '../model/types'
 import { useBiosignalDisclosure } from '../model/useBiosignalDisclosure'
-import { BiosignalChartView, BiosignalPeakMarker } from './BiosignalChartView'
-
-/** 심박 곡선 세로 눈금의 최소 폭(bpm)입니다. */
-const HEART_MIN_SPAN_BPM = 10
-/** 피부전도 곡선 세로 눈금의 최소 폭입니다. 사람마다 수준이 크게 달라 가운데 값 대비 비율로 둡니다. */
-const EDA_MIN_SPAN_RATIO = 0.2
-
-const PEAK_PHASE_LABELS = { speak: ' · 내가 말할 때', listen: ' · 상대 말을 들을 때' } as const
-
-interface MetricRowProps {
-  label: string
-  value: string
-  hasMarker?: boolean
-}
-
-const MetricRow = ({ label, value, hasMarker = false }: MetricRowProps) => (
-  <div className="gap-3 flex items-center justify-between">
-    <dt className="shrink-0 text-body font-medium text-label-alternative">{label}</dt>
-    <dd className="gap-x-2 m-0 flex flex-1 items-center justify-end">
-      {hasMarker && <BiosignalPeakMarker />}
-      <span className="text-right text-body font-bold text-label-neutral">{value}</span>
-    </dd>
-  </div>
-)
+import { BiosignalChartView } from './BiosignalChartView'
+import { BiosignalMetricRow as MetricRow } from './BiosignalMetricRow'
+import { BIOSIGNAL_DISCLAIMER, HEART_REACTION_NOTE } from './biosignalCopy'
 
 const SectionTitle = ({ children }: { children: string }) => (
   <h4 className="text-body font-bold text-label-normal">{children}</h4>
@@ -52,10 +31,7 @@ const HeartSection = ({ heart }: { heart: BiosignalHeartView }) => {
       {callChange && <p className="text-body font-bold text-label-neutral">{callChange}</p>}
       {chart && (
         <BiosignalChartView
-          geometry={buildBiosignalChartGeometry(chart, {
-            minSpan: HEART_MIN_SPAN_BPM,
-            peak: peak && { atSec: peak.atSec, value: peak.bpm },
-          })}
+          geometry={buildHeartChartGeometry(chart, peak)}
           label={'통화 전부터 끊은 뒤까지의 심박 흐름 그래프'}
         />
       )}
@@ -64,7 +40,7 @@ const HeartSection = ({ heart }: { heart: BiosignalHeartView }) => {
           {peak && (
             <MetricRow
               label={'가장 높았던 순간'}
-              value={`${formatCallSecond(peak.atSec)}${peak.phase ? PEAK_PHASE_LABELS[peak.phase] : ''}`}
+              value={formatPeakMoment(peak)}
               hasMarker={chart !== null}
             />
           )}
@@ -115,7 +91,7 @@ const EdaSection = ({ eda }: { eda: BiosignalEdaView }) => (
     <SectionTitle>{'피부전도'}</SectionTitle>
     {eda.chart && (
       <BiosignalChartView
-        geometry={buildBiosignalChartGeometry(eda.chart, { minSpanRatio: EDA_MIN_SPAN_RATIO })}
+        geometry={buildEdaChartGeometry(eda.chart)}
         label={'통화 전부터 끊은 뒤까지의 피부전도 흐름 그래프'}
       />
     )}
@@ -164,8 +140,8 @@ export const BiosignalReportCard = ({ view }: BiosignalReportCardProps) => (
       {view.skinTemp && <SkinTempSection skinTemp={view.skinTemp} />}
     </div>
     <p className="px-1 text-caption text-label-alternative">
-      {view.heart && '통화할 때 심박이 오르는 건 몸이 대화를 준비하는 자연스러운 신호예요. '}
-      {'워치로 잰 참고 기록이며, 의료적 판단이나 진단이 아니에요.'}
+      {view.heart && `${HEART_REACTION_NOTE} `}
+      {BIOSIGNAL_DISCLAIMER}
     </p>
   </section>
 )

@@ -1,9 +1,13 @@
-import type { BiosignalChart, BiosignalPhase } from './types'
+import type { BiosignalChart, BiosignalPeak, BiosignalPhase } from './types'
 
 export const BIOSIGNAL_CHART_HEIGHT = 120
 const CHART_PADDING_Y = 12
 /** 구간이 곡선 폭의 이 비율보다 좁으면 이름이 옆 구간 이름과 겹치므로 적지 않습니다. */
 const MIN_LABEL_RATIO = 0.14
+/** 심박 곡선 세로 눈금의 최소 폭(bpm)입니다. */
+const HEART_MIN_SPAN_BPM = 10
+/** 피부전도 곡선 세로 눈금의 최소 폭입니다. 사람마다 수준이 크게 달라 가운데 값 대비 비율로 둡니다. */
+const EDA_MIN_SPAN_RATIO = 0.2
 
 type BiosignalRegion = 'before' | 'call' | 'after'
 
@@ -128,3 +132,14 @@ export const buildBiosignalChartGeometry = (
       : null,
   }
 }
+
+/** 심박 곡선 좌표입니다. 최고점을 세로 범위에 넣습니다. */
+export const buildHeartChartGeometry = (chart: BiosignalChart, peak: BiosignalPeak | null) =>
+  buildBiosignalChartGeometry(chart, {
+    minSpan: HEART_MIN_SPAN_BPM,
+    peak: peak && { atSec: peak.atSec, value: peak.bpm },
+  })
+
+/** 피부전도 곡선 좌표입니다. */
+export const buildEdaChartGeometry = (chart: BiosignalChart) =>
+  buildBiosignalChartGeometry(chart, { minSpanRatio: EDA_MIN_SPAN_RATIO })
