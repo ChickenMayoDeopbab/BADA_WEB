@@ -1,5 +1,6 @@
 import { OverlayPortal } from '@shared/ui'
 import { useDialogFocus } from '@shared/lib'
+import { BiosignalReportCard, useBiosignalReport } from '@entities/biosignal'
 import {
   trainingPeriodOptions,
   type TrainingFeedback,
@@ -263,6 +264,8 @@ const RecordDetailPanel = ({
   isRetrying,
 }: RecordDetailPanelProps) => {
   const { scrollRef, isDragging, dragScrollHandlers } = useDragScroll()
+  // 워밍업은 측정하지 않습니다. 측정하지 않은 다른 통화는 서버가 404를 줘서 카드가 없습니다.
+  const biosignalView = useBiosignalReport(record.sessionId, record.sessionType !== 'WARMUP')
 
   const dialogRef = useDialogFocus(isOpen, onClose)
 
@@ -385,6 +388,12 @@ const RecordDetailPanel = ({
                     onToggleAudio={onToggleAudio}
                   />
                 ))}
+              {/* 측정·분석이 끝난 통화만 카드 내용이 있습니다. 없으면 구역째 숨깁니다. */}
+              {!isLoading && !errorMessage && biosignalView && (
+                <div className="pt-4">
+                  <BiosignalReportCard view={biosignalView} />
+                </div>
+              )}
             </div>
           </section>
         </div>

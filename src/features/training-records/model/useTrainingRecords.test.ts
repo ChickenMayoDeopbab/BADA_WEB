@@ -27,6 +27,7 @@ vi.mock('@shared/api', () => ({
 const createRecord = (index: number, trainedAt = '2026-10-12T04:22:00Z'): TrainingRecord => ({
   id: index,
   sessionId: `session-${index}`,
+  sessionType: 'SCENARIO',
   date: '10월 12일',
   trainedAt,
   title: `훈련 기록 ${index}`,
