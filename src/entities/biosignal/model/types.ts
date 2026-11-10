@@ -131,3 +131,16 @@ export interface BiosignalReportView {
   eda: BiosignalEdaView | null
   skinTemp: BiosignalSkinTempView | null
 }
+
+/** 회차 추세 응답입니다. 최근 분석 회차를 찾는 데 쓰는 필드만 적습니다(워밍업 제외). */
+export interface BiosignalTrendResponse {
+  sessions?: number
+  groups?: { sessions?: { session_id?: string; at?: string }[] }[]
+}
+
+/** 가장 최근에 분석된 통화입니다. */
+export interface BiosignalLatestSession {
+  sessionId: string
+  /** 분석 행이 만들어진 시각(ISO) */
+  at: string
+}
